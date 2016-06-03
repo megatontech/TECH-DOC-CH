@@ -1,0 +1,6 @@
+{
+  "name": "Tech-doc-ch",
+  "tagline": "翻译一些技术文档和手册方便使用时查询",
+  "body": "## 业余时间翻译一些技术手册和文档参考\r\n#### 都是平时感兴趣的东西，可能不成体系，难免会有疏漏和错误，如果发现还请指出和批评\r\n\r\n### [Unity 使用文档](https://github.com/)\r\n#### 是官方网站上的指导手册，目前没有汉化，学习翻译一遍方便自己查找和使用\r\n\r\n### [Xaudio2 帮助文档](https://github.com/)\r\n#### msdn上的API，好像后来官方有翻译了，目前是机翻。\r\n\r\n### [SmartGit中文使用文档](https://github.com/)\r\n#### SmartGit是很好用的git/hg客户端，能和github很好的集成。官方文档是英文的，试着翻译一下，讲解很详细也可以用作学习git版本管理的入门\r\n\r\n### Support or Contact\r\nHaving trouble with Pages? Check out our [documentation](https://help.github.com/pages) or [contact support](https://github.com/contact) and we’ll help you sort it out.\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
