@@ -1,3 +1,5 @@
+##构架状态
+[![Build Status](https://travis-ci.org/megatontech/TECH-DOC-CH.svg?branch=master)](https://travis-ci.org/megatontech/TECH-DOC-CH)
 # TECH-DOC-CH
 ##翻译一些技术文档和手册方便使用时查询，如果可能会一直更新下去的
 ![keepgoing](https://github.com/megatontech/TECH-DOC-CH/blob/master/%E5%9B%BE%E7%89%87/trying.png)
