@@ -5,7 +5,7 @@
 ![keepgoing](https://github.com/megatontech/TECH-DOC-CH/blob/master/%E5%9B%BE%E7%89%87/trying.png)
 ***
 1. 原版（没时间的话就直接放上来）***
-![keepgoing](https://github.com/megatontech/TECH-DOC-CH/blob/master/ITMEME/1461274284091.gif）
+![keepgoing](https://github.com/megatontech/TECH-DOC-CH/blob/master/ITMEME/1461274284091.gif)
 2. 翻译版(一些有价值的文章，试着翻译一下吧)***
 ![keepgoing](https://github.com/megatontech/TECH-DOC-CH/blob/master/%E5%9B%BE%E7%89%87/12612881707186780.jpg)
 3. 转载***
