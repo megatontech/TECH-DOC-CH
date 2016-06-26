@@ -1,0 +1,124 @@
+/*====== Stylesheet for CsdnUbbEditor ==*\
+     Object: CsdnUbbEditor.css
+     Author: meizz
+Last Update: 2007-02-28
+\*======================================*/
+
+div.CsdnUbbEditorMenubar
+{
+    margin: 0px;
+    padding: 3px 0;
+    border: solid 1px #9B9B9B;
+    background: #FFFFFF url(CsdnUbbEditor/bgMenubar.gif) repeat-x bottom;
+    width:100%;
+}
+/*
+div.CsdnUbbEditorMenubar .layer1{background: url(CsdnUbbEditor/vline.gif) repeat-y left;}
+div.CsdnUbbEditorMenubar .layer2{background: url(CsdnUbbEditor/vline.gif) repeat-y right;}
+*/
+div.CsdnUbbEditorMenubar input.menuitem
+{
+  border: 0px;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  margin-right: 2px;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+div.CsdnUbbEditorMenubar input, div.CsdnUbbEditorMenubar a, div.CsdnUbbEditorMenubar select{padding-left:3px;pvertical-align: middle;}
+div.CsdnUbbEditorMenubar input.space
+{
+  width: 8px;
+  font-size: 1px;
+  background-position: center 2px;
+  vertical-align:top;
+}
+div.CsdnUbbEditorStatusbar{font-size: 12px;}
+div.CsdnUbbEditorStatusbar span{float: right;margin: 3px 3px 0 0; color: #666666}
+
+/******* textarea ******/
+textarea.CsdnUbbEditor{border: solid 1px #9B9B9B;width:100%;padding: 3px 0;color:Black;font-size:14px;}
+
+/**** CsdnUbbEditorMenubar input ****/
+div.CsdnUbbEditorMenubar input.bold{background-image: url(CsdnUbbEditor/bold.gif);}
+div.CsdnUbbEditorMenubar input.italic{background-image: url(CsdnUbbEditor/italic.gif);}
+div.CsdnUbbEditorMenubar input.underline{background-image: url(CsdnUbbEditor/underline.gif);}
+div.CsdnUbbEditorMenubar input.strikethrough{background-image: url(CsdnUbbEditor/strikethrough.gif);}
+div.CsdnUbbEditorMenubar input.swf{background-image: url(CsdnUbbEditor/swf.gif);}
+div.CsdnUbbEditorMenubar input.code{background-image: url(CsdnUbbEditor/code.gif);}
+div.CsdnUbbEditorMenubar input.color{background-image: url(CsdnUbbEditor/color.gif);}
+div.CsdnUbbEditorMenubar input.movie{background-image: url(CsdnUbbEditor/movie.gif);}
+div.CsdnUbbEditorMenubar input.left{background-image: url(CsdnUbbEditor/left.gif);}
+div.CsdnUbbEditorMenubar input.right{background-image: url(CsdnUbbEditor/right.gif);}
+div.CsdnUbbEditorMenubar input.center{background-image: url(CsdnUbbEditor/center.gif);}
+div.CsdnUbbEditorMenubar input.url{background-image: url(CsdnUbbEditor/url.gif);}
+div.CsdnUbbEditorMenubar input.email{background-image: url(CsdnUbbEditor/email.gif);}
+div.CsdnUbbEditorMenubar input.image{background-image: url(CsdnUbbEditor/image.gif);}
+div.CsdnUbbEditorMenubar input.space{background-image: url(CsdnUbbEditor/space.gif);}
+div.CsdnUbbEditorMenubar input.increase{background-image: url(CsdnUbbEditor/increase.gif);}
+div.CsdnUbbEditorMenubar input.decrease{background-image: url(CsdnUbbEditor/decrease.gif);}
+div.CsdnUbbEditorMenubar input.fontsize{background-image: url(CsdnUbbEditor/fontsize.gif);}
+div.CsdnUbbEditorMenubar input.help{background-image: url(CsdnUbbEditor/help.gif);}
+
+
+.CsdnUbbEditorColorLayer
+{
+    z-index: 1;
+    position: absolute;
+    border: solid 1px #808080;
+    width:152px;
+}
+
+.CsdnUbbEditorColorLayer table{background-color: #F5F5F5;}
+.CsdnUbbEditorColorLayer td
+{
+    width: 10px;
+    height: 10px;
+    font-size: 1px;
+    line-height: 10px;
+    border: solid 1px #808080;
+}
+.CsdnUbbEditorColorLayer td input.text{border: inset 1px #808080; height: 18px; margin: 1px;}
+.CsdnUbbEditorColorLayer td input.button{border: outset 1px #808080; height: 18px; margin: 1px;}
+
+/**/
+.CsdnUbbEditorCodeLayer
+{
+    z-index: 1;
+    width: 100px;
+    font-size: 12px;
+    position: absolute;
+    background-color: #FFFFFF;
+    border: solid 1px #808080;
+}
+.CsdnUbbEditorCodeLayer div
+{
+    height: 20px;
+    padding: 0 5px;
+    cursor: default;
+    line-height: 20px;
+    border-bottom: solid 1px #EEEEEE;
+}
+
+/**/
+.CsdnUbbEditorFontsizeLayer
+{
+    z-index: 1;
+    font-size: 12px;
+    position: absolute;
+    background-color: #F5F5F5;
+    border: solid 1px #808080;
+    width:136px;
+}
+.CsdnUbbEditorFontsizeLayer td
+{
+    height: 14px;
+    font-size: 12px;
+    cursor: default;
+    text-align: center;
+    background-color: #FFFFFF;
+    border: solid 1px #D4D0C8;
+}
+
