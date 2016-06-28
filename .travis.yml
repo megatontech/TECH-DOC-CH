@@ -1,1 +1,2 @@
-language: cpp
+language: csharp
+solution: FileCount.sln
