@@ -1,1 +1,0 @@
-document.write('<li><a target="_blank" href="http://blog.csdn.net/blogdevteam/article/details/7236027" onclick="LogClickCount(this,165);">2012年将是CSDN超速发展的一年，机遇与挑战并存。我们求贤若渴，诚邀各位有志之士加盟。</a></li>');
