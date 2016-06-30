@@ -1,0 +1,465 @@
+很多人都在论坛里问，如何实现DataGrid的打印预览和打印，现在我就把这方面的源代码告诉大家。这段代码也花费了我1个晚上的时间，呵呵！数据库是基于SQL Server2000自带的northwind。源代码如下：
+
+using System;
+using System.Drawing;
+using System.Collections;
+using System.ComponentModel;
+using System.Windows.Forms;
+using System.Data;
+using System.Data.OleDb;
+
+namespace DataGridPrint
+{
+ /// <summary>
+ /// Summary description for Form1.
+ /// </summary>
+ public class Form1 : System.Windows.Forms.Form
+ {
+  private System.Windows.Forms.Panel panel1;
+  private System.Windows.Forms.DataGrid dgTest;
+  private System.Windows.Forms.Button btnFillDataGrid;
+  private System.Windows.Forms.MainMenu mnuFile;
+  private System.Windows.Forms.MenuItem menuItem1;
+  private System.Windows.Forms.MenuItem miPrintPreview;
+  private System.Windows.Forms.MenuItem miPrint;
+  private System.Windows.Forms.MenuItem menuItem4;
+  private System.Windows.Forms.MenuItem miExit;
+  private System.Windows.Forms.DataGridTableStyle dgtsCustomers;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn1;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn2;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn3;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn4;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn6;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn7;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn8;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn9;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn10;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn11;
+  private System.Windows.Forms.DataGridTextBoxColumn dataGridTextBoxColumn5;
+  private System.Data.SqlClient.SqlDataAdapter sqlDataAdapter1;
+  private System.Data.SqlClient.SqlCommand sqlSelectCommand1;
+  private System.Data.SqlClient.SqlCommand sqlInsertCommand1;
+  private System.Data.SqlClient.SqlCommand sqlUpdateCommand1;
+  private System.Data.SqlClient.SqlCommand sqlDeleteCommand1;
+  private System.Data.SqlClient.SqlConnection sqlConnection1;
+  /// <summary>
+  /// Required designer variable.
+  /// </summary>
+  private System.ComponentModel.Container components = null;
+
+  public Form1()
+  {
+   //
+   // Required for Windows Form Designer support
+   //
+   InitializeComponent();
+
+   //
+   // TODO: Add any constructor code after InitializeComponent call
+   //
+  }
+
+  /// <summary>
+  /// Clean up any resources being used.
+  /// </summary>
+  protected override void Dispose( bool disposing )
+  {
+   if( disposing )
+   {
+    if (components != null) 
+    {
+     components.Dispose();
+    }
+   }
+   base.Dispose( disposing );
+  }
+
+  #region Windows Form Designer generated code
+  /// <summary>
+  /// Required method for Designer support - do not modify
+  /// the contents of this method with the code editor.
+  /// </summary>
+  private void InitializeComponent()
+  {
+   this.panel1 = new System.Windows.Forms.Panel();
+   this.dgTest = new System.Windows.Forms.DataGrid();
+   this.dgtsCustomers = new System.Windows.Forms.DataGridTableStyle();
+   this.dataGridTextBoxColumn1 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn2 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn3 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn4 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn5 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn6 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn7 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn8 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn9 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn10 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.dataGridTextBoxColumn11 = new System.Windows.Forms.DataGridTextBoxColumn();
+   this.btnFillDataGrid = new System.Windows.Forms.Button();
+   this.mnuFile = new System.Windows.Forms.MainMenu();
+   this.menuItem1 = new System.Windows.Forms.MenuItem();
+   this.miPrintPreview = new System.Windows.Forms.MenuItem();
+   this.miPrint = new System.Windows.Forms.MenuItem();
+   this.menuItem4 = new System.Windows.Forms.MenuItem();
+   this.miExit = new System.Windows.Forms.MenuItem();
+   this.sqlDataAdapter1 = new System.Data.SqlClient.SqlDataAdapter();
+   this.sqlSelectCommand1 = new System.Data.SqlClient.SqlCommand();
+   this.sqlInsertCommand1 = new System.Data.SqlClient.SqlCommand();
+   this.sqlUpdateCommand1 = new System.Data.SqlClient.SqlCommand();
+   this.sqlDeleteCommand1 = new System.Data.SqlClient.SqlCommand();
+   this.sqlConnection1 = new System.Data.SqlClient.SqlConnection();
+   this.panel1.SuspendLayout();
+   ((System.ComponentModel.ISupportInitialize)(this.dgTest)).BeginInit();
+   this.SuspendLayout();
+   // 
+   // panel1
+   // 
+   this.panel1.Anchor = (((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+    | System.Windows.Forms.AnchorStyles.Left) 
+    | System.Windows.Forms.AnchorStyles.Right);
+   this.panel1.Controls.AddRange(new System.Windows.Forms.Control[] {
+                     this.dgTest});
+   this.panel1.Location = new System.Drawing.Point(0, 9);
+   this.panel1.Name = "panel1";
+   this.panel1.Size = new System.Drawing.Size(788, 398);
+   this.panel1.TabIndex = 1;
+   // 
+   // dgTest
+   // 
+   this.dgTest.DataMember = "";
+   this.dgTest.Dock = System.Windows.Forms.DockStyle.Fill;
+   this.dgTest.HeaderForeColor = System.Drawing.SystemColors.ControlText;
+   this.dgTest.Name = "dgTest";
+   this.dgTest.Size = new System.Drawing.Size(788, 398);
+   this.dgTest.TabIndex = 0;
+   this.dgTest.TableStyles.AddRange(new System.Windows.Forms.DataGridTableStyle[] {
+                          this.dgtsCustomers});
+   // 
+   // dgtsCustomers
+   // 
+   this.dgtsCustomers.DataGrid = this.dgTest;
+   this.dgtsCustomers.GridColumnStyles.AddRange(new System.Windows.Forms.DataGridColumnStyle[] {
+                           this.dataGridTextBoxColumn1,
+                           this.dataGridTextBoxColumn2,
+                           this.dataGridTextBoxColumn3,
+                           this.dataGridTextBoxColumn4,
+                           this.dataGridTextBoxColumn5,
+                           this.dataGridTextBoxColumn6,
+                           this.dataGridTextBoxColumn7,
+                           this.dataGridTextBoxColumn8,
+                           this.dataGridTextBoxColumn9,
+                           this.dataGridTextBoxColumn10,
+                           this.dataGridTextBoxColumn11});
+   this.dgtsCustomers.HeaderForeColor = System.Drawing.SystemColors.ControlText;
+   this.dgtsCustomers.MappingName = "Customers";
+   this.dgtsCustomers.ReadOnly = true;
+   // 
+   // dataGridTextBoxColumn1
+   // 
+   this.dataGridTextBoxColumn1.Format = "";
+   this.dataGridTextBoxColumn1.FormatInfo = null;
+   this.dataGridTextBoxColumn1.HeaderText = "Customer Id";
+   this.dataGridTextBoxColumn1.MappingName = "CustomerId";
+   this.dataGridTextBoxColumn1.NullText = "";
+   this.dataGridTextBoxColumn1.Width = 75;
+   // 
+   // dataGridTextBoxColumn2
+   // 
+   this.dataGridTextBoxColumn2.Format = "";
+   this.dataGridTextBoxColumn2.FormatInfo = null;
+   this.dataGridTextBoxColumn2.HeaderText = "Company Name";
+   this.dataGridTextBoxColumn2.MappingName = "CompanyName";
+   this.dataGridTextBoxColumn2.NullText = "";
+   this.dataGridTextBoxColumn2.Width = 200;
+   // 
+   // dataGridTextBoxColumn3
+   // 
+   this.dataGridTextBoxColumn3.Format = "";
+   this.dataGridTextBoxColumn3.FormatInfo = null;
+   this.dataGridTextBoxColumn3.HeaderText = "Contact Name";
+   this.dataGridTextBoxColumn3.MappingName = "ContactName";
+   this.dataGridTextBoxColumn3.NullText = "";
+   this.dataGridTextBoxColumn3.Width = 125;
+   // 
+   // dataGridTextBoxColumn4
+   // 
+   this.dataGridTextBoxColumn4.Format = "";
+   this.dataGridTextBoxColumn4.FormatInfo = null;
+   this.dataGridTextBoxColumn4.HeaderText = "Contact Title";
+   this.dataGridTextBoxColumn4.MappingName = "ContactTitle";
+   this.dataGridTextBoxColumn4.NullText = "";
+   this.dataGridTextBoxColumn4.Width = 170;
+   // 
+   // dataGridTextBoxColumn5
+   // 
+   this.dataGridTextBoxColumn5.Format = "";
+   this.dataGridTextBoxColumn5.FormatInfo = null;
+   this.dataGridTextBoxColumn5.HeaderText = "Address";
+   this.dataGridTextBoxColumn5.MappingName = "Address";
+   this.dataGridTextBoxColumn5.NullText = "";
+   this.dataGridTextBoxColumn5.Width = 250;
+   // 
+   // dataGridTextBoxColumn6
+   // 
+   this.dataGridTextBoxColumn6.Format = "";
+   this.dataGridTextBoxColumn6.FormatInfo = null;
+   this.dataGridTextBoxColumn6.HeaderText = "City";
+   this.dataGridTextBoxColumn6.MappingName = "City";
+   this.dataGridTextBoxColumn6.NullText = "";
+   this.dataGridTextBoxColumn6.Width = 150;
+   // 
+   // dataGridTextBoxColumn7
+   // 
+   this.dataGridTextBoxColumn7.Format = "";
+   this.dataGridTextBoxColumn7.FormatInfo = null;
+   this.dataGridTextBoxColumn7.HeaderText = "Region";
+   this.dataGridTextBoxColumn7.MappingName = "Region";
+   this.dataGridTextBoxColumn7.NullText = "";
+   this.dataGridTextBoxColumn7.Width = 150;
+   // 
+   // dataGridTextBoxColumn8
+   // 
+   this.dataGridTextBoxColumn8.Format = "";
+   this.dataGridTextBoxColumn8.FormatInfo = null;
+   this.dataGridTextBoxColumn8.HeaderText = "Postal Code";
+   this.dataGridTextBoxColumn8.MappingName = "PostalCode";
+   this.dataGridTextBoxColumn8.NullText = "";
+   this.dataGridTextBoxColumn8.Width = 150;
+   // 
+   // dataGridTextBoxColumn9
+   // 
+   this.dataGridTextBoxColumn9.Format = "";
+   this.dataGridTextBoxColumn9.FormatInfo = null;
+   this.dataGridTextBoxColumn9.HeaderText = "Country";
+   this.dataGridTextBoxColumn9.MappingName = "Country";
+   this.dataGridTextBoxColumn9.NullText = "";
+   this.dataGridTextBoxColumn9.Width = 125;
+   // 
+   // dataGridTextBoxColumn10
+   // 
+   this.dataGridTextBoxColumn10.Format = "";
+   this.dataGridTextBoxColumn10.FormatInfo = null;
+   this.dataGridTextBoxColumn10.HeaderText = "Phone";
+   this.dataGridTextBoxColumn10.MappingName = "Phone";
+   this.dataGridTextBoxColumn10.NullText = "";
+   this.dataGridTextBoxColumn10.Width = 125;
+   // 
+   // dataGridTextBoxColumn11
+   // 
+   this.dataGridTextBoxColumn11.Format = "";
+   this.dataGridTextBoxColumn11.FormatInfo = null;
+   this.dataGridTextBoxColumn11.HeaderText = "Fax";
+   this.dataGridTextBoxColumn11.MappingName = "Fax";
+   this.dataGridTextBoxColumn11.NullText = "";
+   this.dataGridTextBoxColumn11.Width = 125;
+   // 
+   // btnFillDataGrid
+   // 
+   this.btnFillDataGrid.Anchor = (System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right);
+   this.btnFillDataGrid.Location = new System.Drawing.Point(645, 426);
+   this.btnFillDataGrid.Name = "btnFillDataGrid";
+   this.btnFillDataGrid.Size = new System.Drawing.Size(133, 28);
+   this.btnFillDataGrid.TabIndex = 2;
+   this.btnFillDataGrid.Text = "&Fill DataGrid";
+   this.btnFillDataGrid.Click += new System.EventHandler(this.btnFillDataGrid_Click);
+   // 
+   // mnuFile
+   // 
+   this.mnuFile.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+                     this.menuItem1});
+   // 
+   // menuItem1
+   // 
+   this.menuItem1.Index = 0;
+   this.menuItem1.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+                       this.miPrintPreview,
+                       this.miPrint,
+                       this.menuItem4,
+                       this.miExit});
+   this.menuItem1.Text = "&File";
+   // 
+   // miPrintPreview
+   // 
+   this.miPrintPreview.Index = 0;
+   this.miPrintPreview.Text = "Print Pre&view";
+   this.miPrintPreview.Click += new System.EventHandler(this.miPrintPreview_Click);
+   // 
+   // miPrint
+   // 
+   this.miPrint.Index = 1;
+   this.miPrint.Text = "&Print";
+   this.miPrint.Click += new System.EventHandler(this.miPrint_Click);
+   // 
+   // menuItem4
+   // 
+   this.menuItem4.Index = 2;
+   this.menuItem4.Text = "-";
+   // 
+   // miExit
+   // 
+   this.miExit.Index = 3;
+   this.miExit.Text = "E&xit";
+   this.miExit.Click += new System.EventHandler(this.miExit_Click);
+   // 
+   // sqlDataAdapter1
+   // 
+   this.sqlDataAdapter1.DeleteCommand = this.sqlDeleteCommand1;
+   this.sqlDataAdapter1.InsertCommand = this.sqlInsertCommand1;
+   this.sqlDataAdapter1.SelectCommand = this.sqlSelectCommand1;
+   this.sqlDataAdapter1.TableMappings.AddRange(new System.Data.Common.DataTableMapping[] {
+                           new System.Data.Common.DataTableMapping("Table", "Customers", new System.Data.Common.DataColumnMapping[] {
+                                                       new System.Data.Common.DataColumnMapping("CustomerID", "CustomerID"),
+                                                       new System.Data.Common.DataColumnMapping("CompanyName", "CompanyName"),
+                                                       new System.Data.Common.DataColumnMapping("ContactName", "ContactName"),
+                                                       new System.Data.Common.DataColumnMapping("ContactTitle", "ContactTitle"),
+                                                       new System.Data.Common.DataColumnMapping("Address", "Address"),
+                                                       new System.Data.Common.DataColumnMapping("City", "City"),
+                                                       new System.Data.Common.DataColumnMapping("Region", "Region"),
+                                                       new System.Data.Common.DataColumnMapping("PostalCode", "PostalCode"),
+                                                       new System.Data.Common.DataColumnMapping("Country", "Country"),
+                                                       new System.Data.Common.DataColumnMapping("Phone", "Phone"),
+                                                       new System.Data.Common.DataColumnMapping("Fax", "Fax")})});
+   this.sqlDataAdapter1.UpdateCommand = this.sqlUpdateCommand1;
+   // 
+   // sqlSelectCommand1
+   // 
+   this.sqlSelectCommand1.CommandText = "SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region," +
+    " PostalCode, Country, Phone, Fax FROM Customers";
+   this.sqlSelectCommand1.Connection = this.sqlConnection1;
+   // 
+   // sqlInsertCommand1
+   // 
+   this.sqlInsertCommand1.CommandText = @"INSERT INTO Customers(CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax) VALUES (@CustomerID, @CompanyName, @ContactName, @ContactTitle, @Address, @City, @Region, @PostalCode, @Country, @Phone, @Fax); SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax FROM Customers WHERE (CustomerID = @CustomerID)";
+   this.sqlInsertCommand1.Connection = this.sqlConnection1;
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@CustomerID", System.Data.SqlDbType.NVarChar, 5, "CustomerID"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@CompanyName", System.Data.SqlDbType.NVarChar, 40, "CompanyName"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ContactName", System.Data.SqlDbType.NVarChar, 30, "ContactName"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ContactTitle", System.Data.SqlDbType.NVarChar, 30, "ContactTitle"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Address", System.Data.SqlDbType.NVarChar, 60, "Address"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@City", System.Data.SqlDbType.NVarChar, 15, "City"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Region", System.Data.SqlDbType.NVarChar, 15, "Region"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@PostalCode", System.Data.SqlDbType.NVarChar, 10, "PostalCode"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Country", System.Data.SqlDbType.NVarChar, 15, "Country"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Phone", System.Data.SqlDbType.NVarChar, 24, "Phone"));
+   this.sqlInsertCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Fax", System.Data.SqlDbType.NVarChar, 24, "Fax"));
+   // 
+   // sqlUpdateCommand1
+   // 
+   this.sqlUpdateCommand1.CommandText = @"UPDATE Customers SET CustomerID = @CustomerID, CompanyName = @CompanyName, ContactName = @ContactName, ContactTitle = @ContactTitle, Address = @Address, City = @City, Region = @Region, PostalCode = @PostalCode, Country = @Country, Phone = @Phone, Fax = @Fax WHERE (CustomerID = @Original_CustomerID) AND (Address = @Original_Address OR @Original_Address IS NULL AND Address IS NULL) AND (City = @Original_City OR @Original_City IS NULL AND City IS NULL) AND (CompanyName = @Original_CompanyName) AND (ContactName = @Original_ContactName OR @Original_ContactName IS NULL AND ContactName IS NULL) AND (ContactTitle = @Original_ContactTitle OR @Original_ContactTitle IS NULL AND ContactTitle IS NULL) AND (Country = @Original_Country OR @Original_Country IS NULL AND Country IS NULL) AND (Fax = @Original_Fax OR @Original_Fax IS NULL AND Fax IS NULL) AND (Phone = @Original_Phone OR @Original_Phone IS NULL AND Phone IS NULL) AND (PostalCode = @Original_PostalCode OR @Original_PostalCode IS NULL AND PostalCode IS NULL) AND (Region = @Original_Region OR @Original_Region IS NULL AND Region IS NULL); SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax FROM Customers WHERE (CustomerID = @CustomerID)";
+   this.sqlUpdateCommand1.Connection = this.sqlConnection1;
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@CustomerID", System.Data.SqlDbType.NVarChar, 5, "CustomerID"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@CompanyName", System.Data.SqlDbType.NVarChar, 40, "CompanyName"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ContactName", System.Data.SqlDbType.NVarChar, 30, "ContactName"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@ContactTitle", System.Data.SqlDbType.NVarChar, 30, "ContactTitle"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Address", System.Data.SqlDbType.NVarChar, 60, "Address"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@City", System.Data.SqlDbType.NVarChar, 15, "City"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Region", System.Data.SqlDbType.NVarChar, 15, "Region"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@PostalCode", System.Data.SqlDbType.NVarChar, 10, "PostalCode"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Country", System.Data.SqlDbType.NVarChar, 15, "Country"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Phone", System.Data.SqlDbType.NVarChar, 24, "Phone"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Fax", System.Data.SqlDbType.NVarChar, 24, "Fax"));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_CustomerID", System.Data.SqlDbType.NVarChar, 5, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "CustomerID", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Address", System.Data.SqlDbType.NVarChar, 60, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Address", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_City", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "City", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_CompanyName", System.Data.SqlDbType.NVarChar, 40, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "CompanyName", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_ContactName", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "ContactName", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_ContactTitle", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "ContactTitle", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Country", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Country", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Fax", System.Data.SqlDbType.NVarChar, 24, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Fax", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Phone", System.Data.SqlDbType.NVarChar, 24, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Phone", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_PostalCode", System.Data.SqlDbType.NVarChar, 10, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "PostalCode", System.Data.DataRowVersion.Original, null));
+   this.sqlUpdateCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Region", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Region", System.Data.DataRowVersion.Original, null));
+   // 
+   // sqlDeleteCommand1
+   // 
+   this.sqlDeleteCommand1.CommandText = @"DELETE FROM Customers WHERE (CustomerID = @Original_CustomerID) AND (Address = @Original_Address OR @Original_Address IS NULL AND Address IS NULL) AND (City = @Original_City OR @Original_City IS NULL AND City IS NULL) AND (CompanyName = @Original_CompanyName) AND (ContactName = @Original_ContactName OR @Original_ContactName IS NULL AND ContactName IS NULL) AND (ContactTitle = @Original_ContactTitle OR @Original_ContactTitle IS NULL AND ContactTitle IS NULL) AND (Country = @Original_Country OR @Original_Country IS NULL AND Country IS NULL) AND (Fax = @Original_Fax OR @Original_Fax IS NULL AND Fax IS NULL) AND (Phone = @Original_Phone OR @Original_Phone IS NULL AND Phone IS NULL) AND (PostalCode = @Original_PostalCode OR @Original_PostalCode IS NULL AND PostalCode IS NULL) AND (Region = @Original_Region OR @Original_Region IS NULL AND Region IS NULL)";
+   this.sqlDeleteCommand1.Connection = this.sqlConnection1;
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_CustomerID", System.Data.SqlDbType.NVarChar, 5, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "CustomerID", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Address", System.Data.SqlDbType.NVarChar, 60, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Address", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_City", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "City", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_CompanyName", System.Data.SqlDbType.NVarChar, 40, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "CompanyName", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_ContactName", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "ContactName", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_ContactTitle", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "ContactTitle", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Country", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Country", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Fax", System.Data.SqlDbType.NVarChar, 24, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Fax", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Phone", System.Data.SqlDbType.NVarChar, 24, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Phone", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_PostalCode", System.Data.SqlDbType.NVarChar, 10, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "PostalCode", System.Data.DataRowVersion.Original, null));
+   this.sqlDeleteCommand1.Parameters.Add(new System.Data.SqlClient.SqlParameter("@Original_Region", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, false, ((System.Byte)(0)), ((System.Byte)(0)), "Region", System.Data.DataRowVersion.Original, null));
+   // 
+   // sqlConnection1
+   // 
+   this.sqlConnection1.ConnectionString = "data source=QIEYJ;initial catalog=Northwind;persist security info=False;user id=s" +
+    "a;workstation id=QIEYJ;packet size=4096";
+   // 
+   // Form1
+   // 
+   this.AutoScaleBaseSize = new System.Drawing.Size(6, 14);
+   this.ClientSize = new System.Drawing.Size(788, 463);
+   this.Controls.AddRange(new System.Windows.Forms.Control[] {
+                    this.btnFillDataGrid,
+                    this.panel1});
+   this.Menu = this.mnuFile;
+   this.Name = "Form1";
+   this.Text = "DataGrid Print Sample";
+   this.panel1.ResumeLayout(false);
+   ((System.ComponentModel.ISupportInitialize)(this.dgTest)).EndInit();
+   this.ResumeLayout(false);
+
+  }
+  #endregion
+
+  /// <summary>
+  /// The main entry point for the application.
+  /// </summary>
+  [STAThread]
+  static void Main() 
+  {
+   Application.Run(new Form1());
+  }
+
+  private void btnFillDataGrid_Click(object sender, System.EventArgs e)
+  {
+   DataTable dt = new DataTable("Customers");
+   try
+   {   
+    sqlDataAdapter1.Fill(dt); 
+    dgTest.DataSource = dt; 
+   }
+   catch (System.Exception ex)
+   {
+    MessageBox.Show(this,ex.Message);
+   }     
+  }
+
+  private void miPrintPreview_Click(object sender, System.EventArgs e)
+  {
+   DataGridPrintDocument dpd = new DataGridPrintDocument(dgTest);
+   dpd.ColumnHeaderFont=new Font("Arial",8,FontStyle.Bold);
+   dpd.DefaultPageSettings.Landscape = true;  
+   
+   PrintPreviewDialog PrintPrevDlg=new PrintPreviewDialog();   
+   PrintPrevDlg.Document = dpd;  
+   PrintPrevDlg.ShowDialog(this);
+  }
+
+  private void miPrint_Click(object sender, System.EventArgs e)
+  {
+    
+   DataGridPrintDocument dpd = new DataGridPrintDocument(dgTest);
+   dpd.DefaultPageSettings.Landscape = true;
+
+   PrintDialog PrintDlg=new PrintDialog();
+   PrintDlg.Document = dpd;
+
+   DialogResult dlgresult=PrintDlg.ShowDialog(this);
+   if (dlgresult==DialogResult.OK)
+    dpd.Print();   
+   
+  }
+
+  private void miExit_Click(object sender, System.EventArgs e)
+  {
+   Application.Exit();
+  }
+ }
+}
