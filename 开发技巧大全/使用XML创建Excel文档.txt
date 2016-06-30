@@ -1,0 +1,126 @@
+使用XML创建Excel文档       
+  
+ 
+原例子使用VB.Net写的，以下的用C#改写的代码
+
+原文代码：
+
+http://www.gotdotnet.com/Community/UserSamples/Details.aspx?SampleGuid=ddbaecb9-a260-4656-9f22-300b6a1ce66c
+
+本例使用XML来创建Excel文档，但在运行时不需要安装Excel程序。
+
+            DataSet mDSData = new DataSet();
+            mDSData.Tables.Add("myTable");
+
+            mDSData.Tables["myTable"].Columns.Add("ID");
+            mDSData.Tables["myTable"].Columns.Add("Name");
+            mDSData.Tables["myTable"].Columns.Add("PassWord");
+
+            for (int i = 0; i < 10; i++)
+            {
+                DataRow dr = mDSData.Tables["myTable"].NewRow();
+                dr["ID"] = i;
+                dr["Name"] = i;
+                dr["PassWord"] = i;
+                mDSData.Tables["myTable"].Rows.Add(dr);
+            }
+
+            SaveFileDialog dialog1 = new SaveFileDialog();
+            dialog1.AddExtension = true;
+            dialog1.CheckPathExists = true;
+            dialog1.Filter = "Excel Workbooks (*.xls) | *.xls";
+            dialog1.OverwritePrompt = true;
+            dialog1.Title = "Save Excel Formatted Report";
+            if (dialog1.ShowDialog() == DialogResult.OK)
+            {
+                int num2 = 0;
+                int num3 = mDSData.Tables[0].Rows.Count + 1;
+                int num1 = mDSData.Tables[0].Columns.Count;
+                num2 = 0;
+                string text1 = dialog1.FileName;
+                if (File.Exists(text1))
+                {
+                    File.Delete(text1);
+                }
+                StreamWriter writer1 = new StreamWriter(text1, false);
+                StreamWriter writer2 = writer1;
+                writer2.WriteLine("<?xml version=\"1.0\"?>");
+                writer2.WriteLine("<?mso-application progid=\"Excel.Sheet\"?>");
+                writer2.WriteLine("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"");
+                writer2.WriteLine(" xmlns:o=\"urn:schemas-microsoft-com:office:office\"");
+                writer2.WriteLine(" xmlns:x=\"urn:schemas-microsoft-com:office:excel\"");
+                writer2.WriteLine(" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"");
+                writer2.WriteLine(" xmlns:html=\"http://www.w3.org/TR/REC-html40\">");
+                writer2.WriteLine(" <DocumentProperties xmlns=\"urn:schemas-microsoft-com:office:office\">");
+                writer2.WriteLine("  <Author>Automated Report Generator Example</Author>");
+                writer2.WriteLine(string.Format("  <Created>{0}T{1}Z</Created>", DateTime.Now.ToString("yyyy-mm-dd"), DateTime.Now.ToString("HH:MM:SS")));
+                writer2.WriteLine("  <Company>Your Company Here</Company>");
+                writer2.WriteLine("  <Version>11.6408</Version>");
+                writer2.WriteLine(" </DocumentProperties>");
+                writer2.WriteLine(" <ExcelWorkbook xmlns=\"urn:schemas-microsoft-com:office:excel\">");
+                writer2.WriteLine("  <WindowHeight>8955</WindowHeight>");
+                writer2.WriteLine("  <WindowWidth>11355</WindowWidth>");
+                writer2.WriteLine("  <WindowTopX>480</WindowTopX>");
+                writer2.WriteLine("  <WindowTopY>15</WindowTopY>");
+                writer2.WriteLine("  <ProtectStructure>False</ProtectStructure>");
+                writer2.WriteLine("  <ProtectWindows>False</ProtectWindows>");
+                writer2.WriteLine(" </ExcelWorkbook>");
+                writer2.WriteLine(" <Styles>");
+                writer2.WriteLine("  <Style ss:ID=\"Default\" ss:Name=\"Normal\">");
+                writer2.WriteLine("   <Alignment ss:Vertical=\"Bottom\"/>");
+                writer2.WriteLine("   <Borders/>");
+                writer2.WriteLine("   <Font/>");
+                writer2.WriteLine("   <Interior/>");
+                writer2.WriteLine("   <Protection/>");
+                writer2.WriteLine("  </Style>");
+                writer2.WriteLine("  <Style ss:ID=\"s21\">");
+                writer2.WriteLine("   <Alignment ss:Vertical=\"Bottom\" ss:WrapText=\"1\"/>");
+                writer2.WriteLine("  </Style>");
+                writer2.WriteLine(" </Styles>");
+                writer2.WriteLine(" <Worksheet ss:Name=\"MyReport\">");
+                writer2.WriteLine(string.Format("  <Table ss:ExpandedColumnCount=\"{0}\" ss:ExpandedRowCount=\"{1}\" x:FullColumns=\"1\"", num1.ToString(), num3.ToString()));
+                writer2.WriteLine("   x:FullRows=\"1\">");
+                foreach (DataRow row1 in mDSData.Tables[0].Rows)
+                {
+                    writer2.WriteLine("<Row>");
+                    for (num2 = 0; num2 != num1; num2++)
+                    {
+                        writer2.Write("<Cell ss:StyleID=\"s21\"><Data ss:Type=\"String\">");
+                        writer2.Write(row1[num2].ToString());
+                        writer2.WriteLine("</Data></Cell>");
+                    }
+                    writer2.WriteLine("</Row>");
+                }
+                writer2.WriteLine("  </Table>");
+                writer2.WriteLine("  <WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\">");
+                writer2.WriteLine("   <Selected/>");
+                writer2.WriteLine("   <Panes>");
+                writer2.WriteLine("    <Pane>");
+                writer2.WriteLine("     <Number>3</Number>");
+                writer2.WriteLine("     <ActiveRow>1</ActiveRow>");
+                writer2.WriteLine("    </Pane>");
+                writer2.WriteLine("   </Panes>");
+                writer2.WriteLine("   <ProtectObjects>False</ProtectObjects>");
+                writer2.WriteLine("   <ProtectScenarios>False</ProtectScenarios>");
+                writer2.WriteLine("  </WorksheetOptions>");
+                writer2.WriteLine(" </Worksheet>");
+                writer2.WriteLine(" <Worksheet ss:Name=\"Sheet2\">");
+                writer2.WriteLine("  <WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\">");
+                writer2.WriteLine("   <ProtectObjects>False</ProtectObjects>");
+                writer2.WriteLine("   <ProtectScenarios>False</ProtectScenarios>");
+                writer2.WriteLine("  </WorksheetOptions>");
+                writer2.WriteLine(" </Worksheet>");
+                writer2.WriteLine(" <Worksheet ss:Name=\"Sheet3\">");
+                writer2.WriteLine("  <WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\">");
+                writer2.WriteLine("   <ProtectObjects>False</ProtectObjects>");
+                writer2.WriteLine("   <ProtectScenarios>False</ProtectScenarios>");
+                writer2.WriteLine("  </WorksheetOptions>");
+                writer2.WriteLine(" </Worksheet>");
+                writer2.WriteLine("</Workbook>");
+                writer2 = null;
+                writer1.Close();
+                MessageBox.Show("Report Created", "Success", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            }
+
+
+ 

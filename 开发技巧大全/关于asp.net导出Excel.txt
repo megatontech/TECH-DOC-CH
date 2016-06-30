@@ -1,0 +1,33 @@
+
+近日在csdn论坛上找到了这段代码，可以像asp一样把页面导出到excel，这样就可以导出一些比较复杂的excel页面，而不用模板之类的复杂方式了！
+
+
+
+
+public void OutPutExcel()
+        {
+            //定义文档类型、字符编码
+            Response.Clear();
+　　        Response.Buffer= true;
+　　        Response.Charset="GB2312";
+            //下面这行很重要， attachment 参数表示作为附件下载，您可以改成 online在线打开
+　　        //filename=FileFlow.xls 指定输出文件的名称，注意其扩展名和指定文件类型相符，可以为：.doc 　　 .xls 　　 .txt 　　.htm
+　　        Response.AppendHeader("Content-Disposition","attachment;filename=FileFlow.xls");
+　　        Response.ContentEncoding=System.Text.Encoding.GetEncoding("GB2312");
+　　        //Response.ContentType指定文件类型 可以为application/ms-excel、application/ms-word、application/ms-txt、application/ms-html 或其他浏览器可直接支持文档
+　　        Response.ContentType = "application/ms-excel";
+　　        this.EnableViewState = false;
+            //　定义一个输入流
+　　        System.IO.StringWriter oStringWriter = new System.IO.StringWriter();
+　　        System.Web.UI.HtmlTextWriter oHtmlTextWriter = new System.Web.UI.HtmlTextWriter(oStringWriter);
+
+            this.RenderControl(oHtmlTextWriter);
+　　        //this 表示输出本页，你也可以绑定datagrid,或其他支持obj.RenderControl()属性的控件
+　　        Response.Write(oStringWriter.ToString());
+　　        Response.End();
+        }
+
+
+
+
+在page_load里边调用就可以把asp.net页面输出到excel。 

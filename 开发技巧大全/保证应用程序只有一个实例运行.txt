@@ -1,0 +1,26 @@
+主要应用System.Diagnostics名字空间中的Process类来实现
+思路,我们在运行程序前,查找进程中是否有同名的进程,同时运行位置也相同,如是没有运行该程序,如果有,就将同名的同位置的程序窗口置前.
+
+主要代码:
+public static Process RunningInstance() 
+{ 
+Process current = Process.GetCurrentProcess(); 
+Process[] processes = Process.GetProcessesByName (current.ProcessName); 
+//查找相同名称的进程 
+foreach (Process process in processes) 
+{ 
+//忽略当前进程 
+if (process.Id != current.Id) 
+{ 
+//确认相同进程的程序运行位置是否一样. 
+if (Assembly.GetExecutingAssembly().Location.Replace("/", "\\") == current.MainModule.FileName) 
+{ 
+//Return the other process instance. 
+return process; 
+} 
+} 
+} 
+//No other instance was found, return null. 
+return null; 
+} 
+ 

@@ -1,0 +1,5 @@
+			Word.ApplicationClass wa = new Word.ApplicationClass ();
+			object filename = @"c:\\a.doc";
+			object missing = System.Reflection .Missing .Value;
+			wa.Documents.Open (ref filename,ref missing,ref missing,ref missing,ref missing,ref missing,ref missing,ref missing,ref missing,ref missing,ref missing,ref missing,ref missing,ref missing,ref missing);
+			wa.ShowMe ();

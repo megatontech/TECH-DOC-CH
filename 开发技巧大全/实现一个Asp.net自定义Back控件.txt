@@ -1,0 +1,125 @@
+实现一个Asp.net自定义Back控件 
+ 
+本文讲述了如何给Web页面添加一个服务器端控件，从而将用户的浏览器重定向到该控件所指向的页面(referring page)。 
+by Juval Lowy 
+
+Q：实现一个ASP.NET Back控件 
+我想在ASP.NET页面中添加一个链接，通过它，我可以返回到它所指向的页面。不知怎样用一个服务器端控件来实现它呢？我想通过该控件返回到已访问过的页面，而并不想用浏览历史记录的方法。 
+
+A： 
+你可以用两种方法在一个Web页面上实现一个“Back”链接。第一种方法是用客户端脚本读取前面已访问过的页面的记录，并将它重定向到前一个页面： 
+
+<a href= "javascript:history.back()">Back</a> 
+
+
+不过这种方法有几个缺点。应用程序不能控制用户被重定向到了哪里。通常情况下，你总是想让用户留在应用程序内，而不想让他们跑到其它页面。只有当浏览器支持客户端脚本时，这种方法才可行。其最大的缺点就是它与ASP.NET编程模式不一致。ASP.NET的一个最大的好处就是它不同于传统的ASP，它不需要你依赖于客户端脚本。你只需要知道如何使用你用托管代码写的服务器端控件就行了，ASP.NET会为你完成其它的工作。在使用客户端脚本时，Back链接与应用程序的其它部分是没有关系的，它是在服务器上运行的，并运用了服务器端的控件。这会使你很难控制是否激活Back链接，而且你也很难控制重定向，因为它们都是以服务器端事件处理程序为基础的。 
+
+第二种方法是用一个ASP.NET自定义的用户控件。本文所附带的源文件在WebControlsEx类库程序集中包含一个BackLink ASP.NET用户控件。如果要用该控件，你需要右击Web Forms工具箱，从弹出的上下文菜单中选择Add/Remove Items。点击.NET Frameworks Components Tab键并按Browse按钮。选择WebControlsEx程序集，点Open。这样就在toolbox上添加了BackLink用户控件。你只需要将它拖放到你的form中，就可以添加一个链接式的控件了，其text属性是“Back”。在设计时，该控件具有与标准的链接按钮一样的属性，如链接样式（见图1）。当用户在运行时点击该按钮时，它会将浏览器引导到前一个页面（如果有的话）。 
+
+实现BackLink用户控件并不像我们所看到的那么简单。要构建一个Web用户控件，你必须用DLL类库。你可以通过两种方法来提供一个用户控件：继承一个叫做WebControl的类并对它进行自定义，或继承一个现有的控件并进行自定义。对于BackLink控件来说，目前一个比较好的方法就是继承一个LinkButton，因为LinkButton控件提供了大部分很难实现的功能。 
+
+你可以从LinkButton继承一个叫做BackLink的类，在它的构造器中将Text属性设置为Back，并提供一些有意义的缺省值： 
+
+public class BackLink : LinkButton 
+{ 
+public BackLink() 
+{ 
+Text = "Back"; 
+} 
+} 
+
+
+实际上，继承一个LinkButton在HTML中可以体现出来。通过继承BackLink，该控件在设计器中可以体现LinkButton所有的属性——如缺省的属性、字体设置属性和事件。 
+
+LinkButton有一个叫做OnClick()的受保护的虚拟方法，当返回页面时，.NET会调用该方法，让链接按钮触发点击事件。LinkButton必须覆盖OnClick()并将用户重定向到控件所指向的页面。 
+
+重要的问题是在BackLink控件范围内，如何在服务器端得到当前页面所指向的页面。幸运的是，ASP.NET具有这样的功能：HttpRequest对象提供了一个Url类型的公开的属性，称为UrlReferrer，它表示的是所指向页面的URL。LinkButton用户控件可以得到对页面的引用，这是通过Control类的Page属性实现的。Control是WebControl的基类，WebControl是LinkButton的基类。该控件也可以用Page属性来读取其HttpResponse对象（Response属性），从而将用户重定向到所指向的页面。 
+
+然而，如果你用下面的代码来实现BackLink控件，那么该链接会不起作用：public class BackLink : LinkButton 
+{ 
+public BackLink() 
+{ 
+Text = "Back"; 
+} 
+protected override void 
+OnClick(EventArgs e) 
+{ 
+Uri backURL = 
+Page.Request.UrlReferrer; 
+Page.Response.Redirect( 
+backURL.AbsoluteUri); 
+} 
+} 
+
+
+原因在于ASP.NET跟踪所指向页面的方式。例如，我们以Home.aspx页面为例，它会将用户引导到SubForm.aspx页面。如果SubForm.aspx页面有一个BackLink控件，用户点击该链接后，就会触发返回页面到服务器的事件。服务器上UrlReferrer属性的值是“SubForm.aspx”（而不是“Home.aspx”），因为当返回页面时，SubForm.aspx指向的是它自己。解决方法就是在加载控件时，在session变量中缓存所指向的页面，并在OnClick()中重定向到所指向的页面。 
+
+现在，你还需要解决几个问题：ASP.NET并不是总能提供具有导向信息的页面的，在这种情况下，ASP.NET将UrlReferrer的值设置为空。你也需要提供一个“智能的”Back链接，它可以重定向到逻辑上的前一个页面。换句话说，如果一个包含BackLink的页面自己重载（在处理了一些控件的点击事件后），Back链接应该可以很“聪明”地检测到这一点，并重定向到“真实”的前一个页面，而不是它本身。注意，如果你用客户端代码，这是不可能实现的，因为在再次载入时，Back记录变量会呈现同样的页面。 
+
+BackLink覆盖了其基类的OnLoad()方法（见列表1）。当加载包含BackLink控件的页面时，调用OnLoad()。OnLoad()首先查看是否有所指向的页面信息。如果UrlReferrer是空的，那么OnLoad()就会让Back链接不起作用。如果有导向信息，你需要验证所指向的页面不是当前页面。你可以通过比较所指向页面的URL和请求页面的URL来实现这一点： 
+
+if(backURL.AbsolutePath != Page.Request.Url.AbsolutePath) 
+
+如果两个URL不一样，BackLink就把所指向页面的URL保存在一个session变量中： 
+
+Page.Session["Referring URL"] = backURL; 
+
+然后它会激活该控件。如果地址是一样的，BackLink在激活控件前，需要验证所指向页面的URL是否已经缓存过了。在OnClick()中，你必须读取session变量，如果session变量存在，就将用户重定向到控件指向的页面。 
+
+你也可以在可视化设计页面上设计用户控件。当你将控件拖放到Web form时，ToolboxData属性会告诉VS.NET在ASPX文件中插入什么。ToolboxBitmap包含对控件图标的一个引用（以嵌入资源的形式）。如图1所示，一旦你添加了控件，图标就会显示在toolbox中。 
+
+源代码： 
+
+[ToolboxData("<{0}:BackLink runat=server></{0}:BackLink>")] 
+[ToolboxBitmap(typeof(BackLink),"BackLink.bmp")] 
+public class BackLink : LinkButton 
+{ 
+public BackLink() 
+{ 
+Text = "Back"; 
+ToolTip = 
+"Click to go to the previous page"; 
+} 
+
+protected override void OnClick(EventArgs e) 
+{ 
+Uri backURL = (Uri)Page.Session[ 
+"Referring URL"]; 
+Page.Session["Referring URL"] = null; 
+if(backURL != null) 
+{ 
+Page.Response.Redirect( 
+backURL.AbsoluteUri); 
+} 
+} 
+
+protected override void OnLoad(EventArgs e) 
+{ 
+Uri backURL = Page.Request.UrlReferrer; 
+if(backURL == null) //No referrer 
+information 
+{ 
+Enabled = false; 
+return; 
+} 
+if(backURL.AbsolutePath != 
+Page.Request.Url.AbsolutePath) 
+{ 
+Page.Session["Referring URL"] = 
+backURL; 
+Enabled = true; 
+return; 
+} 
+else 
+{ 
+object obj = Page.Session[ 
+"Referring URL"]; 
+if(obj != null) 
+{ 
+Enabled = true; 
+} 
+} 
+base.OnLoad(e); 
+} 
+} 
+ 

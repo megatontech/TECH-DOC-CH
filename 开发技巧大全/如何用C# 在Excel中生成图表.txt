@@ -1,0 +1,8 @@
+如何用C＃在Excel中生成图表？
+exc.Charts.Add(oMissing,oMissing,1,oMissing);	
+				exc.ActiveChart.ChartType=Excel.XlChartType.xlColumnClustered;
+				exc.ActiveChart.SetSourceData(worksheet.get_Range("A1","B10"),Excel.XlRowCol.xlColumns);
+				exc.ActiveChart.Location(Excel.XlChartLocation.xlLocationAsObject,"sheet1");
+				exc.ActiveChart.HasTitle=true;
+				exc.ActiveChart.ChartTitle.Text="图表名称";
+				exc.ActiveChart.HasDataTable=false;

@@ -1,0 +1,8 @@
+创建过程的时候加上WITH ENCRYPTION就可以对过程进行加密
+下面是一个例子：
+CREATE PROCEDURE encrypt_this
+WITH ENCRYPTION
+AS
+SELECT * 
+FROM authors
+GO

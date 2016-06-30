@@ -1,0 +1,110 @@
+如何用程序实现键盘和鼠标的模拟？
+there is an example how to use keybd_event in C#,maybe help you
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+
+namespace ConsoleApplication8{
+class Class1{
+[STAThread]
+static void Main(string[] args){
+// Display current status of keys.
+Console.WriteLine(
+"**BEFORE**\r\nCAP: {0}\r\nSCR: {1}\r\nNUM: {2}", 
+Keyboard.GetState(VirtualKeys.VK_CAPITAL)?"ON":"OFF",
+Keyboard.GetState(VirtualKeys.VK_SCROLL)?"ON":"OFF",
+Keyboard.GetState(VirtualKeys.VK_NUMLOCK)?"ON":"OFF"
+);
+//Toggle all the keys:
+Keyboard.SetState(
+VirtualKeys.VK_CAPITAL, 
+!Keyboard.GetState(VirtualKeys.VK_CAPITAL)
+);
+Keyboard.SetState(
+VirtualKeys.VK_SCROLL, 
+!Keyboard.GetState(VirtualKeys.VK_SCROLL)
+);
+Keyboard.SetState(
+VirtualKeys.VK_NUMLOCK, 
+!Keyboard.GetState(VirtualKeys.VK_NUMLOCK)
+);
+// Display new status of keys.
+Console.WriteLine(
+"\r\n**AFTER**\r\nCAP: {0}\r\nSCR: {1}\r\nNUM: {2}", 
+Keyboard.GetState(VirtualKeys.VK_CAPITAL)?"ON":"OFF",
+Keyboard.GetState(VirtualKeys.VK_SCROLL)?"ON":"OFF",
+Keyboard.GetState(VirtualKeys.VK_NUMLOCK)?"ON":"OFF"
+);
+Console.ReadLine();
+}
+}
+public enum VirtualKeys: byte{
+VK_NUMLOCK = 0x90,
+VK_SCROLL = 0x91,
+VK_CAPITAL = 0x14
+}
+class Keyboard{
+const uint KEYEVENTF_EXTENDEDKEY = 0x1;
+const uint KEYEVENTF_KEYUP = 0x2;
+[DllImport("user32.dll")]
+static extern short GetKeyState(int nVirtKey);
+[DllImport("user32.dll")]
+static extern void keybd_event(
+byte bVk, 
+byte bScan, 
+uint dwFlags, 
+uint dwExtraInfo
+);
+public static bool GetState(VirtualKeys Key){
+return (GetKeyState((int)Key)==1);
+}
+public static void SetState(VirtualKeys Key, bool State){
+if(State!=GetState(Key)){
+keybd_event(
+(byte)Key, 
+0x45, 
+KEYEVENTF_EXTENDEDKEY | 0, 
+0
+);
+keybd_event(
+(byte)Key, 
+0x45, 
+KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 
+0
+);
+}
+}
+}
+}
+//and you can do mouse_event operation like it.
+ 
+ 
+Top 
+ 
+ 回复人：seabirdforever(听海) ( ) 信誉：100 2003-3-24 10:46:56 得分:0 
+ 
+ 
+? 
+建议你参考 一下 《Microsoft C＃程序设计》（北大出版社，上下册带光盘160元），里面关于 鼠标和键盘的东西有详细的论述
+ 
+ 
+Top 
+ 
+ 回复人：TheAres(班门斧) ( ) 信誉：162 2003-3-25 0:24:03 得分:50 
+ 
+ 
+? 
+
+对于模拟键盘，除了利用keybd_event，更简单的是使用sendkeys，而且keybd_event已经被sendinput取代。
+
+具体代码参考：
+请问，用C#如何实现模拟键盘输入
+http://expert.csdn.net/Expert/topic/1055/1055110.xml?temp=.1404993
+
+对于模拟鼠标，只好用SendInput，
+http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/WinUI/WindowsUserInterface/UserInput/KeyboardInput/KeyboardInputReference/KeyboardInputFunctions/SendInput.asp
+
+具体代码参考：
+http://groups.google.com/groups?hl=zh-CN&lr=&ie=UTF-8&oe=UTF-8&threadm=665201c200e8%24e3a1f550%2435ef2ecf%40TKMSFTNGXA11&rnum=3&prev=/groups%3Fq%3Dsendinput%2Bmouse%2Bc%2523%26hl%3Dzh-CN%26lr%3D%26ie%3DUTF-8%26oe%3DUTF-8%26selm%3D665201c200e8%2524e3a1f550%252435ef2ecf%2540TKMSFTNGXA11%26rnum%3D3
+ 
+ 

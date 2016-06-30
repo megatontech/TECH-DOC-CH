@@ -1,0 +1,115 @@
+asp.net 2.0中TREEVIEW中动态增加结点
+
+
+在asp.net 2.0中，要动态从数据库中取出内容，动态增加结点，其实不难，比如以SQL SERVER 2000的PUBS数据库为例子，要以树型列表方式，取出作者，做为根结点，然后取出每位作者写过什么书，作为子结点，可以这样 
+
+<％@ Page Language="C#"％> 
+<％@ Import Namespace="System.Data"％> 
+<％@ Import Namespace="System.Data.SqlClient"％> 
+<％@ Import Namespace="System.Configuration"％> 
+
+<!DOCTYPE htmlPUBLIC"-//W3C//DTD XHTML 1.1//EN""http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"> 
+
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head runat="server"> 
+<title>Dynamic Population of the TreeView Control</title> 
+<script runat=server> 
+void Node_Populate(object sender, 
+System.Web.UI.WebControls.TreeNodeEventArgs e) 
+{ 
+if(e.Node.ChildNodes.Count == 0) 
+{ 
+switch( e.Node.Depth ) 
+{ 
+case 0: 
+FillAuthors(e.Node); 
+break; 
+case 1: 
+FillTitlesForAuthors(e.Node); 
+break; 
+} 
+} 
+} 
+
+void FillAuthors(TreeNode node) 
+{ 
+string connString = System.Configuration.ConfigurationSettings. 
+ConnectionStrings["NorthwindConnnection"].ConnectionString; 
+SqlConnection connection = new SqlConnection(connString); 
+SqlCommand command = new SqlCommand("Select * From 
+authors",connection); 
+SqlDataAdapter adapter = new SqlDataAdapter(command); 
+DataSet authors = new DataSet(); 
+adapter.Fill(authors); 
+if (authors.Tables.Count > 0) 
+{ 
+foreach (DataRow row in authors.Tables[0].Rows) 
+{ 
+TreeNode newNode = new 
+TreeNode(row["au_fname"].ToString() + " " + 
+row["au_lname"].ToString(), 
+row["au_id"].ToString()); 
+newNode.PopulateOnDemand = true; 
+newNode.SelectAction = TreeNodeSelectAction.Expand; 
+node.ChildNodes.Add(newNode); 
+} 
+} 
+} 
+
+void FillTitlesForAuthors(TreeNode node) 
+{ 
+string authorID = node.Value; 
+string connString = System.Configuration.ConfigurationSettings. 
+ConnectionStrings["NorthwindConnnection"].ConnectionString; 
+SqlConnection connection = new SqlConnection(connString); 
+SqlCommand command = new SqlCommand("Select T.title, 
+T.title_id From titles T" + 
+" Inner Join titleauthor TA on 
+T.title_id = TA.title_id " + 
+" Where TA.au_id = '" + authorID + "'", connection); 
+SqlDataAdapter adapter = new SqlDataAdapter(command); 
+DataSet titlesForAuthors = new DataSet(); 
+adapter.Fill(titlesForAuthors); 
+if (titlesForAuthors.Tables.Count > 0) 
+{ 
+foreach (DataRow row in titlesForAuthors.Tables[0].Rows) 
+{ 
+TreeNode newNode = new TreeNode( 
+row["title"].ToString(), row["title_id"].ToString()); 
+newNode.PopulateOnDemand = false; 
+newNode.SelectAction = TreeNodeSelectAction.None; 
+node.ChildNodes.Add(newNode); 
+} 
+} 
+} 
+
+</script> 
+</head> 
+<body> 
+<form id="form1" runat="server"> 
+<div> 
+<asp:TreeViewRunat="Server" ExpandImageUrl="Images/closed.gif" 
+CollapseImageUrl="Images/open.gif" 
+OnTreeNodePopulate="Node_Populate" ID="tvwauthors"> 
+<Nodes> 
+<asp:TreeNodeText="Authors" PopulateOnDemand=true 
+Value="0"/> 
+</Nodes> 
+</asp:TreeView> 
+</div> 
+</form> 
+</body> 
+</html> 
+其中，注意ontreenodepopulate事件，是在展开树的结点时发生的，这里定义了自定义的NODE_POPULATE,在node_populate中，检查当前结点的深度，如果是0，就是根结点，于是就调用FillAuthors过程，取出所有的作者，如果深度是1，则是叶子结点，调用FillTitlesForAuthors过程。其中，要注意它们中的动态建立树结点的过程，如： 
+TreeNode newNode = new TreeNode(row["au_fname"].ToString() + " " + 
+row["au_lname"].ToString(), 
+
+row["au_id"].ToString()); 
+
+newNode.PopulateOnDemand = true; 
+
+newNode.SelectAction = TreeNodeSelectAction.Expand; 
+
+node.ChildNodes.Add(newNode); 
+其中， popluateondemand属性表明，该结点会动态扩展。 
+

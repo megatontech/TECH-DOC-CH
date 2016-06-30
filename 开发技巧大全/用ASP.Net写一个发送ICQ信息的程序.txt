@@ -1,0 +1,97 @@
+用ASP.Net写一个发送ICQ信息的程序
+
+    
+
+这里我给大家提供一个很实用的例子，就是在线发送ICQ信息。想一想我们在网页上直接给朋友发送ICQ信息，那是多么美妙的事情啊。呵呵，在吹牛啊，其实ICQ本来就有在线发送的代码，不过，这些都是AOL给你写好的代码，多没有意思啊。还是自已写的比较好，呵呵,废话少说，大家来看代码吧
+
+ 
+<% @ Page Langua 
+ge="C#" %> 
+<% @ Assembly Name="System.Net" %> 
+<% @ Import Namespace="System.Net" %> 
+<% @ Import Namespace="System.Net.Sockets" %> 
+<% @ Import Namespace="System.IO" %> 
+<% @ Import Namespace="System.Text" %> 
+
+<Script Language="C#" Runat="Server"> 
+public void Page_Load(Object src,EventArgs e) 
+{ 
+ICQ_Show.Text="如果提交后，在这里显示信息";  
+} 
+
+public void Send_Click(Object sender,EventArgs e) 
+{ 
+string sendmsg; 
+string commandmsg; 
+//首先取得要发送的信息 
+commandmsg = "from="+ICQ_Name.Text+"&fromemail="+ICQ_Email.Text+"&subject=";  
+commandmsg +=  ICQ_Subject.Text+"&body="+ICQ_Message.Text+"&to="+ICQ_Number.Text  
+commandmsg +=  "&Send=Send+Message"; 
+//然后就是组装全部的信息 
+sendmsg="POST /scripts/WWPMsg.dll HTTP/1.1\r\n"; 
+sendmsg += "Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg,"; 
+sendmsg += " application/vnd.ms-excel,"; 
+sendmsg += " application/msword, application/vnd.ms-powerpoint, */*\r\n"; 
+sendmsg += "Accept-Language: zh-cn\r\n"; 
+sendmsg += "Content-Type: application/x-www-form-urlencoded\r\n"; 
+sendmsg += "Accept-Encoding: gzip, deflate\r\n"; 
+sendmsg += "User-Agent: Mozilla/4.0 (compatible; MSIE 5.01; Windows 95)\r\n"; 
+sendmsg += "Host: wwp.icq.com\r\n"; 
+sendmsg += "Content-Length: " + commandmsg.Length + "\r\n"; 
+sendmsg += "Connection: Keep-Alive\r\n\r\n"; 
+sendmsg += commandmsg + "\r\n\r\n"; 
+
+Byte[] arrMsg=Encoding.Default.GetBytes(sendmsg.ToCharArray()); 
+//需要发送的信息处理完毕 
+
+//======下面就是发送这些信息===== 
+//首先是建立一个TCPClient 对象 
+TCPClient tcpc=new TCPClient(); 
+if(0==tcpc.Connect("wwp.icq.com",80)) 
+{ 
+Stream sm = tcpc.GetStream(); 
+sm.Write(arrMsg,0,sendmsg.Length); 
+StreamReader sr=new StreamReader(tcpc.GetStream(),Encoding.Default); 
+string strRev=sr.ReadLine(); 
+if(strRev.IndexOf("OK")!=-1) 
+{ 
+ICQ_Show.Text="ICQ消息发送成功"; 
+} 
+else 
+{ 
+ICQ_Show.Text="ICQ消息发送不成功"; 
+} 
+
+} 
+else 
+{ 
+ICQ_Show.Text="ICQ消息发送不成功，无法联结ICQ服务器"; 
+} 
+//关闭TCP联结 
+tcpc.Close(); 
+} 
+
+</script> 
+<html> 
+<meta http-equiv="Content-Language" content="zh-cn"> 
+<head> 
+<title></title> 
+</head> 
+<body> 
+<form runat="server" > 
+<table> 
+<tr><td align=center colspan=2> 
+      <asp:Label id="ICQ_Show" runat="server" ForeColor="red" /></td></tr> 
+<tr><td> 
+</tr> 
+<tr><td align=center colspan=2>发送ICQ信息</td></tr> 
+<tr><td>您的ICQ号:</td><td><asp:TextBox id="ICQ_Number" runat="server" /></td></tr> 
+<tr><td>您的网名:</td><td><asp:TextBox id="ICQ_Name" runat="server" /></td></tr> 
+<tr><td>您的Email:</td><td><asp:TextBox id="ICQ_Email" runat="server" /></td></tr> 
+<tr><td>发送主题:</td><td><asp:TextBox id="ICQ_Subject" runat="server" /></td></tr> 
+<tr><td>发送内容:</td><td><asp:TextBox id="ICQ_Message" runat="server" /></td></tr> 
+<tr><td><asp:Button OnClick="Send_Click" Text="发送ICQ信息" RunAt="server" /></td></tr> 
+</table> 
+</form> 
+</body> 
+</html> 

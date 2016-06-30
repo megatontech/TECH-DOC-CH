@@ -1,0 +1,4 @@
+			string text=this.combChoice.Text.Trim();
+			SizeF stringSize = new SizeF();
+			stringSize = this.CreateGraphics().MeasureString( text,this.combChoice.Font );
+			return (int)(stringSize.Width+10);

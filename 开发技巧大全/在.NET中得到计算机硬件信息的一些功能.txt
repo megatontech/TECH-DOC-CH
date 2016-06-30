@@ -1,0 +1,423 @@
+在.NET中得到计算机硬件信息的一些功能
+
+得到显示器分辨率 
+Dim X As Short = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width
+Dim Y As Short = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height
+MsgBox("您的显示器分辨率是：" & X & " X " & Y)
+
+得到特殊文件夹的路径 
+'"Desktop"桌面文件夹路径
+MsgBox(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
+'"Favorites"收藏夹路径
+MsgBox(Environment.GetFolderPath(Environment.SpecialFolder.Favorites))
+'"Application Data"路径
+MsgBox(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData))
+
+'通用写法
+'Dim SPEC As String = Environment.GetFolderPath(Environment.SpecialFolder.XXXXXXX)
+'XXXXXXX是特殊文件夹的名字
+
+得到操作系统版本信息 
+MsgBox(Environment.OSVersion.ToString)
+
+得到当前登录的用户名 
+MsgBox(Environment.UserName)
+
+得到当前应用程序的路径 
+MsgBox(Environment.CurrentDirectory)
+
+打开和关闭CD-ROM 
+'先新建模块
+Module mciAPIModule
+  Declare Function mciSendString Lib "winmm.dll" Alias "mciSendStringA" _
+  (ByVal lpstrCommand As String, ByVal lpstrReturnString As String, _
+  ByVal uReturnLength As Integer, ByVal hwndCallback As Integer) As Integer
+End Module
+
+'打开CD-ROM 
+Dim lRet As Long
+lRet = mciSendString("set cdAudio door open", 0&, 0, 0)
+
+'关闭CD-ROM 
+Dim lRet As Long
+lRet = mciSendString("set cdAudio door Closed", 0&, 0, 0)
+
+
+得到计算机IP和计算机全名 
+Dim MYIP As System.Net.IPHostEntry = System.Net.Dns.GetHostByName(System.Net.Dns.GetHostName)
+MsgBox("您的IP地址：" & (MYIP.AddressList.GetValue(0).ToString))
+MsgBox("您的计算机全名：" & (MYIP.HostName.ToString))
+
+使用win32_operatingSystem (wmi Class)得到计算机信息 
+'添加ListBox在Form1_Load事件里，并引用system.Managment
+Dim opSearch As New ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem")
+Dim opInfo As ManagementObject
+For Each opInfo In opSearch.Get()
+  ListBox1.Items.Add("Name: " & opInfo("name").ToString())
+  ListBox1.Items.Add("Version: " & opInfo("version").ToString())
+  ListBox1.Items.Add("Manufacturer: " & opInfo("manufacturer").ToString())
+  ListBox1.Items.Add("Computer name: " & opInfo("csname").ToString())
+  ListBox1.Items.Add("Windows Directory: " & opInfo("windowsdirectory").ToString())
+Next
+
+列出计算机安装的全部字体，并添加到ListBox 
+'新建Form并添加ListBox和Button
+Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
+Dim fntCollection As InstalledFontCollection = New InstalledFontCollection()
+Dim fntFamily() As FontFamily
+fntFamily = fntCollection.Families
+ListBox1.Items.Clear()
+Dim i As Integer = 0
+For i = 0 To fntFamily.Length - 1
+  ListBox1.Items.Add(fntFamily(i).Name)
+Next
+End Sub
+
+使用Win32_Processor列出处理器的信息 
+Imports System.Management
+Public Class Form1
+  Inherits System.Windows.Forms.Form
+
+#Region " Windows 窗体设计器生成的代码 "
+
+  Public Sub New()
+    MyBase.New()
+
+    '该调用是 Windows 窗体设计器所必需的。
+    InitializeComponent()
+
+    '在 InitializeComponent() 调用之后添加任何初始化
+
+  End Sub
+
+  '窗体重写 dispose 以清理组件列表。
+  Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
+    If disposing Then
+      If Not (components Is Nothing) Then
+        components.Dispose()
+      End If
+    End If
+    MyBase.Dispose(disposing)
+  End Sub
+
+  'Windows 窗体设计器所必需的
+  Private components As System.ComponentModel.IContainer
+
+  '注意: 以下过程是 Windows 窗体设计器所必需的
+  '可以使用 Windows 窗体设计器修改此过程。
+  '不要使用代码编辑器修改它。
+  Friend WithEvents ListBox1 As System.Windows.Forms.ListBox
+  Friend WithEvents Button1 As System.Windows.Forms.Button
+  <System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
+    Me.ListBox1 = New System.Windows.Forms.ListBox
+    Me.Button1 = New System.Windows.Forms.Button
+    Me.SuspendLayout()
+    '
+    'ListBox1
+    '
+    Me.ListBox1.Location = New System.Drawing.Point(8, 8)
+    Me.ListBox1.Name = "ListBox1"
+    Me.ListBox1.Size = New System.Drawing.Size(280, 186)
+    Me.ListBox1.TabIndex = 0
+    '
+    'Button1
+    '
+    Me.Button1.Location = New System.Drawing.Point(56, 208)
+    Me.Button1.Name = "Button1"
+    Me.Button1.Size = New System.Drawing.Size(168, 32)
+    Me.Button1.TabIndex = 1
+    Me.Button1.Text = "装载计算机处理器信息"
+    '
+    'Form1
+    '
+    Me.AutoScaleBaseSize = New System.Drawing.Size(5, 13)
+    Me.ClientSize = New System.Drawing.Size(296, 254)
+    Me.Controls.AddRange(New System.Windows.Forms.Control() {Me.Button1, Me.ListBox1})
+    Me.Text = "计算机处理器信息"
+    Me.ResumeLayout(False)
+
+  End Sub
+
+#End Region
+
+  Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) _
+   Handles Button1.Click
+
+    Dim ProcQuery As New SelectQuery("Win32_Processor")
+    Dim ProcSearch As New ManagementObjectSearcher(ProcQuery)
+    Dim ProcInfo As ManagementObject
+
+    For Each ProcInfo In ProcSearch.Get()
+      Call processorfamily(ProcInfo("Family").ToString)
+      ListBox1.Items.Add("Description: " & ProcInfo("Description").ToString())
+      ListBox1.Items.Add("caption: " & ProcInfo("caption").ToString())
+      ListBox1.Items.Add("Architecture: " & ProcInfo("Architecture").ToString())
+      Call processortype(ProcInfo("ProcessorType").ToString())
+      Call CpuStat(ProcInfo("CpuStatus").ToString)
+      ListBox1.Items.Add("MaxClockSpeed: " & ProcInfo("MaxClockSpeed").ToString() & "MHZ")
+      ListBox1.Items.Add("L2CacheSpeed: " & ProcInfo("L2CacheSpeed").ToString() & "MHZ")
+      ListBox1.Items.Add("ExtClock: " & ProcInfo("L2CacheSpeed").ToString() & "MHZ")
+      ListBox1.Items.Add("ProcessorId: " & ProcInfo("ProcessorId").ToString())
+      ListBox1.Items.Add("AddressWidth: " & ProcInfo("AddressWidth").ToString() & "Bits")
+      ListBox1.Items.Add("DataWidth: " & ProcInfo("DataWidth").ToString() & "Bits")
+      ListBox1.Items.Add("Version: " & ProcInfo("Version").ToString())
+      ListBox1.Items.Add("ExtClock: " & ProcInfo("ExtClock").ToString() & "MHZ")
+    Next
+  End Sub
+  Function processorfamily(ByVal procssfam)
+    Dim processtype
+    Select Case procssfam
+      Case 1
+        processtype = "Other"
+      Case 2
+        processtype = "Unknown "
+      Case 3
+        processtype = "8086 "
+      Case 4
+        processtype = "80286 "
+      Case 5
+        processtype = "80386 "
+      Case 6
+        processtype = "80486 "
+      Case 7
+        processtype = "8087 "
+      Case 8
+        processtype = "80287 "
+      Case 9
+        processtype = "80387 "
+      Case 10
+        processtype = "80487 "
+      Case 11
+        processtype = "Pentium brand "
+      Case 12
+        processtype = "Pentium Pro "
+      Case 13
+        processtype = "Pentium II "
+      Case 14
+        processtype = "Pentium processor with MMX technology "
+      Case 15
+        processtype = "Celeron "
+      Case 16
+        processtype = "Pentium II Xeon "
+      Case 17
+        processtype = "Pentium III "
+      Case 18
+        processtype = "M1 Family "
+      Case 19
+        processtype = "M2 Family "
+      Case 24
+        processtype = "K5 Family "
+      Case 25
+        processtype = "K6 Family "
+      Case 26
+        processtype = "K6-2 "
+      Case 27
+        processtype = "K6-3 "
+      Case 28
+        processtype = "AMD Athlon Processor Family "
+      Case 29
+        processtype = "AMD Duron Processor "
+      Case 30
+        processtype = "AMD2900 Family "
+      Case 31
+        processtype = "K6-2+ "
+      Case 32
+        processtype = "Power PC Family "
+      Case 33
+        processtype = "Power PC 601 "
+      Case 34
+        processtype = "Power PC 603 "
+      Case 35
+        processtype = "Power PC 603+ "
+      Case 36
+        processtype = "Power PC 604 "
+      Case 37
+        processtype = "Power PC 620 "
+      Case 38
+        processtype = "Power PC X704 "
+      Case 39
+        processtype = "Power PC 750 "
+      Case 48
+        processtype = "Alpha Family "
+      Case 49
+        processtype = "Alpha 21064 "
+      Case 50
+        processtype = "Alpha 21066 "
+      Case 51
+        processtype = "Alpha 21164 "
+      Case 52
+        processtype = "Alpha 21164PC "
+      Case 53
+        processtype = "Alpha 21164a "
+      Case 54
+        processtype = "Alpha 21264 "
+      Case 55
+        processtype = "Alpha 21364 "
+      Case 64
+        processtype = "MIPS Family "
+      Case 65
+        processtype = "MIPS R4000 "
+      Case 66
+        processtype = "MIPS R4200 "
+      Case 67
+        processtype = "MIPS R4400 "
+      Case 68
+        processtype = "MIPS R4600 "
+      Case 69
+        processtype = "MIPS R10000 "
+      Case 80
+        processtype = "SPARC Family "
+      Case 81
+        processtype = "SuperSPARC "
+      Case 82
+        processtype = "microSPARC II "
+      Case 83
+        processtype = "microSPARC IIep "
+      Case 84
+        processtype = "UltraSPARC "
+      Case 85
+        processtype = "UltraSPARC II "
+      Case 86
+        processtype = "UltraSPARC IIi "
+      Case 87
+        processtype = "UltraSPARC III "
+      Case 88
+        processtype = "UltraSPARC IIIi "
+      Case 96
+        processtype = "68040 "
+      Case 97
+        processtype = "68xxx Family "
+      Case 98
+        processtype = "68000 "
+      Case 99
+        processtype = "68010 "
+      Case 100
+        processtype = "68020 "
+      Case 101
+        processtype = "68030 "
+      Case 112
+        processtype = "Hobbit Family "
+      Case 120
+        processtype = "Crusoe TM5000 Family "
+      Case 121
+        processtype = "Crusoe TM3000 Family "
+      Case 128
+        processtype = "Weitek "
+      Case 130
+        processtype = "Itanium Processor "
+      Case 144
+        processtype = "PA-RISC Family "
+      Case 145
+        processtype = "PA-RISC 8500 "
+      Case 146
+        processtype = "PA-RISC 8000 "
+      Case 147
+        processtype = "PA-RISC 7300LC "
+      Case 148
+        processtype = "PA-RISC 7200 "
+      Case 149
+        processtype = "PA-RISC 7100LC "
+      Case 150
+        processtype = "PA-RISC 7100 "
+      Case 160
+        processtype = "V30 Family "
+      Case 176
+        processtype = "Pentium III Xeon "
+      Case 177
+        processtype = "Pentium III Processor with Intel SpeedStep Technology "
+      Case 178
+        processtype = "Pentium 4 "
+      Case 179
+        processtype = "Intel Xeon "
+      Case 180
+        processtype = "AS400 Family "
+      Case 181
+        processtype = "Intel Xeon processor MP "
+      Case 182
+        processtype = "AMD AthlonXP Family "
+      Case 183
+        processtype = "AMD AthlonMP Family "
+      Case 184
+        processtype = "Intel Itanium 2 "
+      Case 185
+        processtype = "AMD Opteron Family "
+      Case 190
+        processtype = "K7 "
+      Case 200
+        processtype = "IBM390 Family "
+      Case 201
+        processtype = "G4 "
+      Case 202
+        processtype = "G5 "
+      Case 250
+        processtype = "i860 "
+      Case 251
+        processtype = "i960 "
+      Case 260
+        processtype = "SH-3 "
+      Case 261
+        processtype = "SH-4 "
+      Case 280
+        processtype = "ARM "
+      Case 281
+        processtype = "StrongARM "
+      Case 300
+        processtype = "6x86 "
+      Case 301
+        processtype = "MediaGX "
+      Case 302
+        processtype = "MII "
+      Case 320
+        processtype = "WinChip "
+      Case 350
+        processtype = "DSP "
+      Case 500
+        processtype = "Video Processor "
+    End Select
+    ListBox1.Items.Add("Family: " & processtype)
+
+  End Function
+  Function CpuStat(ByVal CpuStNUM)
+    Dim stat
+    Select Case CpuStNUM
+      Case 0
+        stat = "Unknown "
+      Case 1
+        stat = "CPU Enabled "
+      Case 2
+        stat = "CPU Disabled by User via BIOS Setup "
+      Case 3
+        stat = "CPU Disabled By BIOS (POST Error) "
+      Case 4
+        stat = "CPU is Idle "
+      Case 5
+        stat = "Reserved "
+      Case 6
+        stat = "Reserved "
+      Case 7
+        stat = "Other "
+    End Select
+    ListBox1.Items.Add("CpuStatus: " & stat)
+  End Function
+  Function processortype(ByVal proctypenum)
+    Dim proctype
+    Select Case proctypenum
+      Case 1
+        proctype = "Other "
+      Case 2
+        proctype = "Unknown "
+      Case 3
+        proctype = "Central Processor "
+      Case 4
+        proctype = "Math Processor "
+      Case 5
+        proctype = "DSP Processor "
+      Case 6
+        proctype = "Video Processor "
+    End Select
+    ListBox1.Items.Add("Processor Type: " & proctype)
+
+  End Function
+End Class
+
+

@@ -1,0 +1,176 @@
+using System;
+using System.Drawing;
+using System.Collections;
+using System.ComponentModel;
+using System.Windows.Forms;
+using System.Data;
+using System.Runtime.InteropServices;
+
+namespace RubberBands
+{
+	/// <summary>
+	/// Summary description for Form1.
+	/// </summary>
+	public class RubberBandForm : System.Windows.Forms.Form
+	{
+
+		/// API Declarations
+		private struct POINTAPI {
+			public int x;
+			public int y;
+		}
+
+		[DllImport("gdi32.DLL")]
+		private static extern Int32 SetROP2(IntPtr hDC, 
+			int nDrawMode);
+
+		[DllImport("gdi32.dll")]
+		private static extern bool MoveToEx(IntPtr hDC, 
+			int x, 
+			int y, 
+			POINTAPI lpPoint);
+
+		[DllImport("gdi32.dll")]
+		private static extern bool LineTo(IntPtr hDC, 
+			int x, 
+			int y); 
+
+		[DllImport("gdi32.dll")]
+		private static extern IntPtr CreatePen(int nPenStyle, 
+			int nWidth, 
+			int crColor);
+
+		[DllImport("gdi32.dll")]
+		private static extern IntPtr SelectObject(IntPtr hDC, 
+			IntPtr hObject);
+
+		[DllImport("gdi32.dll")]
+		private static extern bool DeleteObject(IntPtr hObject);
+
+		private const int R2_NOT = 6;
+		private const int R2_XORPEN = 7;
+
+		private const int PS_DOT = 2;
+
+		/// <summary>
+		/// Required designer variable.
+		/// </summary>
+		private System.ComponentModel.Container components = null;
+		private System.Drawing.Graphics m_oDrawingSurface;
+		private POINTAPI m_ptsStart = new POINTAPI();
+		private POINTAPI m_ptsPrevious;
+
+		public RubberBandForm()
+		{
+			//
+			// Required for Windows Form Designer support
+			//
+			InitializeComponent();
+
+			//Add any initialization after the InitializeComponent() call
+			m_oDrawingSurface = this.CreateGraphics();
+
+		}
+
+		/// <summary>
+		/// Clean up any resources being used.
+		/// </summary>
+		protected override void Dispose( bool disposing )
+		{
+			if( disposing )
+			{
+				if (components != null) 
+				{
+					components.Dispose();
+				}
+			}
+			base.Dispose( disposing );
+		}
+
+		protected override void OnMouseDown(MouseEventArgs e) {
+			// Check whether the left mouse button 
+			// has generated the associated event.
+			if (e.Button == MouseButtons.Left) {
+				// Store the starting point for your rubber-band line.
+				m_ptsStart.x = e.X;
+				m_ptsStart.y = e.Y;
+				// Store the previous end point for your rubber-band line.
+				m_ptsPrevious = m_ptsStart;
+			}
+
+			base.OnMouseDown (e);
+		}
+
+		protected override void OnMouseMove(MouseEventArgs e) {
+			// Check if the left mouse button is pressed.
+			
+			if( e.Button == MouseButtons.Left) {
+				// Declare local variables.
+				// handle to an appropriate device context obtained 
+				// from m_oDrawingSurface
+				IntPtr hDC;
+				// previous mix mode; returned from SetROP2
+				Int32 Mix ;
+				// temporary variables used for rubber-banding logic
+				POINTAPI ptsCurrent;
+				POINTAPI ptsOld = new POINTAPI();
+				// determines whether MoveToEx and LineTo calls are successful
+				Boolean Success;
+
+				// Store the current end point of your rubber-band line.
+				ptsCurrent.x = e.X;
+				ptsCurrent.y = e.Y;
+
+				// Perform the requisite graphical operations.
+				// Obtain a handle to an appropriate device context
+				hDC = m_oDrawingSurface.GetHdc();
+				// Set the raster mode to invert the screen color
+				Mix = SetROP2(hDC, R2_NOT);
+				// Move to the starting point of the rubber-band line
+				Success = MoveToEx(hDC, m_ptsStart.x, m_ptsStart.y, ptsOld);
+				// Erase the previous line
+				Success = LineTo(hDC, m_ptsPrevious.x, m_ptsPrevious.y);
+				// Move to the starting point of the rubber-band line
+				Success = MoveToEx(hDC, m_ptsStart.x, m_ptsStart.y, ptsOld);
+				// Draw the new line
+				Success = LineTo(hDC, ptsCurrent.x, ptsCurrent.y);
+				// Release the obtained handle to a device context
+				m_oDrawingSurface.ReleaseHdc(hDC);
+
+				// Store the current end point for the next erase operation
+				m_ptsPrevious = ptsCurrent;
+				}
+
+			base.OnMouseMove (e);
+		}
+
+
+		#region Windows Form Designer generated code
+		/// <summary>
+		/// Required method for Designer support - do not modify
+		/// the contents of this method with the code editor.
+		/// </summary>
+		private void InitializeComponent()
+		{
+			// 
+			// RubberBandForm
+			// 
+			this.AutoScaleBaseSize = new System.Drawing.Size(6, 14);
+			this.BackColor = System.Drawing.SystemColors.Window;
+			this.ClientSize = new System.Drawing.Size(350, 286);
+			this.Name = "RubberBandForm";
+			this.Text = "Using Unmanaged APIs";
+
+		}
+		#endregion
+
+		/// <summary>
+		/// The main entry point for the application.
+		/// </summary>
+		[STAThread]
+		static void Main() 
+		{
+			Application.Run(new RubberBandForm());
+		}
+	}
+}

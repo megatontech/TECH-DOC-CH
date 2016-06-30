@@ -1,0 +1,52 @@
+用word填充表格
+你看一下,下面用C#给Word田家一个表格:
+利用Automation，可以完成对Word文档的各种复杂操作，包括文档的生成、修改、统计字数等等等等。在MSDN里面可以参考“Working with Microsoft Word Objects”一文。
+
+
+
+private void menuItem2_Click(object sender, System.EventArgs e)
+{
+	Object Nothing=System.Reflection.Missing.Value;
+	object filename=@"c:\test.doc";
+
+	Word.Application wordApp=new Word.ApplicationClass();
+	Word.Document wordDoc=wordApp.Documents.Open(ref filename,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing);
+	
+	this.textBox1.Text+="\r\n"+wordDoc.Paragraphs.Last.Range.Text.ToString();
+	this.textBox1.Text+="\r\n"+wordDoc.Tables.Item(1).Cell(1,1).Range.Text.ToString();
+
+	wordDoc.Close(ref Nothing, ref Nothing, ref Nothing);
+	wordApp.Quit(ref Nothing, ref Nothing, ref Nothing);
+}
+
+private void menuItem3_Click(object sender, System.EventArgs e)
+{
+	Object Nothing=System.Reflection.Missing.Value;
+	object filename=@"c:\test.doc";
+
+	Word.Application wordApp=new Word.ApplicationClass();
+	Word.Document wordDoc=wordApp.Documents.Add(ref Nothing,ref Nothing,ref Nothing,ref Nothing);
+	
+	Word.Table table=wordDoc.Tables.Add(wordApp.Selection.Range,2,3,ref Nothing,ref Nothing);
+	table.Cell(1,1).Range.Text="1892730987098";
+	wordDoc.Paragraphs.Last.Range.Text="Hello";
+
+	wordDoc.SaveAs(ref filename,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing,ref Nothing);
+	wordDoc.Close(ref Nothing, ref Nothing, ref Nothing);
+	wordApp.Quit(ref Nothing, ref Nothing, ref Nothing);
+}
+
+在这段例子里面，menuItem3_Click()函数新建了一个Word文档，并在里面插入了一个表格和一段文字。表格的大小是两行三列，最左上的cell里面的内容是"1892730987098"，后面一段文字的内容是"Hello"。其大致如下：
+
++---------------+--------------+--------------+
+| 1892730987098 |              |              |
++---------------+--------------+--------------+
+|               |              |              |
++---------------+--------------+--------------+
+Hello
+
+上面的例子代码中，menuItem2_Click()完成的工作就是打开上面创建的Word文档，并读取表格的第一个cell的内容以及下面一段文字的内容，然后将其显示在this.textBox1中。
+
+您可以试试看上面这段例子代码，运行前需要在项目的Reference里面添加Microsoft Word 10.0 Object Library。
+
+

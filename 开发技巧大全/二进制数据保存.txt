@@ -1,0 +1,37 @@
+'*** 先将二进制数据保存到buffer数组中
+dim buffer() as byte=....
+
+'*** 建立update命令及参数
+Dim cmd As New SqlClient.SqlCommand("update [table1] set [image]=@image where id=@id", Me.SqlConnection1)
+cmd.Parameters.Add(New SqlClient.SqlParameter("@image", SqlDbType.Image, Integer.MaxValue))
+cmd.Parameters.Add(New SqlClient.SqlParameter("@id", SqlDbType.Int))
+
+'*** 向参数赋值
+m_cmdUpdate.Parameters(0).Value = buffer
+m_cmdUpdate.Parameters(1).Value = ID
+
+'*** 执行update
+m_cmdUpdate.ExecuteNonQuery()
+
+这是我以前的例子
+
+clsPublicDB myDB=new clsPublicDB();
+					SqlCommand myCmd=myDB.mySqlConn.CreateCommand();
+					//
+					//ID,ProviderID,BigClassID,Product,Price,VipPrice,StockNum,IsStock,spec,intro,description,addDate
+					string strsql="insert into tProduct (ProviderID,BigClassID,Product,Price,VipPrice,StockNum,IsStock,spec,intro,descr,addDate,iscommend,photo) values "+
+						"("+iProviderID+","+iClassifyID+",'"+this.txtProduct.Text.Trim()+"',"+this.txtPrice.Text.Trim()+","+this.txtVipPrice.Text.Trim()+","+intNum+","+isStock+",'"+this.txtSpec.Text.Trim()+"','"+this.txtIntro.Text.Trim()+"','"+this.txtDescription.Text.Trim()+"','"+DateTime.Now.ToShortDateString()+"',"+bCommend +",@photo)";
+					myCmd.CommandText=strsql;
+					FileStream file =  new  FileStream(sFile,FileMode.Open, FileAccess.Read);
+					Byte[] bytBLOBData = new Byte[file.Length]; 
+					file.Read(bytBLOBData, 0, bytBLOBData.Length);
+					file.Close();
+					SqlParameter prm=new SqlParameter("@photo",SqlDbType.VarBinary,bytBLOBData.Length,ParameterDirection.Input,false,0,0,null,DataRowVersion.Default,bytBLOBData);
+					myCmd.Parameters.Add(prm);
+					//olecommand.Parameters.Add(new OleDbParameter("jpeg",OleDbType.Binary,bytBLOBData.Length,ParameterDirection.Input,true,0,0,null,DataRowVersion.Default,bytBLOBData));
+					myDB.subOpenSqlDbConn();//打开
+				
+					myCmd.ExecuteNonQuery();
+					myDB.subCloseSqlDbConn();//关闭
+
+其中photo就是二进制类型，你可以参考以下

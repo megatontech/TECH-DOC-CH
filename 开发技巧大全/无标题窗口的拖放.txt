@@ -1,0 +1,13 @@
+private const int WM_NCLBUTTONDOWN = 0xA1;
+private const int HTCAPTION = 2;
+[DllImport("user32.dll", EntryPoint="SendMessageA")]
+private static extern int SendMessage (int hwnd, int wMsg, int wParam, int lParam);
+[DllImport("user32.dll")]
+private static extern int ReleaseCapture ();
+private void Form1_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+{
+	//为当前的应用程序释放鼠标捕获
+	ReleaseCapture();
+	//发送消息，让系统误以为你在标题拦上按下鼠标
+        SendMessage((int)this.Handle,WM_NCLBUTTONDOWN,HTCAPTION,0);
+}

@@ -1,0 +1,301 @@
+随着桌面系统的推出，利用鼠标的拖放（Drag and Drop）操作由于其简单、直接，受到了越来越多的读者的欢迎，为迎合这种趋势，越来越多程序员在自己的程序中使用了拖放操作。拖放操作方便了程序的使用者，但由于拖放操作在程序中的设计工作比较还有点麻烦，甚至是一个难点，许多程序员对其都有点心有余悸。本文就结合微软公司最新的.Net程序开发语言--C＃，来全面介绍一下在C＃中是如何处理拖放操作的。 
+
+在本文中，我们是通过二个代表组件，也是在拖放操作中经常使用到的二个组件--TreeView组件和ListView组件，之间互相进行拖放操作来说明此类问题的。在进行拖放操作之前，必须要对进行拖放操作的组件的"AllowDrop"属性值设定为"True"，因为此属性是确定组件是否可以进行拖放操作的。 
+
+一． 本文中介绍的程序的设计和运行的软件环境： 
+
+（1）.微软公司视窗2000服务器版 
+
+（2）..Net FrameWork SDK Beta 2 
+
+二． 由TreeView组件到ListView组件的拖放操作： 
+
+要完成此次的拖放操作，必须处理好三种事件："ItemDrag"、"DragEnter"、"DragDrop"。其中只有第一种事件是在源组件中触发的，另外二种事件是在目标组件中触发的。其中当用户拖动组件触发"ItemDrag"事件；当拖动数据进入目标组件区域触发"DragEnter"事件；当用户在目标组件区域放置拖动的数据触发"DragDrop"事件。下面就根据拖放操作的操作顺序来详细介绍： 
+
+（1）.开始"拖"（Drag）操作： 
+
+通过"DoDragDrop"方法拉开了拖放操作的第一步。"DoDragDrop"方法的语法为： 
+
+DoDragDrop ( object data , DragDropEffects allowedEffects ) ; 
+
+其中第二个参数来是说明此次拖放操作最后所要实现的效果，因为拖放操作有时实现的效果是把源组件中的内容"拖"到目标组件中，这种效果就是"Move"；有时拖放的效果是在目标组件中加入拖动的数据，对源组件的内容是没有什么影响的，这种效果就是"Copy"。当然无论是"Move"还是"Copy"，这都要通过具体的编程来实现，设定这些效果只是告诉操作系统，你进行拖放操作的类型，从而为拖放操作设定特定的图标。此例中实现开始"拖放"操作的具体实现代码如下： 
+
+private  void  treeView1_ItemDrag  (  object  sender  ,  ItemDragEventArgs  e  )
+  {
+  string  strItem  =  e.Item.ToString  (  )  ; 
+//开始进行"Drag"操作
+DoDragDrop  (  strItem  ,  DragDropEffects.Copy  |  DragDropEffects.Move  )  ;
+  }
+   
+在上面代码中，我们定义的拖放数据类型是字符串，其实拖放的数据类型可以是很多种的，你可以通过修改"DoDragDrop"方法的第一个参数来设定你所要拖放数据类型，譬如：位图或者其他什么。 
+
+（2）.目标组件允许进行拖放操作： 
+
+既然你已经开始进行拖放操作，你还必须告诉你要拖放到的目标组件，要接受你所拖放的数据，"DragEnter"事件正好可以处理。在下列的代码中，我们是通过判断拖放数据类型来确定是否接受拖放，如果是字符串，则可以，否则，则不行。具体代码如下： 
+
+private  void  listView1_DragEnter  (  object  sender  ,  DragEventArgs  e  )
+  {
+  //判断是否目前拖动的数据是字符串，如果是，则拖动符串对目的组件进行拷贝
+  if  (  e.Data.GetDataPresent  (  DataFormats.Text  )  )
+  e.Effect  =  DragDropEffects.Move  ;
+  else
+  e.Effect  =  DragDropEffects.None  ;
+  }
+   
+（3）.获得拖放的字符串，在目标组件中加入相应的内容： 
+
+此步的处理过程是十分明确的，要分成二步来进行，首先要得到拖放的字符串，其次是在目标组件中加入以此字符串为标题的项目。当然还要在相应的位置了。下面就是实现这二步操作的具体代码： 
+
+private  void  listView1_DragDrop  (  object  sender  ,  DragEventArgs  e  )
+  {
+  string  dummy  =  "temp"  ;
+  //获得进行"Drag"操作中拖动的字符串
+  string  s  =  (  string  )  e.Data.GetData  (  dummy.GetType  (  )  )  ;
+  s  =  s.Substring  (  s.IndexOf  (  ":"  )  +  1  ).Trim  (  )  ;
+  Position.X  =  e.X  ;
+  Position.Y  =  e.Y  ;
+  Position  =  listView1.PointToClient  (  Position  )  ;
+  //在目标组件中加入以此字符串为标题的项目
+  listView1.Items.Add  (  new  ListViewItem  (  s  ,  0  )  )  ;
+  }  
+
+
+此致通过对这三个事件的编程，已经完成了由TreeView组件到ListView组件的拖放操作。 
+
+三． 由ListView组件到TreeView组件的拖放操作： 
+
+由ListView组件到TreeView组件的拖放操作和从TreeView组件到ListView组件相类似，也是通过"ItemDrag"、"DragEnter"、"DragDrop"三个事件来处理的，具体如下： 
+
+（1）.开始"拖"（Drag）操作： 
+
+这和前者没有什么实质上的区别，只是在此次的拖放操作开始之前，多加入了一些逻辑判断，让程序更稳健的允许，实现的代码如下： 
+private  void  listView1_ItemDrag  (  object  sender  ,  ItemDragEventArgs  e  )
+  {
+  //判断是否是鼠标右键按动
+  if  (  e.Button  ==  MouseButtons.Right  )  return    ;
+  int  nTotalSelected  =  listView1.SelectedIndices.Count  ;
+  //判断组件中是否存在项目
+  if  (  nTotalSelected  <=  0  )  return    ;
+  IEnumerator  selCol  =  listView1.SelectedItems.GetEnumerator  (  )  ;
+  selCol.MoveNext  (  )    ;
+  ListViewItem  lvi  =  (  ListViewItem  )selCol.Current  ;
+  string  mDir  =  ""  ;
+  for  (  int  i  =  0  ;  i  <  lvi.SubItems.Count  ;  i++  )
+  mDir  +=  lvi.SubItems[  i  ].Text  +  "  ,"  ;
+  string  str  =  mDir.Substring  (  0  ,  mDir.Length-1  )  ;
+  if  (  str  ==  ""  )  return    ;
+  //对组件中的字符串开始拖放操作
+  listView1.DoDragDrop  (  str    ,  DragDropEffects.Copy  |  DragDropEffects.Move  )    ;
+  }  
+
+
+（2）.目标组件允许进行拖放操作： 
+
+这一步是进行拖放操作最为一致的，除非你所要进行拖放的数据类型有改变，否则，没有必要对源代码进行什么修改，具体如下： 
+
+private  void  treeView1_DragEnter  (  object  sender  ,  DragEventArgs  e  )
+  {
+  //判断是否目前拖动的数据是字符串，如果是，则拖动符串对目的组件进行拷贝
+  if  (  e.Data.GetDataPresent  (  DataFormats.Text  )  ) 
+e.Effect  =  DragDropEffects.Copy  ;
+  else
+  e.Effect  =  DragDropEffects.None  ;
+  }
+   
+（3）.获得拖放的字符串，在目标组件中加入相应的内容： 
+
+对于进行拖放操作的不同组件，获得其拖放的数据的实现方法是不一样的，在本步骤中也不例外，但总归大同小异，掌握程序设计的步骤和要点，加上探索、研究的精神，这个问题应该能够解决，下面是实现此步骤的程序代码： 
+
+private  void  treeView1_DragDrop  (  object  sender  ,  DragEventArgs  e  )
+  {
+  //获得进行"Drag"操作中拖动的字符串
+  string  dummy  =  "temp"  ;
+  string  s  =  (  string  )  e.Data.GetData  (  dummy.GetType  (  )  )  ;
+  s  =  s.Substring  (  s.IndexOf  (  ":"  )  +  1  ).Trim  (  )  ;
+  Position.X  =  e.X  ;
+  Position.Y  =  e.Y  ;
+  Position  =  treeView1.PointToClient  (  Position  )  ;
+  TreeNode  DropNode  =  this.treeView1.GetNodeAt  (  Position  )  ;
+  //在目标组件中加入以此字符串为标题的项目
+  if  (  DropNode  !=  null  )
+  {
+  TreeNode  DragNode  =  new  TreeNode  (  s  )  ;
+  treeView1.Nodes.Insert  (  DropNode.Index+1  ,  DragNode  )  ;
+  }
+  }  
+
+
+四． 二个组件进行拖放操作的完整源程序代码（dragdrop.cs）： 
+
+在掌握了上面的这些步骤过以后，可以得到这二个组件相互进行拖放操作的完整代码和编译后程序的运行界面，如下： 
+
+
+
+
+
+图01：二个组件相互进行拖放的程序运行界面 
+
+dragdrop.cs的代码如下：
+using  System  ;
+  using  System.Drawing  ;
+  using  System.Collections  ;
+  using  System.ComponentModel  ;
+  using  System.Windows.Forms  ;
+  using  System.Data  ;
+  //导入程序中使用的命名空间
+  public  class  Form1  :  Form
+  {
+  private  TreeView  treeView1  ;
+  private  Point  Position  =  new  Point(  0  ,  0)  ;
+  // bool  lv1_mdown  =  false    ;
+  private  ListView  listView1  ;
+  private  System.ComponentModel.Container  components  =  null  ;
+  public  Form1  (  )
+  {
+  InitializeComponent  (  )  ;
+  //初始化窗体中的各个组件
+  }
+  //清除程序中使用到的各种资源
+  protected  override  void  Dispose  (  bool  disposing  )
+  {
+  if  (  disposing  )
+  {
+  if  (  components  !=  null  ) 
+{
+components.Dispose  (  )  ;
+  }
+  }
+  base.Dispose  (  disposing  )  ;
+  }
+  private  void  InitializeComponent  (  )
+  {
+  ListViewItem  listViewItem1  =  new  ListViewItem  (  "Item01"  )  ;
+  ListViewItem  listViewItem2  =  new  ListViewItem  (  "Item02"  )  ;
+  treeView1  =  new  TreeView  (  )  ;
+  listView1  =  new  ListView  (  )  ;
+  SuspendLayout  (  )  ;
+  //此属性必须设定为"真"，这样才能进行拖放操作
+  treeView1.AllowDrop  =  true  ;
+  treeView1.ImageIndex  =  -1  ;
+  treeView1.Location  =  new  Point  (  48  ,  40  )  ;
+  treeView1.Name  =  "treeView1"  ;
+  //在TreeView组件中加入初始化的节点
+  treeView1.Nodes.Add  (    new  TreeNode  (  "节点01"  )  );
+  treeView1.Nodes.Add  (    new  TreeNode  (  "节点02"  )  );
+  treeView1.SelectedImageIndex  =  -1  ;
+  treeView1.Size  =  new  Size  (  121  ,  144  )  ;
+  treeView1.TabIndex  =  0  ;
+  treeView1.DragEnter  +=  new  DragEventHandler  (  treeView1_DragEnter  )  ;
+  treeView1.ItemDrag  +=  new  ItemDragEventHandler  (  treeView1_ItemDrag  )  ;
+  treeView1.DragDrop  +=  new  DragEventHandler  (  treeView1_DragDrop  )  ;
+  //此属性必须设定为"真"，这样才能进行拖放操作
+  listView1.AllowDrop  =  true  ;
+  //在ListView组件中加入项目
+  listView1.Items.Add  (  listViewItem1  )  ;
+  listView1.Items.Add  (  listViewItem2  )  ;
+  listView1.Location  =  new  Point  (  208  ,  40  )  ;
+  listView1.Name  =  "listView1"  ;
+  listView1.Size  =  new  Size  (  121  ,  144  )  ;
+  listView1.TabIndex  =  2  ;
+  listView1.View  =  View.List  ;
+  listView1.DragDrop  +=  new  DragEventHandler  (  listView1_DragDrop  )  ;
+  listView1.DragEnter  +=  new  DragEventHandler  (  listView1_DragEnter  )  ;
+  listView1.ItemDrag  +=  new  ItemDragEventHandler  (  listView1_ItemDrag  )  ;
+  
+  AutoScaleBaseSize  =  new  Size  (  6  ,  14  )  ;
+  ClientSize  =  new  Size  (  376  ,  237  )  ;
+  Controls.Add  (  listView1  );
+  Controls.Add  (  treeView1  );
+  this.MaximizeBox  =  false  ;
+  this.MinimizeBox  =  false  ;
+  this.Name  =  "Form1"  ;
+  this.Text  =  "全面掌握C＃中的拖放操作"  ;
+  this.ResumeLayout  (  false  )  ;
+  }
+  static  void  Main  (  ) 
+{
+Application.Run  (  new  Form1  (  )  )  ;
+  }
+  private  void  treeView1_ItemDrag  (  object  sender  ,  ItemDragEventArgs  e  )
+  {
+  string  strItem  =  e.Item.ToString  (  )  ; 
+//开始进行"Drag"操作
+DoDragDrop  (  strItem  ,  DragDropEffects.Copy  |  DragDropEffects.Move  )  ;
+  }
+  private  void  listView1_DragEnter  (  object  sender  ,  DragEventArgs  e  )
+  {
+  //判断是否目前拖动的数据是字符串，如果是，则拖动符串对目的组件进行拷贝
+  if  (  e.Data.GetDataPresent  (  DataFormats.Text  )  )
+  e.Effect  =  DragDropEffects.Move  ;
+  else
+  e.Effect  =  DragDropEffects.None  ;
+  }
+  private  void  listView1_DragDrop  (  object  sender  ,  DragEventArgs  e  )
+  {
+  string  dummy  =  "temp"  ;
+  //获得进行"Drag"操作中拖动的字符串
+  string  s  =  (  string  )  e.Data.GetData  (  dummy.GetType  (  )  )  ;
+  s  =  s.Substring  (  s.IndexOf  (  ":"  )  +  1  ).Trim  (  )  ;
+  Position.X  =  e.X  ;
+  Position.Y  =  e.Y  ;
+  Position  =  listView1.PointToClient  (  Position  )  ;
+  //在目标组件中加入以此字符串为标题的项目
+  listView1.Items.Add  (  new  ListViewItem  (  s  ,  0  )  )  ;
+  }
+  
+  private  void  listView1_ItemDrag  (  object  sender  ,  ItemDragEventArgs  e  )
+  {
+  //判断是否是鼠标右键按动
+  if  (  e.Button  ==  MouseButtons.Right  )  return    ;
+  int  nTotalSelected  =  listView1.SelectedIndices.Count  ;
+  //判断组件中是否存在项目
+  if  (  nTotalSelected  <=  0  )  return    ;
+  IEnumerator  selCol  =  listView1.SelectedItems.GetEnumerator  (  )  ;
+  selCol.MoveNext  (  )    ;
+  ListViewItem  lvi  =  (  ListViewItem  )selCol.Current  ;
+  string  mDir  =  ""  ;
+  for  (  int  i  =  0  ;  i  <  lvi.SubItems.Count  ;  i++  )
+  mDir  +=  lvi.SubItems[  i  ].Text  +  "  ,"  ;
+  string  str  =  mDir.Substring  (  0  ,  mDir.Length-1  )  ;
+  if  (  str  ==  ""  )  return    ;
+  //对组件中的字符串开始拖放操作
+  listView1.DoDragDrop  (  str    ,  DragDropEffects.Copy  |  DragDropEffects.Move  )    ;
+  }
+  private  void  treeView1_DragEnter  (  object  sender  ,  DragEventArgs  e  )
+  {
+  //判断是否目前拖动的数据是字符串，如果是，则拖动符串对目的组件进行拷贝
+  if  (  e.Data.GetDataPresent  (  DataFormats.Text  )  ) 
+e.Effect  =  DragDropEffects.Copy  ;
+  else
+  e.Effect  =  DragDropEffects.None  ;
+  }
+  private  void  treeView1_DragDrop  (  object  sender  ,  DragEventArgs  e  )
+  {
+  //获得进行"Drag"操作中拖动的字符串
+  string  dummy  =  "temp"  ;
+  string  s  =  (  string  )  e.Data.GetData  (  dummy.GetType  (  )  )  ;
+  s  =  s.Substring  (  s.IndexOf  (  ":"  )  +  1  ).Trim  (  )  ;
+  Position.X  =  e.X  ;
+  Position.Y  =  e.Y  ;
+  Position  =  treeView1.PointToClient  (  Position  )  ;
+  TreeNode  DropNode  =  this.treeView1.GetNodeAt  (  Position  )  ;
+  //在目标组件中加入以此字符串为标题的项目
+  if  (  DropNode  !=  null  )
+  {
+  TreeNode  DragNode  =  new  TreeNode  (  s  )  ;
+  treeView1.Nodes.Insert  (  DropNode.Index+1  ,  DragNode  )  ;
+  }
+  }
+  }  
+
+
+五． 其他组件的拖放操作： 
+
+本文虽然对TreeView组件和ListView组件之间的拖放操作进行了详细的介绍，对于其他的可以用于拖放操作的组件，很多组件的拖放操作的实现方法都和这二种差不多。但也有一些组件有一些区别，譬如：ListBox组件等，在进行拖放操作的时候，他就没有本文介绍的"ItemDrag"事件，那这怎么办。我们是通过一个变通的方法来实现的。具体是通过"MouseMove"事件和"MouseDown"事件来代替"ItemDrag"事件，其中"MouseMove"事件主要是起到触发拖放操作的作用，"MouseDown"事件主要是起着判断此次拖放操作是否已经完成的作用。对于ListBox组件拖放操作的其他步骤也和上面介绍的二个组件没有什么太大区别。由于篇幅的关系ListBox组件和其他不存在"ItemDrag"事件的组件的拖放操作，这里就不一一介绍了，相信大家能够搞定。 
+
+六． 总结： 
+
+对于大多数组件来说掌握了"ItemDrag"、"DragEnter"、"DragDrop"三个事件的解决办法也就掌握了组件间的拖放操作。当然还有一些例外的组件，但总而言之，拖放操作的实现步骤都是一样的，解决的思路也是大致一致的。由于拖放操作的自身的优点，对于程序员来说尽快掌握是十分必要的，希望本文介绍的内容能够令你满意。 
+更多操作请见:
+ms-help://MS.VSCC.2003/MS.MSDNQTR.2003FEB.2052/cpref/html/frlrfsystemwindowsformsdragdropeffectsclasstopic.htm
+http://www.c-sharpcorner.com/winforms/DragDropInCSharp.asp

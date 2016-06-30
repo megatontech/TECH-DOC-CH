@@ -1,0 +1,2 @@
+int i = 100;
+string str = Convert.ToString(i ,16);//16代表16进制,也可以为8,2,10

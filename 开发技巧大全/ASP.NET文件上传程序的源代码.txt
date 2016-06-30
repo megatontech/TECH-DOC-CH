@@ -1,0 +1,33 @@
+ASP.NET文件上传程序的源代码 
+ 
+本文件用VB.NET编辑,在WIN2000+IIS(安装有.NET支持)中调试通过,可以上传许多常用的文件类型.如 
+RAR、ZIP、DOC、TXT、JPG、GIF等等! 
+直接下载保存为ASPX格式就可以 
+------------------------------------------------------------ 
+<html> 
+<title>文件上传</title> 
+
+<body> 
+<form enctype="multipart/form-data" runat=server> 
+<Input type=file id=fileup runat=server size="20"><p> 
+<asp:button id=upload_button onclick=uploadfile text="上传" runat=server/> 
+</form> 
+<p> 
+<asp:label id=uptype runat=server/> 
+</body> 
+</html> 
+<script language=VB runat=server> 
+Sub uploadfile(sender as object,e as eventargs) 
+If fileup.postedfile.contentlength=0 Then 
+uptype.text="你还没有选择需要上传的文件！" 
+Else 
+Dim filesplit() as string=split(fileup.postedfile.filename,"\") 
+Dim filename as string=filesplit(filesplit.length-1) 
+fileup.postedfile.saveas(server.mappath(".")&"\"&filename) 
+uptype.text="文件名称："&fileup.postedfile.filename &"<br>"& _ 
+"文件大小："&fileup.postedfile.contenttype &"<br>"& _ 
+"文件类型："&fileup.postedfile.contentlength 
+End If 
+
+End Sub 
+</script> 

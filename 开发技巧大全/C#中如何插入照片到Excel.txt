@@ -1,0 +1,3 @@
+　Excel.Worksheet xSheet=(   Excel.Worksheet)xBook.Sheets[1];  
+　　xSheet.Shapes.AddPicture("D:\\tt.bmp", MsoTriState.msoFalse  , 
+　　MsoTriState.msoTrue,10,10,150,150);  

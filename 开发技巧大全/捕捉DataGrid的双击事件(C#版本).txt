@@ -1,0 +1,210 @@
+namespace DataGridDoubleClick
+{
+	using System;
+	using System.Drawing;
+	using System.Collections;
+	using System.ComponentModel;
+	using System.Windows.Forms;
+	using System.Data;
+
+	public class Form1 : System.Windows.Forms.Form
+	{
+		private System.Windows.Forms.DataGrid dataGrid1;
+		private DataSet myDataSet;
+		DateTime gridMouseDownTime;
+    private System.Windows.Forms.Label label1;
+		
+		private System.ComponentModel.Container components = null;
+
+		public Form1()
+		{
+			InitializeComponent();
+			gridMouseDownTime = DateTime.Now;
+			SetUp();
+		}
+
+		private void SetUp()
+		{
+			// 用2个Table和1和Relation创建DataSet
+			MakeDataSet();
+			// 数据绑定
+			dataGrid1.SetDataBinding(myDataSet, "Customers");
+
+			//添加样式
+			AddCustomDataTableStyle();
+		}
+
+		private void MakeDataSet()
+		{
+			// 创建DataSet.
+			myDataSet = new DataSet("myDataSet");
+	      
+			// 创建2个DataTables.
+			DataTable tCust = new DataTable("Customers");
+			
+			// 创建两个列，并添加到第一个表
+			DataColumn cCustID = new DataColumn("custID");
+			DataColumn cCustName = new DataColumn("custName");
+			DataColumn cCurrent = new DataColumn("custCity");
+			tCust.Columns.Add(cCustID);
+			tCust.Columns.Add(cCustName);
+			tCust.Columns.Add(cCurrent);
+
+			// 把tables添加到DataSet.
+			myDataSet.Tables.Add(tCust);
+			
+	   
+			/* 计算tables.对每个客户，创建DataRow变量 */
+			DataRow newRow1;
+			
+			// 添加记录到 Customers Table.
+			for(int i = 1; i < 4; i++)
+			{
+				newRow1 = tCust.NewRow();
+				newRow1["custID"] = (100*i).ToString();
+				tCust.Rows.Add(newRow1);
+			}
+
+			tCust.Rows[0]["custName"] = "【孟宪会之精彩世界】";
+			tCust.Rows[1]["custName"] = "net_lover";
+			tCust.Rows[2]["custName"] = "http://xml.sz.luohuedu.net/";
+
+
+			tCust.Rows[0]["custCity"] = "北京";
+			tCust.Rows[1]["custCity"] = "上海";
+			tCust.Rows[2]["custCity"] = "河南";
+		}
+
+		private void AddCustomDataTableStyle()
+		{
+			DataGridTableStyle ts1 = new DataGridTableStyle();
+			ts1.MappingName = "Customers";
+			// 设置属性
+			ts1.AlternatingBackColor = Color.LightGray;
+
+			// 添加Textbox列样式，以便我们捕捉鼠标事件
+			DataGridTextBoxColumn TextCol = new DataGridTextBoxColumn();
+			TextCol.MappingName = "custID";
+			TextCol.HeaderText = "序号";
+			TextCol.Width = 100;
+
+			//添加事件处理器
+			TextCol.TextBox.MouseDown += new MouseEventHandler(TextBoxMouseDownHandler);
+			TextCol.TextBox.DoubleClick += new EventHandler(TextBoxDoubleClickHandler);
+			ts1.GridColumnStyles.Add(TextCol);
+
+			TextCol = new DataGridTextBoxColumn();
+			TextCol.MappingName = "custName";
+			TextCol.HeaderText = "姓名";
+			TextCol.Width = 100;
+			//添加事件处理器
+			TextCol.TextBox.MouseDown += new MouseEventHandler(TextBoxMouseDownHandler);
+			TextCol.TextBox.DoubleClick += new EventHandler(TextBoxDoubleClickHandler);
+			ts1.GridColumnStyles.Add(TextCol);
+
+			TextCol = new DataGridTextBoxColumn();
+			TextCol.MappingName = "custCity";
+			TextCol.HeaderText = "地址";
+			TextCol.Width = 100;
+			//添加事件处理器
+			TextCol.TextBox.MouseDown += new MouseEventHandler(TextBoxMouseDownHandler);
+			TextCol.TextBox.DoubleClick += new EventHandler(TextBoxDoubleClickHandler);
+			ts1.GridColumnStyles.Add(TextCol);
+		
+				dataGrid1.TableStyles.Add(ts1);
+			
+		}
+
+		protected override void Dispose( bool disposing )
+		{
+			if( disposing )
+			{
+				if (components != null) 
+				{
+					components.Dispose();
+				}
+			}
+			base.Dispose( disposing );
+		}
+
+		#region Windows Form Designer generated code
+		private void InitializeComponent()
+		{
+      this.dataGrid1 = new System.Windows.Forms.DataGrid();
+      this.label1 = new System.Windows.Forms.Label();
+      ((System.ComponentModel.ISupportInitialize)(this.dataGrid1)).BeginInit();
+      this.SuspendLayout();
+      // 
+      // dataGrid1
+      // 
+      this.dataGrid1.CaptionBackColor = System.Drawing.SystemColors.Info;
+      this.dataGrid1.CaptionForeColor = System.Drawing.SystemColors.WindowText;
+      this.dataGrid1.CaptionVisible = false;
+      this.dataGrid1.DataMember = "";
+      this.dataGrid1.HeaderForeColor = System.Drawing.SystemColors.ControlText;
+      this.dataGrid1.Location = new System.Drawing.Point(11, 9);
+      this.dataGrid1.Name = "dataGrid1";
+      this.dataGrid1.Size = new System.Drawing.Size(368, 144);
+      this.dataGrid1.TabIndex = 0;
+      this.dataGrid1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.dataGrid1_MouseDown);
+      // 
+      // label1
+      // 
+      this.label1.Location = new System.Drawing.Point(4, 166);
+      this.label1.Name = "label1";
+      this.label1.Size = new System.Drawing.Size(383, 23);
+      this.label1.TabIndex = 1;
+      this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+      this.label1.Click += new System.EventHandler(this.Form1_Click);
+      // 
+      // Form1
+      // 
+      this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
+      this.ClientSize = new System.Drawing.Size(387, 201);
+      this.Controls.AddRange(new System.Windows.Forms.Control[] {
+                                                                  this.label1,
+                                                                  this.dataGrid1});
+      this.Name = "Form1";
+      this.Text = "鼠标双击事件的例子";
+      ((System.ComponentModel.ISupportInitialize)(this.dataGrid1)).EndInit();
+      this.ResumeLayout(false);
+
+    }
+		#endregion
+
+		[STAThread]
+		static void Main() 
+		{
+			Application.Run(new Form1());
+		}
+
+		private void TextBoxDoubleClickHandler(object sender, EventArgs e)
+		{
+			MessageBox.Show("双击事件发生。鼠标双击到的值："+((TextBox)sender).Text.ToString());
+		}
+
+		private void TextBoxMouseDownHandler(object sender, MouseEventArgs e)
+		{
+			if(DateTime.Now < gridMouseDownTime.AddMilliseconds(SystemInformation.DoubleClickTime))
+			{
+			  MessageBox.Show("双击事件发生。鼠标双击到的值："+((TextBox)sender).Text.ToString());
+			}
+			label1.Text = "TextBox 鼠标按下了。  ";
+		}
+
+		private void dataGrid1_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+		{
+			gridMouseDownTime = DateTime.Now;
+			label1.Text = "DataGrid1 鼠标按下了。  ";
+		}
+
+    private void Form1_Click(object sender, System.EventArgs e)
+    {
+      label1.Text="";
+    }
+    private void label1_Click(object sender, System.EventArgs e)
+    {
+      label1.Text="";
+    }
+	}
+}

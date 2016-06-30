@@ -1,0 +1,26 @@
+c#.net中如何自定义datagrid样式。
+winform
+先这样设置
+DataSource 为 dataSet
+DataMember 为 datatable //dataSet中的表名
+在DataGridTableStyles集合编辑器 添加dataGridTableStyle1
+设置dataGridTableStyle1属性栏中 MappingName 为 table //dataSet中的表名
+
+在DataGridColumnStyle属性栏中添加dataGridTextBoxColumn1
+设置dataGridTextBoxColumn1的MappingName 为要显示的字段名
+这样在视图设计器中就能看见了
+////////////////////////////////////////////////////
+也可以直接写代码
+参考DataTable,DataView和DataGrid中一些容易混淆的概念————◆ DataGrid以何种方式显示DataView的数据 
+http://www.csdn.net/Develop/Read_Article.asp?Id=17840
+
+
+
+webform
+<asp:DataGrid id = "myDataGrid" runat = "server" AutoGenerateColumns = "False">
+   <Columns>
+    <asp:BoundColumn DataField = "myField" HeaderText = "myCustomerText"/>
+     ……
+   <Columns>
+<asp:DataGrid>
+

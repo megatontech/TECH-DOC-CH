@@ -1,0 +1,395 @@
+Asp.net 实现验证码功能的Web控件 
+ 
+Asp.net的设计方式和设计理念和其他的如Asp,Jsp,Php,Perl等都不一样，几乎是完全的面向对象设计！代码的复用就是其中差异较大的特点之一，Asp.net除了可以用Include以外，还提供了比较有特点的Web控件，包括：Ascx形式和带设计时支持的控件[本文属于后者],为了熟悉这些新概念，我自己写了个Web控件。 
+
+在实际项目中运行使用良好，以后，要有时间，我还将不断改进。 
+
+
+ValidateCode控件的使用方法: 
+
+第一步： 
+
+编译我提供的原代码, 然后,在Studio.net 2003工具栏上, 选择"添加/移除项", 选中编译好的dll文件。 
+
+第二步： 
+
+工具栏上就会多一个Web控件ValidateCode,做好一个Web窗体,在Studio.net 2003开发界面上,直接把控件拖到WebForm上,就OK！ 
+
+第三步： 
+
+在该控件的GraphicOK事件中获取，验证码的字符信息，用于和用户录入做比较！ 
+
+最后一步： 
+
+在网站的根目录下，建一个temp目录（也可以自己指定目录），用于存放验证码 
+
+图片，不用担心，代码会自动删除无用的图片！ 
+
+
+原代码如下： 
+
+using System; 
+using System.Web.UI; 
+using System.Web.UI.WebControls; 
+using System.ComponentModel; 
+using System.IO; 
+using System.Drawing; 
+using System.Drawing.Drawing2D; 
+using System.Drawing.Imaging; 
+
+namespace WebValidateCode 
+{ 
+/// <summary> 
+/// ValidateCode 的摘要说明。 
+/// 设计者:王海波 2004-11-20 
+/// </summary> 
+/// 
+public enum GraphicType 
+{ 
+Jpg = 0, 
+Gif = 1, 
+Png = 2, 
+Bmp = 3, 
+} 
+
+
+//[ToolboxBitmap(@"D:\DotnetApp\ValidateCode\ValidateCode.bmp") ] //设置控件在工具箱上的图标 
+public class ValidateCode : System.Web.UI.WebControls.WebControl ,INamingContainer 
+{ 
+private int pCodelen=5; 
+private int pChartWidth=100; 
+private int pChartHeight=20; 
+
+private GraphicType pChartType; 
+
+private string pAuthenCode; 
+
+private string pTempImageURLPath="/temp"; 
+private string pAuthenImageFullname; 
+private string pAuthenImageFullURL; 
+
+//生成校验码的变量 start 
+private Bitmap validateImage; 
+private Graphics g; 
+//生成校验码的变量 End 
+
+private TextBox txt=new TextBox(); 
+private System.Web.UI.WebControls.Image img= new System.Web.UI.WebControls.Image(); 
+
+#region 定义控件事件 
+
+public delegate void GraphicCreated(object sender, EventArgs e); 
+public event EventHandler GraphicOK; //在校验图片生成结束以后触发 
+
+protected virtual void OnGraphicOK(object sender, EventArgs e) 
+{ 
+if (GraphicOK != null) 
+{ 
+//Invokes the delegates. 
+GraphicOK(sender, e); 
+} 
+} 
+
+#endregion 
+
+#region 控件属性 
+
+//生成校验码的长度 
+[Bindable(true),Browsable(true),Category("Appearance"),DefaultValue(true),Description("需要验证码的长度,建议在5~8位之间!")] 
+public int CodeLength 
+{ 
+get 
+{ 
+return pCodelen; 
+} 
+
+set 
+{ 
+pCodelen = value; 
+} 
+} 
+
+//生成校验码的长度 
+[Bindable(true),Browsable(true),Category("Appearance"),DefaultValue(true),Description("生成验证码图片的临时存放路径,要求必须是网站下的虚拟目录!")] 
+public string TempImageURLPath 
+{ 
+get 
+{ 
+return pTempImageURLPath; 
+} 
+
+set 
+{ 
+pTempImageURLPath = value; 
+} 
+} 
+
+[Bindable(true),Browsable(true),Category("Appearance"),DefaultValue(GraphicType.Jpg),Description("选择生成校验图文件的类型(Jpg;Gif;Png;Bmp)!")] 
+public GraphicType ChartType 
+{ 
+get 
+{ 
+return pChartType; 
+} 
+
+set 
+{ 
+pChartType = value; 
+} 
+} 
+
+
+//生成校验码图片的宽度 
+public int ChartWidth 
+{ 
+get 
+{ 
+return pChartWidth; 
+} 
+
+set 
+{ 
+pChartWidth = value; 
+} 
+} 
+
+//生成校验码图片的高度 
+public int ChartHeight 
+{ 
+get 
+{ 
+return pChartHeight; 
+} 
+
+set 
+{ 
+pChartHeight = value; 
+} 
+} 
+
+//需要生成的校验码 
+public string AuthenCode 
+{ 
+get 
+{ 
+return pAuthenCode; 
+} 
+
+set 
+{ 
+pAuthenCode = value; 
+} 
+} 
+
+#endregion 
+
+/// <summary> 
+/// 将此控件呈现给指定的输出参数。 
+/// </summary> 
+/// <param name="output"> 要写出到的 HTML 编写器 </param> 
+protected override void Render(HtmlTextWriter output) 
+{ 
+
+System.Web.UI.WebControls.Image objImage; 
+//TextBox objTxt; 
+
+
+//绘制包含的控件 
+objImage = (System.Web.UI.WebControls.Image) Controls[0]; 
+//objTxt = (TextBox) Controls[1]; 
+
+if(pAuthenCode==null) 
+pAuthenCode=GetValidateCode(); 
+
+OnGraphicOK(this,EventArgs.Empty ); 
+
+GetRandomImage(pAuthenCode); 
+objImage.ImageUrl=pAuthenImageFullURL; 
+
+objImage.RenderControl(output); 
+
+} 
+
+/// <summary> 
+/// 给控件添加子控件 
+/// </summary> 
+protected override void CreateChildControls( ) 
+{ 
+
+//Controls.Add(btn); 
+Controls.Add(img); 
+//Controls.Add(txt); 
+} 
+
+/// <summary> 
+/// 控件Load时候属性的初始化 
+/// </summary> 
+/// <param name="e"></param> 
+protected override void OnLoad(System.EventArgs e) 
+{ 
+EraseOldGraphic(); //删除过期的图片 
+} 
+
+/// <summary> 
+/// 生成随机的 
+/// </summary> 
+private void MakeRandomFileName() 
+{ 
+string strRandName=DateTime.Now.Ticks.ToString()+".jpg"; 
+pAuthenImageFullname=this.Page.MapPath(TempImageURLPath)+@"\"+strRandName; 
+pAuthenImageFullURL=TempImageURLPath+"/"+strRandName; 
+} 
+
+
+private void GetRandomImage(string strValidateCode) 
+{ 
+//生成随即图片的全名,和全URL 
+MakeRandomFileName(); 
+
+validateImage = new Bitmap(pChartWidth, pChartHeight, PixelFormat.Format24bppRgb); // .Format24bppRgb); 
+g = Graphics.FromImage(validateImage); 
+
+g.Clear(Color.LightGray) ; 
+
+//g.DrawString(strValidateCode , new Font("宋体",16,FontStyle.Bold),new SolidBrush(Color.DarkRed),new PointF(2,2)); 
+
+for(int i=0;i<strValidateCode.Length;i++) 
+{ 
+Random r = new Random(); 
+PointF startPos=new PointF(r.Next(3,6)+(r.Next(12,14)*i ),r.Next(-1,2) ); 
+
+g.DrawString(strValidateCode.Substring(i,1) , new Font("宋体",14,FontStyle.Italic),new SolidBrush(Color.Blue),startPos); 
+} 
+
+
+//g.FillRectangle(new LinearGradientBrush(new Point(0,0), new Point(120,30), Color.FromArgb(0,0,0,0),Color.FromArgb(255,255,255,255)),0,0,120,30); 
+switch(pChartType) 
+{ 
+case GraphicType.Jpg: 
+
+validateImage.Save(pAuthenImageFullname, ImageFormat.Jpeg); 
+break; 
+
+case GraphicType.Gif: 
+
+validateImage.Save(pAuthenImageFullname, ImageFormat.Gif); 
+break; 
+
+case GraphicType.Png: 
+
+validateImage.Save(pAuthenImageFullname, ImageFormat.Png); 
+break; 
+
+case GraphicType.Bmp: 
+
+validateImage.Save(pAuthenImageFullname, ImageFormat.Bmp); 
+break; 
+
+default: 
+validateImage.Save(pAuthenImageFullname, ImageFormat.Jpeg); 
+break; 
+
+} 
+
+validateImage.Dispose(); 
+
+g.Dispose(); 
+
+
+
+} 
+
+/// <summary> 
+/// 动态从数字和字母组成的元素中动态选择生成校验码 
+/// </summary> 
+private string GetValidateCode() 
+{ 
+char[] s = new char[]{''0'',''1'', ''2'',''3'',''4'',''5'',''6'',''7'',''8'',''9'',''a'' 
+,''b'',''c'',''d'',''e'',''f'',''g'',''h'',''i'',''j'',''k'',''l'',''m'',''n'',''o'',''p'',''q'' 
+,''r'',''s'',''t'',''u'',''v'',''w'',''x'',''y'',''z'',''A'',''B'',''C'',''D'',''E'',''F'',''G'' 
+,''H'',''I'',''J'',''K'',''L'',''M'',''N'',''O'',''P'',''Q'',''R'',''S'',''T'',''U'',''V'',''W'' 
+,''X'',''Y'',''Z''}; 
+string num = ""; 
+Random r = new Random(); 
+
+//根据用户需要的长度来定义验证码的位数 
+for(int i = 0; i < CodeLength; i++) 
+{ 
+num += s[r.Next(0, s.Length)].ToString(); 
+} 
+
+return num; 
+} 
+
+/// <summary> 
+/// 清除时间超过20秒的临时图片记录 
+/// </summary> 
+/// <returns>成功返回true,失败返回false</returns> 
+public bool EraseOldGraphic() 
+{ 
+
+try 
+{ 
+DirectoryInfo Dinfo=new DirectoryInfo(this.Page.MapPath(pTempImageURLPath)); 
+FileInfo[] FileSet; 
+
+if(Dinfo.Exists) 
+{ 
+switch(pChartType) 
+{ 
+case GraphicType.Jpg: 
+
+FileSet=Dinfo.GetFiles("*.jpg"); 
+break; 
+
+case GraphicType.Gif: 
+
+FileSet=Dinfo.GetFiles("*.gif"); 
+break; 
+
+case GraphicType.Png: 
+
+FileSet=Dinfo.GetFiles("*.png"); 
+break; 
+
+case GraphicType.Bmp: 
+
+FileSet=Dinfo.GetFiles("*.bmp"); 
+break; 
+
+default: 
+FileSet=Dinfo.GetFiles("*.jpg"); 
+break; 
+
+} 
+
+foreach(FileInfo fileInfo in FileSet) 
+{ 
+if(fileInfo.Exists) 
+{ 
+DateTime dts=DateTime.Now; 
+DateTime dtc=fileInfo.CreationTime; 
+
+TimeSpan ts=dts-dtc; 
+
+if(ts.Seconds>20) 
+{ 
+fileInfo.Delete(); 
+} 
+} 
+} 
+} 
+
+return true; 
+} 
+catch(IOException ioe) 
+{ 
+return false; 
+} 
+} 
+
+} 
+} 
+
+
+ 

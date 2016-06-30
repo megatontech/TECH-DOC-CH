@@ -1,0 +1,290 @@
+如何：在 Visual C# .NET 中建立一个平滑的进度条（Q323116）
+
+--------------------------------------------------------------------------------
+
+本文讨论的内容属于：
+微软 Visual Basic .NET(2002)
+如果您想要参考 Microsoft Visual Basic .NET 版本的文章，请参考Q323088。
+
+
+--------------------------------------------------------------------------------
+
+本文内容
+概述
+建立一个自定义的进度条控件
+建立一个简单的客户端应用
+
+--------------------------------------------------------------------------------
+
+概述
+本文描述了如何建立一个简单的、自定义的用户控件——一个平滑的进度条。
+
+在早先的进度条控件版本中，例如在 Microsoft Windows Common Controls ActiveX 控件中提供的版本，您可以看到进度条有两种不同的视图。您可以通过设定 Scrolling 属性来设定 Standard 视图或是 Smooth 视图。 Smooth 视图提供了一个区域来平滑的显示进度， Standard 试图则看上去是由一个一个方块来表示进度的。
+
+在 Visual C# .NET 中提供的进度条控件只支持 Standard 视图。
+
+本文的代码样例揭示了如何建立一个有如下属性的控件：
+
+Minimum。该属性表示了进度条的最小值。默认情况下是 0 ；您不能将该属性设为负值。
+Maximum。该属性表示了进度条的最大值。默认情况下是 100 。
+Value。该属性表示了进度条的当前值。该值必须介于 Minimum 和 Maximum 之间。
+ProgressBarColor。该属性表示了进度条的颜色。
+返回
+--------------------------------------------------------------------------------
+
+建立一个自定义的进度条控件
+1、按着下面的步骤，在 Visual C# .NET 中建立一个 Windows Control Library 项目：
+
+　　a、打开 Microsoft Visual Studio .NET。
+
+　　b、点击 File 菜单，点击 New ，再点击 Project 。
+
+　　c、在 New Project 对话框中，在 Project Types 中选择 Visual C# Projects，然后在 Templates 中选择 Windows Control Library 。
+
+　　d、在 Name 框中，填上 SmoothProgressBar ，并点击 OK 。
+
+　　e、在 Project Explorer 中，重命名缺省的 class module ，将 UserControl1.cs 改为 SmoothProgressBar.cs 。
+
+　　f、在该 UserControl 对象的 Property 窗口中，将其 Name 属性从 UserControl1 改为 SmoothProgressBar 。
+
+2、此时，您已经从 control 类继承了一个新类，并可以添加新的功能。但是，ProgressBar累是密封(sealed)的，不能再被继承。因此，您必须从头开始建立这个控件。
+
+将下面的代码添加到UserControl模块中，就在“Windows Form Designer generated code”之后：
+
+int min = 0;	// Minimum value for progress range
+int max = 100;	// Maximum value for progress range
+int val = 0;		// Current progress
+Color BarColor = Color.Blue;		// Color of progress meter
+
+protected override void OnResize(EventArgs e)
+{
+	// Invalidate the control to get a repaint.
+	this.Invalidate();
+}
+
+protected override void OnPaint(PaintEventArgs e)
+{
+	Graphics g = e.Graphics;
+	SolidBrush brush = new SolidBrush(BarColor);
+	float percent = (float)(val - min) / (float)(max - min);
+	Rectangle rect = this.ClientRectangle;
+
+	// Calculate area for drawing the progress.
+	rect.Width = (int)((float)rect.Width * percent);
+
+	// Draw the progress meter.
+	g.FillRectangle(brush, rect);
+
+	// Draw a three-dimensional border around the control.
+	Draw3DBorder(g);
+
+	// Clean up.
+	brush.Dispose();
+	g.Dispose();		
+}
+
+public int Minimum
+{
+	get
+	{
+		return min;
+	}
+
+	set
+	{
+		// Prevent a negative value.
+		if (value < 0)
+		{
+			min = 0;
+		}
+		
+		// Make sure that the minimum value is never set higher than the maximum value.
+		if (value > max)
+		{
+			min = value;
+			min = value;
+		}
+		
+		// Ensure value is still in range
+		if (val < min)
+		{
+			val = min;
+		}
+
+		// Invalidate the control to get a repaint.
+		this.Invalidate();
+	}
+}
+
+public int Maximum
+{
+	get
+	{
+		return max;
+	}
+
+	set
+	{
+		// Make sure that the maximum value is never set lower than the minimum value.
+		if (value < min)
+		{
+			min = value;
+		}
+
+		max = value;
+
+		// Make sure that value is still in range.
+		if (val > max)
+		{
+			val = max;
+		}
+
+		// Invalidate the control to get a repaint.
+		this.Invalidate();
+	}
+}
+
+public int Value
+{
+	get
+	{
+		return val;
+	}
+
+	set
+	{
+		int oldValue = val;
+
+		// Make sure that the value does not stray outside the valid range.
+		if (value < min)
+		{
+			val = min;
+		}
+		else if (value > max)
+		{
+			val = max;
+		}
+		else
+		{
+			val = value;
+		}
+
+		// Invalidate only the changed area.
+		float percent;
+
+		Rectangle newValueRect = this.ClientRectangle;
+		Rectangle oldValueRect = this.ClientRectangle;
+
+		// Use a new value to calculate the rectangle for progress.
+		percent = (float)(val - min) / (float)(max - min);
+		newValueRect.Width = (int)((float)newValueRect.Width * percent);
+
+		// Use an old value to calculate the rectangle for progress.
+		percent = (float)(oldValue - min) / (float)(max - min);
+		oldValueRect.Width = (int)((float)oldValueRect.Width * percent);
+
+		Rectangle updateRect = new Rectangle();
+		
+		// Find only the part of the screen that must be updated.
+		if (newValueRect.Width > oldValueRect.Width)
+		{
+			updateRect.X = oldValueRect.Size.Width;
+			updateRect.Width = newValueRect.Width - oldValueRect.Width;
+		}
+		else
+		{
+			updateRect.X = newValueRect.Size.Width;
+			updateRect.Width = oldValueRect.Width - newValueRect.Width;
+		}
+
+		updateRect.Height = this.Height;
+
+		// Invalidate the intersection region only.
+		this.Invalidate(updateRect);
+	}
+}
+
+public Color ProgressBarColor
+{
+	get
+	{
+		return BarColor;
+	}
+
+	set
+	{
+		BarColor = value;
+
+		// Invalidate the control to get a repaint.
+		this.Invalidate();
+	}
+}
+
+private void Draw3DBorder(Graphics g)
+{
+	int PenWidth = (int)Pens.White.Width;
+
+	g.DrawLine(Pens.DarkGray, 
+		new Point(this.ClientRectangle.Left, this.ClientRectangle.Top),
+		new Point(this.ClientRectangle.Width - PenWidth, this.ClientRectangle.Top));
+	g.DrawLine(Pens.DarkGray,
+		new Point(this.ClientRectangle.Left, this.ClientRectangle.Top), 
+		new Point(this.ClientRectangle.Left, this.ClientRectangle.Height - PenWidth));
+	g.DrawLine(Pens.White,
+		new Point(this.ClientRectangle.Left, this.ClientRectangle.Height - PenWidth), 
+		new Point(this.ClientRectangle.Width - PenWidth, this.ClientRectangle.Height - PenWidth));
+	g.DrawLine(Pens.White,
+		new Point(this.ClientRectangle.Width - PenWidth, this.ClientRectangle.Top), 
+		new Point(this.ClientRectangle.Width - PenWidth, this.ClientRectangle.Height - PenWidth));
+} 
+
+3、在 Build 菜单中，点击 Build Solution 来编译整个项目。
+
+返回
+--------------------------------------------------------------------------------
+
+建立一个简单的客户端应用
+1、在 File 菜单中，点击 New ，再点击Project。
+
+2、在 Add New Project 对话框中，在 Project Types 中点击 Visual C# Projects，在 Templates 中点击 Windows Application，并点击 OK。
+
+3、按照下面的步骤，在 Form 上添加两个 SmoothProgressBar 实例：
+
+　　a、在 Tools 菜单上，点击 Customize Toolbox。
+
+　　b、点击 .NET Framework Components 页。
+
+　　c、点击 Browse，然后选中你在 Create a Custom ProgressBar Control 段中建立的 SmoothProgressBar.dll 文件。
+
+　　d、点击 OK。您可以看到在 toolbox 中已经有 SmoothProgressBar 控件了。
+
+　　e、从 toolbox 中拖两个 SmoothProgressBar 控件的实例到该 Windows Application 项目中的默认 form 上。
+
+4、从 toolbox 页中拖一个 Timer 控件到 form 上。
+
+5、将下面的代码添加到 Timer 控件的 Tick 事件中：
+
+if (this.smoothProgressBar1.Value > 0)
+{
+	this.smoothProgressBar1.Value--;
+	this.smoothProgressBar2.Value++;
+}
+else
+{
+	this.timer1.Enabled = false;
+} 
+
+6、从 toolbox 页中拖一个 Button 控件到 form 上。
+
+7、将下面的代码添加到 Button 控件的 Click 事件中：
+
+this.smoothProgressBar1.Value = 100;
+this.smoothProgressBar2.Value = 0;
+			
+this.timer1.Interval = 1;
+this.timer1.Enabled = true; 
+
+8、在 Debug 菜单中，点击 Start 来运行样例项目。
+
+9、点击Button。注意观察那两个进度指示器。一个逐渐减小，另一个逐渐增加。
+

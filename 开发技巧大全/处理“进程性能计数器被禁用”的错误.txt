@@ -1,0 +1,21 @@
+ 使用类System.Diagnostics.Process的时候，.NET提示“进程性能计数器被禁用”的错误 
+有的时候我们需要得到系统所有的进程列表，以便进行一定的操作，比如杀死指定的进程，但是如果你将这段程序部署到Windows 2000 Server / AD Server的时候就会发现.NET提示我们：“进程性能计数器被禁用”的错误，那么如何在Windows 2000 AD Server上面打开这个计数器呢？
+方法如下：
+
+将注册表：HKLM\SYSTEM\CurrentControlSet\Services\PerfProc\Performance\
+
+下面的键值Disable Performance Counters 设置为  0 。
+
+重新启动即可！
+
+PS:  范例代码大致如下：
+
+System.Diagnostics.Process myproc= new System.Diagnostics.Process();
+
+foreach (Process thisproc in Process.GetProcessesByName(processName)) 
+{
+  //do something
+}
+
+
+posted 

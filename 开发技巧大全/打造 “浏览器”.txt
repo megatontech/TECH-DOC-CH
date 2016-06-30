@@ -1,0 +1,254 @@
+Visual C# 打造 “浏览器” 
+[ 作者：佚名 | 转贴自：本站原创 | 点击数：33 | 更新时间：2004-11-21 | 文章录入：阿标 ] 【字体：小 大】 
+Visual C# 打造 “浏览器”
+
+
+--------------------------------------------------------------------------------
+
+
+Visual C＃是微软推出的新一代程序开发语言，Visual C＃实现许多功能是通过调用.Net框架为其中所有.Net程序开发语言提供的一个公用的软件包——.Net FrameWork SDK。在这个软件包中提供了大量并且十分丰富的类库，可以说，没有这个软件开发包，Visual C＃就寸步难行，无法编写哪怕一个功能十分的程序。但这样也会出现一个问题，如果在.Net FrameWork SDK软件包中没有涉及到的功能，而在其他的第三方的COM组件中却提供了，那么这些组件是否可以被Visual C＃使用。答案是：直接使用是不可以的，但这些COM组件经过一定转换后就可以。这种转换就是非受管代码（Unmanaged Code）到受管代码（Managed Code）的转换。因为这些COM组件一般都是非受管代码（Unmanaged Code），而编译Visual C＃文件时候要使用的类库却只能为受管代码（Managed Code），这就是说要在Visual C＃中使用那些非受管代码组件，就必须把这些非受管代码组件转换成受管代码组件。在.Net框架中专门提供了一个程序“Aximp.exe”来实现由COM组件到WinForm组件的转换。那么这个文件在哪里？假设你安装.Net FrameWork SDK在“C”盘，那么在“C:\Program Files\Microsoft.NET\FrameworkSDK\Bin”目录中就可以找到这个文件。如果你安装.Net FrameWork SDK在其他目录或者磁盘，依照上述的目录顺序就可以找到这个文件了。 
+下面用Visual C＃来做一个“浏览器”，看看在Visual C＃是如何使用COM组件的。 
+一．本文程序设计和运行的软件环境 
+（1）.微软公司视窗2000服务器版 
+（2）..Net FrameWork SDK Beta 2 
+二．程序设计的思路以及关键步骤的解决方法 
+（1）.把转换COM组件为WinForm组件： 
+其实实现这种转换十分的简单，我们知道微软Web浏览器COM组件名称为“shdocvw.dll”，由于我们使用的是视窗2000，所以这个文件是存放在“c:\winnt\system32”目录中，如果你使用的是视窗98或者是视窗Me，那么此组件存放的位置是“c:\windows\system”。“Aximp.exe”文件后面有许多的参数，你可以通过“Aximp /?”来了解，在本文中只使用下列简单的命令就可成功转换： 
+Aximp c:\winnt\system32\shdocvw.dll  
+运行上述命令后就可以实现转换，并在当前目录中产生“SHDocVw.dll”和“AxSHDocVw.dll”二个文件。具体如下图： 
+
+图01：转换COM组件为WinForm组件 
+（2）.在程序中使用转换后组件： 
+在“AxSHDocVw.dll”中定义了命名空间“AxSHDocVw”，在此命名空间中定义了一个“AxWebBrowser”组件，这个组件中有若干个方法和属性，Visual C＃就是通过这些方法和属性来实现浏览器的一些基本功能的。使用此浏览器组件和使用其他的WinForm组件的过程是一样的，首先要导入命名空间，然后在程序中继承此命名空间中定义的浏览器组件，最后设定这个继承后的组件的属性和方法。具体如下： 
+< I > .导入命名空间，具体代码如下： 
+using AxSHDocVw ; 
+< II> . 继承此命名空间中定义的浏览器组件，具体代码如下： 
+private AxWebBrowser axWebBrowser1 ; 
+（3）.通过转换后组件来实现浏览器的一些基本功能： 
+浏览器的主要功能就是能够到指定的地址浏览信息，当然在具体的浏览中还有一些基本的功能，譬如：“前进”、“后退”、“停止”、“刷新”、“主页”等，这些功能都可以通过“AxWebBrowser”组件来实现。下面就来具体介绍： 
+< I > .浏览指定的地址： 
+在程序中，网址是填写在组件“textbox1”中的，“浏览指定地址”功能是通过程序的按钮“转到”来实现的。下面是按钮“转到”按动后的程序代码： 
+private void button1_Click ( object sender , System.EventArgs e ) 
+{ 
+System.Object nullObject = 0 ; 
+string str = "" ; 
+System.Object nullObjStr = str ; 
+Cursor.Current = Cursors.WaitCursor ; 
+axWebBrowser1.Navigate ( textBox1.Text , ref nullObject , ref nullObjStr , ref nullObjStr , ref nullObjStr ) ; 
+Cursor.Current = Cursors.Default ; 
+} 
+< II > .浏览器的“前进”、“后退”、“停止”、“刷新”、“主页”功能： 
+在“AxWebBrowser”组件中对这些功能都有一个具体的方法来与之对应，具体如下面代码： 
+private void toolBar1_ButtonClick ( object sender , ToolBarButtonClickEventArgs e ) 
+{ 
+//浏览器中的“后退” 
+if ( e.Button == tb1 ) 
+{ 
+axWebBrowser1.GoBack ( ) ; 
+} 
+//浏览器中的“前进” 
+if ( e.Button == tb2 ) 
+{ 
+axWebBrowser1.GoForward ( ) ; 
+} 
+//浏览器中的“停止” 
+if ( e.Button == tb3 ) 
+{ 
+axWebBrowser1.Stop ( ) ; 
+} 
+//浏览器中的“刷新” 
+if ( e.Button == tb4 ) 
+{ 
+axWebBrowser1.Refresh ( ) ; 
+} 
+//浏览器中的“主页” 
+if ( e.Button == tb5 ) 
+{ 
+axWebBrowser1.GoHome ( ) ; 
+} 
+
+} 
+< III > .当然掌握了上面的知识，你就可以用Visual C＃做出一个基本的浏览器了，但下面这些也是不可缺少的，因为下面这些代码将使得你做的浏览器更专业。下面代码的作用是使得浏览界面随着窗体的变化而变化，按钮和文本框也要随着窗体的变化而变化。 
+button1.Anchor = ( AnchorStyles.Top | AnchorStyles.Right ) ; 
+//定位“转到”按钮组件与窗体的上、右边框保持一致 
+textBox1.Anchor = ( ( AnchorStyles.Top | AnchorStyles.Left )  
+| AnchorStyles.Right ) ; 
+//定位地址文本框组件与窗体的上、左、右边框保持一致 
+axWebBrowser1.Anchor = ( ( ( AnchorStyles.Top | AnchorStyles.Bottom )  
+| AnchorStyles.Left )  
+| AnchorStyles.Right ) ; 
+//定位浏览器组件与窗体的上、下、左、右边框保持一致 
+三．源程序代码（brower.cs） 
+了解有了上面的这些，就可以比较容易编写一个属于自己的浏览器了，下面是用Visual C＃做的浏览器源程序代码，他具备了IE浏览器的一些常用的功能。 
+using System ; 
+using System.Drawing ; 
+using System.Collections ; 
+using System.ComponentModel ; 
+using System.Windows.Forms ; 
+using System.Data ; 
+using AxSHDocVw ; 
+public class Form1 : Form 
+{ 
+	private ToolBar toolBar1 ; 
+	private ToolBarButton tb1 ; 
+	private ToolBarButton tb2 ; 
+	private ToolBarButton tb3 ; 
+	private ToolBarButton tb4 ; 
+	private ToolBarButton tb5 ; 
+	private Label label1 ; 
+	private TextBox textBox1 ; 
+	private Button button1 ; 
+	private AxWebBrowser axWebBrowser1 ; 
+	private System.ComponentModel.Container components = null ; 
+	public Form1 ( ) 
+	{ 
+		InitializeComponent ( ) ; 
+	} 
+	//清除程序中使用过的资源 
+	protected override void Dispose ( bool disposing ) 
+	{ 
+		if ( disposing ) 
+		{ 
+			if ( components != null )  
+			{ 
+				components.Dispose ( ) ; 
+			} 
+		} 
+		base.Dispose ( disposing ) ; 
+	} 
+	//初始化窗体中的各个组件 
+	private void InitializeComponent ( ) 
+	{ 
+		tb1 = new ToolBarButton ( ) ; 
+		tb2 = new ToolBarButton ( ) ; 
+		tb3 = new ToolBarButton ( ) ; 
+		toolBar1 = new ToolBar ( ) ; 
+		tb4 = new ToolBarButton ( ) ; 
+		tb5 = new ToolBarButton ( ) ; 
+		button1 = new Button ( ) ; 
+		textBox1 = new TextBox ( ) ; 
+		axWebBrowser1 = new AxWebBrowser ( ) ; 
+		label1 = new Label ( ) ; 
+		( ( System.ComponentModel.ISupportInitialize ) ( this.axWebBrowser1 ) ).BeginInit ( ) ; 
+		this.SuspendLayout ( ) ; 
+
+		tb1.Text = "后退" ; 
+		tb2.Text = "前进" ; 
+		tb3.Text = "停止" ; 
+		tb4.Text = "刷新" ; 
+		tb5.Text = "主页" ; 
+
+		toolBar1.Appearance = ToolBarAppearance.Flat ; 
+		toolBar1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle ; 
+		//在工具栏中加入按钮 
+		toolBar1.Buttons.Add ( tb1 ) ; 
+		toolBar1.Buttons.Add ( tb2 ) ; 
+		toolBar1.Buttons.Add ( tb3 ) ; 
+		toolBar1.Buttons.Add ( tb4 ) ; 
+		toolBar1.Buttons.Add ( tb5 ) ; 
+		toolBar1.DropDownArrows = true ; 
+		toolBar1.Name = "toolBar1" ; 
+		toolBar1.ShowToolTips = true ; 
+		toolBar1.Size = new System.Drawing.Size ( 612 , 39 ) ; 
+		toolBar1.TabIndex = 0 ; 
+		toolBar1.ButtonClick += new ToolBarButtonClickEventHandler ( toolBar1_ButtonClick ) ; 
+		//定位“转到”按钮组件与窗体的上、右边框保持一致 
+		button1.Anchor = ( AnchorStyles.Top | AnchorStyles.Right ) ; 
+		button1.DialogResult = DialogResult.OK ; 
+		button1.Location = new System.Drawing.Point ( 544 , 45 ) ; 
+		button1.Name = "button1" ; 
+		button1.Size = new System.Drawing.Size ( 40 , 23 ) ; 
+		button1.TabIndex = 3 ; 
+		button1.Text = "转到" ; 
+		button1.Click += new System.EventHandler ( button1_Click ) ; 
+		//定位地址文本框组件与窗体的上、左、右边框保持一致 
+		textBox1.Anchor = ( ( AnchorStyles.Top | AnchorStyles.Left )  
+			| AnchorStyles.Right ) ; 
+		textBox1.Location = new System.Drawing.Point ( 64 , 47 ) ; 
+		textBox1.Name = "textBox1" ; 
+		textBox1.Size = new System.Drawing.Size ( 464 , 21 ) ; 
+		textBox1.TabIndex = 2 ; 
+		textBox1.Text = "" ; 
+		//定位浏览器组件与窗体的上、下、左、右边框保持一致 
+		axWebBrowser1.Anchor = ( ( ( AnchorStyles.Top | AnchorStyles.Bottom )  
+			| AnchorStyles.Left )  
+			| AnchorStyles.Right ) ; 
+		axWebBrowser1.Enabled = true ; 
+		axWebBrowser1.Location = new System.Drawing.Point ( 0 , 72 ) ; 
+		axWebBrowser1.Size = new System.Drawing.Size ( 608 , 358 ) ; 
+		axWebBrowser1.TabIndex = 4 ; 
+
+		label1.Location = new System.Drawing.Point ( 16 , 48 ) ; 
+		label1.Name = "label1" ; 
+		label1.Size = new System.Drawing.Size ( 48 , 16 ) ; 
+		label1.TabIndex = 1 ; 
+		label1.Text = "地址：" ; 
+
+		this.AutoScaleBaseSize = new System.Drawing.Size ( 6 , 14 ) ; 
+		this.ClientSize = new System.Drawing.Size ( 612 , 433 ) ; 
+
+		this.Controls.Add ( axWebBrowser1 ) ; 
+		this.Controls.Add ( button1 ) ; 
+		this.Controls.Add ( textBox1 ) ; 
+		this.Controls.Add ( label1 ) ; 
+		this.Controls.Add ( toolBar1 ) ; 
+		this.FormBorderStyle = FormBorderStyle.FixedSingle ; 
+		this.Name = "Form1" ; 
+		this.Text = "visual C＃做浏览器" ; 
+		( ( System.ComponentModel.ISupportInitialize ) ( this.axWebBrowser1 ) ).EndInit ( ) ; 
+		this.ResumeLayout ( false ) ; 
+
+	} 
+	static void Main ( )  
+	{ 
+		Application.Run ( new Form1 ( ) ) ; 
+	} 
+	//实现浏览器主要功能 
+	private void toolBar1_ButtonClick ( object sender , ToolBarButtonClickEventArgs e ) 
+	{ 
+		//浏览器中的“后退” 
+		if ( e.Button == tb1 ) 
+		{ 
+			axWebBrowser1.GoBack ( ) ; 
+		} 
+		//浏览器中的“前进” 
+		if ( e.Button == tb2 ) 
+		{ 
+			axWebBrowser1.GoForward ( ) ; 
+		} 
+		//浏览器中的“停止” 
+		if ( e.Button == tb3 ) 
+		{ 
+			axWebBrowser1.Stop ( ) ; 
+		} 
+		//浏览器中的“刷新” 
+		if ( e.Button == tb4 ) 
+		{ 
+			axWebBrowser1.Refresh ( ) ; 
+		} 
+		//浏览器中的“主页” 
+		if ( e.Button == tb5 ) 
+		{ 
+			axWebBrowser1.GoHome ( ) ; 
+		} 
+
+	} 
+	//浏览指定的Web地址 
+	private void button1_Click ( object sender , System.EventArgs e ) 
+	{ 
+		System.Object nullObject = 0 ; 
+		string str = "" ; 
+		System.Object nullObjStr = str ; 
+		Cursor.Current = Cursors.WaitCursor ; 
+		axWebBrowser1.Navigate ( textBox1.Text , ref nullObject , ref nullObjStr , ref nullObjStr , ref nullObjStr ) ; 
+		Cursor.Current = Cursors.Default ; 
+	} 
+} 
+四．编译源程序和编译后的执行程序的运行界面 
+在经过如下命令编译后，就可以得到可以自己的浏览器了 
+csc /t:winexe /r:AxSHDocVw.dll /r:SHDocVw.dll /r:system.dll   
+/r:system.windows.forms.dll /r:system.drawing.dll brower.cs  
+图02：用Visual C＃做的“浏览器”的运行界面 
+五．总结 
+至此一个功能相对完备的“浏览器”就算完成了，其实用Visual C＃做“浏览器”的过程，也就是Visual C＃中使用COM组件的过程。掌握了COM组件在Visual C＃使用方法，就可以利用Visual C＃编写出功能更强大，适应性更强的软件来，但编写的过程又十分的简单。  
+ 

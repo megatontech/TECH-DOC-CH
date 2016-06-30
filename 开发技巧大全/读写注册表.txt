@@ -1,0 +1,28 @@
+//写注册表
+RegistryKey regWrite;
+//往HKEY_CURRENT_USER主键里的Software子键下写一个名为“Test”的子键
+//如果Test子键已经存在系统会自动覆盖它
+regWrite = Registry.CurrentUser.CreateSubKey("Software\\Test");
+//往Test子键里添两条数据项，一条名为"Name",另一条名为"Sex"
+//值分别是"luolie","男"
+regWrite.SetValue("Name","luolie");
+regWrite.SetValue("Sex","男");
+//关闭该对象
+regWrite.Close();
+
+
+读注册表
+RegistryKey regRead;
+//读取HKEY_CURRENT_USER主键里的Software子键下名为“Test”的子键
+regRead= Registry.CurrentUser.OpenSubKey("Software\\Test",true);
+if(regRead==null) //如果该子键不存在
+{
+	MessageBox.Show("No Data!")；
+}
+else
+｛
+         object obj= regRead.GetValue("Name");  //读取“Name”项的值
+         textBox1.Text = obj.ToString();       //显示在TextBox里
+｝
+//关闭该对象
+oReg.Close();

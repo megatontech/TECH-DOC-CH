@@ -1,0 +1,217 @@
+如何：使用 Visual C# .NET 检查 Windows 版本 (Q304283)
+
+--------------------------------------------------------------------------------
+
+本文讨论的内容属于：
+Microsoft Visual C# .NET (2002)
+
+--------------------------------------------------------------------------------
+
+如果您想要参考 Microsoft Visual Basic .NET 版本的文章，请参考Q304289。
+
+如果您想要参考 Microsoft Visual C++ .NET 版本的文章，请参考Q307394。
+
+本文内容：
+
+概述
+需求
+获取 Windows 版本数据
+获取 Windows 系统信息
+判断平台
+判断 Windows 95, Windows 98, Windows 98 第二版或 Windows Me 的版本
+判断 Windows NT, Windows 2000, 或 Windows XP 的版本
+编译样例
+
+--------------------------------------------------------------------------------
+
+概述
+本文描述了如何检查您的应用运行于哪个操作系统上。本文区分了 Microsoft Windows 95, Microsoft Windows 98, Microsoft Windows 98 第二版, Microsoft Windows Millennium Edition (Windows Me), Microsoft Windows NT 3.51, Microsoft Windows NT 4.0, Microsoft Windows 2000, 和 Microsoft Windows XP。
+
+返回
+--------------------------------------------------------------------------------
+
+需求
+Microsoft Visual C# .NET
+对 Visual C# 编程有一定理解
+返回
+--------------------------------------------------------------------------------
+
+获取 Windows 版本数据
+为了检查操作系统，您必须获取下列数据：
+
++--------------------------------------------------------------+
+|           |Windows|Windows|Windows|Windows NT|Windows|Windows|
+|           |  95   |  98   |  Me   |    4.0   | 2000  |  XP   |
++--------------------------------------------------------------+
+|PlatformID | 1     | 1     | 1     | 2        | 2     | 2     |
++--------------------------------------------------------------+
+|主版本号     | 4     | 4     | 4     | 4        | 5     | 5     |
++--------------------------------------------------------------+
+|副版本号     | 0     | 10    | 90    | 0        | 0     | 1     |
++--------------------------------------------------------------+
+
+注释：尽管本文的代码在所有 32-bit 版本的 Windows 上验证过，但 Windows 95 和 Windows NT 3.51 不支持 Microsoft Visual Studio .NET 或者 common language runtime。
+
+返回
+--------------------------------------------------------------------------------
+
+获取 Windows 系统信息
+在 System 命名空间中包含了一个名为 OperatingSystem 的类。在 OperatingSystem 类中的属性提供了正在使用的操作系统信息。System.Environment 类中的 OSVersion 属性返回一个 OperatingSystem 对象。
+
+    System.OperatingSystem osInfo = System.Environment.OSVersion;
+
+返回
+--------------------------------------------------------------------------------
+
+判断平台
+判断操作系统的第一步就是辨别正在使用的是哪个操作系统。您可以使用 OperatingSystem 类中的 PlatformID 属性来决定在用的是哪个操作系统。
+
+例如，枚举类型属性 Win32Windows 的值指明了下列操作系统之一：
+
+Windows 95
+Windows 98
+Windows 98 Second Edition
+Windows Me
+类似的，WinNT 属性的值指明了下列操作系统之一：
+
+Windows NT 3.51
+Windows NT 4.0
+Windows 2000
+Windows XP
+    switch(osInfo.Platform)
+	{
+		case System.PlatformID.Win32Windows:         
+			{
+			 // Code to determine specific version of Windows 95, 
+			 // Windows 98, Windows 98 Second Edition, or Windows Me.
+			}
+
+	   case System.PlatformID.Win32NT:
+		   {
+			  // Code to determine specific version of Windows NT 3.51, 
+			  // Windows NT 4.0, Windows 2000, or Windows XP.
+		   }
+	   
+	 }
+
+返回
+--------------------------------------------------------------------------------
+
+判断 Windows 95, Windows 98, Windows 98 第二版或 Windows Me 的版本 
+如果您想判断 Windows 95, Windows 98, Windows 98 第二版或 Windows Me 的版本，您可以分析主版本号和副版本号。
+
+    // Platform is Windows 95, Windows 98, Windows 98 Second Edition,
+    // or Windows Me.
+    case System.PlatformID.Win32Windows:
+         
+    switch (osInfo.Version.Minor)
+	{
+		case 0:
+			Console.WriteLine ("Windows 95");
+			break;
+		case 10:
+			if(osInfo.Version.Revision.ToString()=="2222A")
+				Console.WriteLine("Windows 98 Second Edition");
+			else
+				 Console.WriteLine("Windows 98");
+				 break;
+		case  90:
+				 Console.WriteLine("Windows Me");
+				 break;
+	 }break;
+
+返回
+--------------------------------------------------------------------------------
+
+判断 Windows NT, Windows 2000, 或 Windows XP 的版本
+如果您想判断 Windows NT, Windows 2000, 或 Windows XP 的版本，您也可以分析主版本号和副版本号。
+
+    // Platform is Windows NT 3.51, Windows NT 4.0, Windows 2000,
+    // or Windows XP.
+    case System.PlatformID.Win32NT:
+
+    switch(osInfo.Version.Major)
+	{
+		case 3:
+			Console.WriteLine("Windows NT 3.51");
+			break;
+		case 4:
+			Console.WriteLine("Windows NT 4.0");
+			break;
+		case 5:
+			if (osInfo.Version.Minor==0) 
+				Console.WriteLine("Windows 2000");
+			else
+				Console.WriteLine("Windows XP");
+				break;
+	 }break;
+
+返回
+--------------------------------------------------------------------------------
+
+编译样例
+下一步就是编译一个项目来测试功能：
+
+在 Visual Studio .NET 中，打开一个新的 C# console 应用。系统会默认打开 Class1.cs 的代码窗口。
+用下面的代码替换所有 Class1.cs 中的代码：? 
+using System;
+
+namespace determineOS_CS
+{  
+class Class1
+   {
+      static void Main(string[] args)
+      {
+         // Get OperatingSystem information from the system namespace.
+         System.OperatingSystem osInfo =System.Environment.OSVersion;
+         
+         // Determine the platform.
+         switch(osInfo.Platform)
+         {
+            // Platform is Windows 95, Windows 98, 
+            // Windows 98 Second Edition, or Windows Me.
+            case System.PlatformID.Win32Windows:
+         
+               switch (osInfo.Version.Minor)
+               {
+                  case 0:
+                     Console.WriteLine ("Windows 95");
+                     break;
+                  case 10:
+                     if(osInfo.Version.Revision.ToString()=="2222A")
+                        Console.WriteLine("Windows 98 Second Edition");
+                     else
+                        Console.WriteLine("Windows 98");
+                     break;
+                  case  90:
+                     Console.WriteLine("Windows Me");
+                     break;
+               }
+               break;
+         
+            // Platform is Windows NT 3.51, Windows NT 4.0, Windows 2000,
+            // or Windows XP.
+            case System.PlatformID.Win32NT:
+
+               switch(osInfo.Version.Major)
+
+               {
+                  case 3:
+                     Console.WriteLine("Windows NT 3.51");
+                     break;
+                  case 4:
+                     Console.WriteLine("Windows NT 4.0");
+                     break;
+                  case 5:
+                     if (osInfo.Version.Minor==0) 
+                        Console.WriteLine("Windows 2000");
+                     else
+                        Console.WriteLine("Windows XP");
+                     break;
+               }break;
+         }
+         Console.ReadLine ();
+      }
+   }
+}
+

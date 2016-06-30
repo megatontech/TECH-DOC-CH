@@ -1,0 +1,189 @@
+用C＃来捕获屏幕
+作者：王天    本文选自：赛迪网  2002年03月29日  
+ 
+其实用C＃可以完成其他程序设计语言的几乎全部功能，当然C＃自身的许多独到的功能，是其他程序语言所无法实现的，这就是C＃越来越受到广大程序员的喜欢的原因。本文就来探讨一下用C＃去实现一个重要的功能，用他来编写一个捕获当前屏幕地程序。通过这个程序，我们将了解到C＃是如何调用API函数，和.Net框架中的类库内容是多么地丰富，功能是多么地强大。 
+
+一． 程序设计开发及运行环境： 
+
+（1）.微软视窗2000服务器版 
+
+（2）..Net FrameWork SDK Beta 2 
+
+二． 程序设计的关键步骤： 
+
+要想完成这个功能，首先要了解一下在C＃中如何调用API（应用程序接口）函数。虽然在.Net框架中已经提供了许多类库，这些类库的功能也十分强大，但对于一些Windows底层编程来说，还是要通过调用这些API函数才可以实现。所有API都在"Kernel"、"User "和"GDI"三个库中得以运行：其中"Kernel"，他的库名为 "KERNEL32.DLL"， 他主要用于产生与操作系统之间的关联,譬如：程序加载，上下文选择，文件输入输出，内存管理等等。"User "这个类库在Win32中名叫 "USER32.DLL"。 它允许管理全部的用户接口。譬如：窗口 、菜单 、对话框 、图标等等。"GDI"(图象设备接口)，它在Win32中的库名为："GDI32.dll"，它是图形输出库。使用GDI Windows"画"出窗口、菜单以及对话框等；它能创建图形输出；它也能保存图形文件。由于本文所涉及到是图象问题，所有调用的类库是"GDI32.dll"。在本文程序中我们使用的API函数是"BitBlt"，这个函数对于广大程序员来说，一定不感觉到陌生，因为在图象处理方面他的用途是相对广的，在用其他程序语言编程中，时常也要和他打交道。在.Net FrameWork SDK中有一个名字空间"System.Runtime.InteropServices"，此名字空间提供了一系列的类来访问COM对象，和调用本地的API函数。下面是在C＃中声明此函数： 
+
+[ System.Runtime.InteropServices.DllImportAttribute ( "gdi32.dll" ) ]
+  private static extern bool BitBlt (
+      IntPtr hdcDest , // 目标 DC的句柄
+      int nXDest , 
+    int nYDest , 
+    int nWidth , 
+    int nHeight , 
+    IntPtr hdcSrc ,  // 源DC的句柄
+      int nXSrc , 
+    int nYSrc , 
+    System.Int32 dwRop  // 光栅的处理数值
+      ) ;
+   
+
+
+通过上面这个声明，就可以在下面的代码中使用此函数了。 
+
+下面是用C＃做屏幕捕获程序的具体实现步骤： 
+
+（1）.首先要获得当前屏幕的graphic对象，通过以下代码可以实现： 
+
+Graphics g1 = this.CreateGraphics ( ) ;  
+
+
+（2）.创建一个Bitmap对象，并且这个Bitmap对象的大小是当前屏幕： 
+
+首先要获得当前屏幕的大小，通过名字空间"System.Windows.Forms"中的"Screen"类的GetWorkingArea（）方法，可以实现。下面是得到当前屏幕的长（Height）和宽（Width）： 
+
+Rectangle rect = new Rectangle ( ) ;
+rect = Screen.GetWorkingArea ( this ) ;
+"屏幕宽"＝ rect.Width ;
+"屏幕长"＝ rect.Height ;
+ 
+
+
+至此就可以得到我们想要的Bitmap了，通过下列语句可以实现： 
+
+Image MyImage = new Bitmap ( rect.Width , rect.Height , g1 ) ; 
+//创建以屏幕大小为标准的位图  
+
+
+（3）.获得当前屏幕和此Bitmap对象的DC，这可以通过下列语句实现： 
+
+//得到屏幕的DC
+IntPtr dc1 = g1.GetHdc ( ) ;
+//得到Bitmap的DC 
+IntPtr dc2 = g2.GetHdc ( ) ;
+ 
+
+
+（4）.调用API函数，把当前屏幕拷贝到创建的Bitmap中： 
+
+BitBlt ( dc2 , 0 , 0 , rect.Width , rect.Height , dc1 , 0 , 0 , 13369376 ) ;  
+
+
+（5）.释放当前屏幕和此Bitmap对象的DC，通过下面代码可以实现： 
+
+//释放掉屏幕的DC
+g1.ReleaseHdc ( dc1 ) ;
+//释放掉Bitmap的DC
+g2.ReleaseHdc ( dc2 ) ; 
+ 
+
+
+（6）.保存Bitmap对象，形成jpg图片： 
+
+MyImage.Save ( @"c:\Capture.jpg" , ImageFormat.Jpeg );  
+
+
+当然你也可以根据自己的需要，把屏幕以其他图片的格式来保存，如果你想把图片保存为位图文件，可以把"ImageFormat.Jpeg"改换成"ImageFormat.Bmp"；想把图片保存为Gif文件，就把"ImageFormat.Jpeg"改换成"ImageFormat.Gif"。你可以保存的文件类型大概有十多种，这里就不一一介绍了，当然你也要相应改变保存文件的后缀。 
+
+三． 用C＃来捕获屏幕的源程序代码（Capture.cs）： 
+
+了解上面的这些步骤的实现方法，就可以得到用C＃捕获屏幕的源程序，如下： 
+
+using System ;
+  using System.Drawing ;
+  using System.Collections ;
+  using System.ComponentModel ;
+  using System.Windows.Forms ;
+  using System.Data ;
+  using System.Drawing.Imaging ;
+  public class Form1 : Form
+  {
+  private Button button1 ;
+  private System.ComponentModel.Container components = null ;
+  
+  public Form1 ( )
+  {
+  //初始化窗体中的各个组件
+  InitializeComponent ( ) ;
+  }
+  // 清除程序中使用过的资源
+  protected override void Dispose ( bool disposing )
+  {
+  if ( disposing )
+  {
+  if ( components != null ) 
+{
+components.Dispose ( ) ;
+  }
+  }
+  base.Dispose ( disposing ) ;
+  }
+  private void InitializeComponent ( )
+  {
+  button1 = new Button ( );
+  SuspendLayout ( ) ;
+  button1.Location = new System.Drawing.Point ( 64 , 40 ) ;
+  button1.Name = "button1" ;
+  button1.Size = new System.Drawing.Size ( 80 , 32 ) ;
+  button1.TabIndex = 0 ;
+  button1.Text = "捕获" ;
+  button1.Click += new System.EventHandler ( button1_Click ) ;
+  
+  AutoScaleBaseSize = new System.Drawing.Size ( 6 , 14 ) ;
+  ClientSize = new System.Drawing.Size ( 216 , 125 ) ;
+  Controls.Add  ( button1 ) ;
+  MaximizeBox = false ;
+  MinimizeBox = false ;
+  Name = "Form1" ;
+  Text = "C#捕获当前屏幕！" ;
+  ResumeLayout ( false ) ;
+  
+  }
+  //声明一个API函数
+  [ System.Runtime.InteropServices.DllImportAttribute ( "gdi32.dll" ) ]
+  private static extern bool BitBlt (
+      IntPtr hdcDest , // 目标 DC的句柄
+      int nXDest , 
+    int nYDest , 
+    int nWidth , 
+    int nHeight , 
+    IntPtr hdcSrc ,  // 源DC的句柄
+      int nXSrc , 
+    int nYSrc , 
+    System.Int32 dwRop  // 光栅的处理数值
+      ) ;
+  
+  static void Main ( ) 
+{
+Application.Run ( new Form1 ( ) ) ;
+  }
+  private void button1_Click ( object sender , System.EventArgs e )
+  {
+      //获得当前屏幕的大小
+            Rectangle rect = new Rectangle ( ) ;
+      rect = Screen.GetWorkingArea ( this ) ;
+      //创建一个以当前屏幕为模板的图象
+      Graphics g1 = this.CreateGraphics ( ) ;
+      //创建以屏幕大小为标准的位图 
+    Image MyImage = new Bitmap ( rect.Width , rect.Height , g1 ) ;
+      Graphics g2 = Graphics.FromImage ( MyImage ) ;
+      //得到屏幕的DC
+      IntPtr dc1 = g1.GetHdc ( ) ;
+      //得到Bitmap的DC 
+    IntPtr dc2 = g2.GetHdc ( ) ;
+      //调用此API函数，实现屏幕捕获
+      BitBlt ( dc2 , 0 , 0 , rect.Width , rect.Height , dc1 , 0 , 0 , 13369376 ) ;
+      //释放掉屏幕的DC
+      g1.ReleaseHdc ( dc1 ) ;
+      //释放掉Bitmap的DC 
+    g2.ReleaseHdc ( dc2 ) ;
+      //以JPG文件格式来保存
+      MyImage.Save ( @"c:\Capture.jpg" , ImageFormat.Jpeg );
+      MessageBox.Show ( "当前屏幕已经保存为C盘的capture.jpg文件！" ) ;
+  }
+  }  
+
+
+四． 总结： 
+
+本文虽然是C＃在实际情况的一个应用例子，但所包含的内容相对还比较丰富。其中调用Windows的API函数对广大的程序员来说都是一个比较头痛的问题，因为他涉及面比较广，不仅要掌握C#中使用结构、类型转换、安全/不安全代码，受管/不受管代码等许多知识，还要了解API函数的结构等。希望本文对你有所帮助。 
+ 

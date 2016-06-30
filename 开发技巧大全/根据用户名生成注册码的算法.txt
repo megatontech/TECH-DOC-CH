@@ -1,0 +1,147 @@
+
+
+　　现在网上下载的软件大部分都需要注册后才能使用其全部的功能，也就是说当前大部分软件都是建立了注册机制的，对于一个刚进入软件行业的程序员来说一定非常想了解其中的注册机制是怎样实现的。其实用VC开发软件，是可以很方便地加入注册机制的。 
+
+　　要实现软件注册功能，首先需要知道实现注册机制要涉及到的几个问题：1、如何加入注册检测，判断软件是否注册；2、如何生成注册码，如何保证一个用户名只生成与之唯一对应的注册码；3、在软件不注册情况下，如何限制软件功能的局限性；4、对已经负费使用用户而言，不应造成使用不便。 
+
+　　首先，应该有一个生成注册码的算法，以下是我简单的一个生成15为注册码的算法： 
+//该函数返回一个CSTRING类型的15位注册码，入口参数为用户名 
+CString GetRegPasswd(CString &DirName) 
+{ 
+//将用户名换算成15位注册码 
+long Num1,Num2,Num3; 
+
+char sn[16]={0}; 
+CString p; 
+int i,len; 
+
+Num1=0; 
+Num2=0; 
+Num3=0; 
+
+len=int(strlen(DirName)); 
+if(len!=0) 
+{ 
+for( i=1;i<=len;i++) 
+{ 
+//第一步算法 
+Num1=(long(Num1+(int(DirName[i-1])*i*i)*(i*sqrt(DirName[i-1])+1)))%100000; 
+//第二步算法 
+Num2=(Num2*i+(long(pow((int)DirName[i-1],2)*i)))%100000; 
+//第三步算法 
+Num3=(Num2+(long)sqrt(Num1))%100000; 
+} 
+//以下把三个算法结果分别生成5个字符，共有15个 
+for(i=0;i<5;i++) 
+sn[i]=(int)(Num1+31+i*i*i)%128; 
+for(i=5;i<10;i++) 
+sn[i]=(int)(Num2+31+i*i*i)%128; 
+for(i=10;i<15;i++) 
+sn[i]=(int)(Num3+31+i*i*i)%128; 
+sn[15]=0; 
+//以下循环把所有生成的字符转换为0---9，A---Z，a----z 
+for(i=0;i<15;i++) 
+{ 
+while((sn[i]<''0'' || sn[i]>''9'') && (sn[i]<''A'' || sn[i]>''Z'') &&(sn[i]<''a'' || sn[i]>''z'') ) 
+{ 
+sn[i]=(sn[i]+31+7*i)%128; 
+} 
+} 
+//赋值给一个CSTRING变量，用做函数返回值 
+p.Format("%s",sn); 
+} 
+return p; 
+} 
+//检查软件是否注册的函数 
+
+BOOL GetRegFlag(void) 
+{ 
+HKEY hKey = NULL; 
+BYTE i; 
+
+CString str; 
+str.LoadString(IDS_REG_KEY);// IDS_REG_KEY为在注册表中的子目录字符串 
+
+if (RegCreateKey(HKEY_CURRENT_USER, str, &hKey) != ERROR_SUCCESS) return false; 
+
+DWORD cbA; 
+cbA=sizeof(int); 
+if( RegQueryValueEx(hKey, "SzMima",NULL,NULL, &i,&cbA) != ERROR_SUCCESS) 
+return false; 
+
+BYTE j=i; 
+if(j==0)//0代表软件已经注册，可以正常使用 
+{ 
+RegCloseKey(hKey); 
+return true; 
+} 
+else 
+{ 
+RegCloseKey(hKey); 
+return false; 
+} 
+
+return false; 
+}; 
+//设置软件已经注册标志的函数 
+
+BOOL SetRegFlag(void) 
+{ 
+HKEY hKey = NULL; 
+BYTE i; 
+
+CString str; 
+str.LoadString(IDS_REG_KEY);// IDS_REG_KEY为在注册表中的子目录字符串 
+
+if (RegCreateKey(HKEY_CURRENT_USER, str, &hKey) != ERROR_SUCCESS) return false; 
+
+BYTE j=0;//0代表已经注册 
+if(RegSetValueEx(hKey, "SzMima", 0, REG_BINARY, &j,4) != ERROR_SUCCESS) 
+{ 
+AfxMessageBox("设置注册表数据失败!"); 
+return FALSE; 
+} 
+return false; 
+}; 
+以上三个函数即可实现软件注册机制，只需要在程序初始化的时候加入以下几句代码即可 
+BOOL bReg= GetRegFlag (); 
+if(!bReg) 
+{ 
+//在此加入限制功能或者拒绝是使用的代码 
+} 
+如果用户注册只需要加入以下代码即可 
+//这是我的程序中的一个注册界面，输入用户名和注册码提交后检验注册码是否正确的代码 
+void CRegEdit::OnBnClickedOk() 
+{ 
+if(!UpdateData()) return;//取得编辑框的内容，并赋值到类变量中 
+
+m_RegUser.TrimLeft();//m_RegUser是用户名 
+m_RegUser.TrimRight(); 
+if(m_RegUser.IsEmpty()) 
+{ 
+AfxMessageBox("用户名不能为空，请重新输入。"); 
+GetDlgItem(IDC_REGUSER)->SetFocus(); 
+return; 
+} 
+m_RegPasswd.TrimLeft();m_RegPasswd是注册码 
+m_RegPasswd.TrimRight(); 
+if(m_RegPasswd.IsEmpty()) 
+{ 
+AfxMessageBox("注册码不能为空，请重新输入。"); 
+GetDlgItem(IDC_REGPASSWD)->SetFocus(); 
+return; 
+} 
+CString Passwd; 
+Passwd=GetRegPasswd(m_RegUser);//调用算法取得该用户名的注册码 
+if(Passwd==m_RegPasswd)//与用户输入的注册进行比较 
+{ 
+SetRegFlag();//设置注册标志 
+OnOK(); 
+} 
+else 
+AfxMessageBox("注册码错误，请重新输入。"); 
+UpdateData(false); 
+} 
+
+　　以上就是在VC中实现注册机制的主要的代码，把他们加入您的程序即可。程序代码已在VC6.0/WIN98/WIN 2000环境中运行通过，并在实际运用中得到验证。对已经注册的用户将不会有任何的障碍，只需录入注册码一次就可以，不增加其日常使用的负担；而对非法用户的使用而言，取决于软件的作者赋予他们的权利。 
+

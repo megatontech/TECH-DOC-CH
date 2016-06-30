@@ -1,0 +1,107 @@
+怎样检测网络中的电脑是否有安装SQL 2000
+孟子e章的文章C#中使用SQL Server分布式管理对象（SQL-DMO） ，里面有你要的答案
+http://xml.sz.luohuedu.net/xml/ShowDetail.asp?id=BCEAADFB-CFF3-4804-B3B3-6C7D6488982B
+引用SQL DMO组件
+//取得本局域网内所有可用sql服务器名
+			cmbServer.Items.Clear();
+			try
+			{
+				SQLDMO.Application app = new SQLDMO.ApplicationClass();
+				SQLDMO.NameList list = app.ListAvailableSQLServers();
+				int iCount = list.Count;
+			
+				for(int i = 0; i < iCount; i ++)
+				{
+					string sTemp = list.Item(i);
+					if(sTemp != null)
+						cmbServer.Items.Add(sTemp);
+				}
+			}
+			catch
+			{
+				//如果取得SQLDMO组件出错, 则默认把本机名写进去
+				MessageBox.Show("无法取得服务器列表，可能是缺少SDLDMO.DLL！");
+				cmbServer.Items.Add(System.Net.Dns.GetHostName());
+			}
+为什么我用panyee(快乐王子)的那个例子一直出现“无法取得服务器列表，可能是缺少SDLDMO.DLL”，我有这个文件啊！
+
+如果用“http://xml.sz.luohuedu.net/xml/ShowDetail.asp?id=BCEAADFB-CFF3-4804-B3B3-6C7D6488982B”里的例子也不行会出现以下信息：
+"未处理的“System.InvalidCastException”类型的异常出现在WindowsApplication1.exe 中
+其他信息：接口 SQLDMO.NameList 的 QueryInterface 失败。
+怎么回事，请高手帮帮忙啊！
+第一，你的sql server 版本不够。
+ 如果要使用SQLDMO.DLL就要去下载SQL sp2.
+ 第二，如果你想列出局域网内的所有的SQl server
+ 建议你用Sql server自带的 isql.exe 这个文件只要是sql server 6.5以上就可以了
+ 下面是源码:
+  string fileName = "C:\\Program Files\\Microsoft SQL Server\\80\\Tools\\Binn\\isql.exe";
+			if(System.IO.File.Exists(fileName))
+			{
+				System.Diagnostics.ProcessStartInfo processStartInfo = new System.Diagnostics.ProcessStartInfo(fileName,"-L");
+				processStartInfo.UseShellExecute = false;
+				processStartInfo.CreateNoWindow = true;
+				processStartInfo.RedirectStandardOutput = true;
+				processStartInfo.RedirectStandardError = true;
+				System.Diagnostics.Process process = System.Diagnostics.Process.Start(processStartInfo);
+				process.WaitForExit();
+				cboServerList.Items.Clear();
+				int line = 1;
+				string server = null;
+				while(process.StandardOutput.Peek() > -1)
+				{
+					server = process.StandardOutput.ReadLine().Trim();
+					line +=1;
+					if ( line > 6)
+					{
+						cboServerList.Items.Add(server);
+					}
+					server = null;
+				}
+			}
+			cboServerList.Items.Remove(System.Environment.MachineName);
+			cboServerList.Items.Add("localhost");
+ cboServerList是一个ComoBox
+
+你可以现在cmd中输入isql.exe -？ 看看参数序列中有没有你想要的
+ 至于说列出局域网内的sql server 要输入 isql -L就可以了
+private void cmbDatabase_Enter(object sender, System.EventArgs e)
+		{
+			//取得某服务器上的各个表名
+			
+			string strServer = cmbServer.Text;
+			string strUid = txtUid.Text;
+			if(strServer.Trim() != "" && strUid.Trim() != "")
+			{
+				string strPwd = txtPwd.Text;
+				string strConn = "server=" + strServer + ";database=master;uid=" + strUid + ";pwd=" + strPwd;
+				SqlConnection conn = null;
+				try
+				{
+					conn = new SqlConnection(strConn);
+					string strSQL = "select * from sysdatabases order by dbid";
+					SqlDataAdapter cmd = new SqlDataAdapter(strSQL, conn);
+					DataSet ds = new DataSet();
+					cmd.Fill(ds, "Databases");
+					cmbDatabase.Items.Clear();
+					for(int i = 0; i < ds.Tables["Databases"].Rows.Count; i ++)
+					{
+						string strDb = ds.Tables["Databases"].Rows[i]["name"].ToString();
+						cmbDatabase.Items.Add(strDb);
+					}
+				}
+				catch(Exception ex)
+				{
+					MessageBox.Show(ex.ToString());
+				}
+				finally
+				{
+					if(conn.State == ConnectionState.Open)
+						conn.Close();
+				}
+			}
+			this.Cursor = Cursors.Default;
+		}
+
+
+
+

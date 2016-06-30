@@ -1,0 +1,71 @@
+读取、设置系统时间日期 
+
+--------------------------------------------------------------------------------
+ 
+作者：徐涛　　　时间：2005-1-15 
+  
+ 
+　　有多种方法可以读取设置系统时间日期，现介绍两种简单的方法，第一种方法只能读取不能设置。 
+一、通过调用System.DateTime.Now来得到系统当前时间日期
+
+MessageBox.Show(System.DateTime.Now.Year.ToString() +"-" + System.DateTime.Now.Month.ToString("#00") +"-" + System.DateTime.Now.Day.ToString("#00") +" " + System.DateTime.Now.DayOfWeek.ToString() +" " +System.DateTime.Now.Hour.ToString("#00") +":" + System.DateTime.Now.Minute.ToString("#00") +":" + System.DateTime.Now.Second.ToString("#00"));
+
+
+
+二、通过自定义类来读取、设置系统时间日期
+
+//引入名字空间
+using System.Runtime.InteropServices 
+
+//申明
+[DllImport( "Kernel32.dll" )]
+public static extern void GetLocalTime(SystemTime st );
+[DllImport( "Kernel32.dll" )]
+public static extern void SetLocalTime(SystemTime st );
+
+//定义时间日期类
+public class SystemTimeDate 
+{
+public ushort wYear; 
+public ushort wMonth; 
+public ushort wDayOfWeek; 
+public ushort wDay; 
+public ushort wHour; 
+public ushort wMinute; 
+public ushort wSecond; 
+public ushort wMilliseconds; 
+}
+
+//读取系统时间日期
+private void GetTime_Click(object sender, System.EventArgs e)
+{
+　　//将当前时间日期显示在窗体标题上
+　　SystemTimeDate st=new SystemTimeDate();
+　　GetLocalTime(st);
+　　this.Text="The Date and DateTime is: " ;
+　　this.Text=this.Text+st.wYear.ToString()+"年";
+　　this.Text=this.Text+st.wMonth.ToString()+"月";
+　　this.Text=this.Text+st.wDay.ToString()+"日 ";
+　　this.Text=this.Text+"星期"+st.wDayOfWeek.ToString();
+　　this.Text=this.Text+" "+st.wHour.ToString()+":";
+　　this.Text=this.Text+st.wHour.ToString()+":";
+　　this.Text=this.Text+st.wMinute.ToString()+":";
+　　this.Text=this.Text+st.wSecond.ToString()+".";
+　　this.Text=this.Text+st.wMilliseconds.ToString();
+}
+
+//设置系统时间日期
+private void GetTime_Click(object sender, System.EventArgs e)
+{
+　　//将DateTimePicker控件的值通过自定义的时间日期类来保存到系统时间
+　　SystemTimeDate st=new SystemTimeDate();
+　　st.wYear=(ushort)this.dateTimePicker1.Value.Year;
+　　st.wMonth=(ushort)this.dateTimePicker1.Value.Month;
+　　st.wDay=(ushort)this.dateTimePicker1.Value.Day;
+　　st.wHour=(ushort)this.dateTimePicker1.Value.Hour;
+　　st.wMinute=(ushort)this.dateTimePicker1.Value.Minute;
+　　st.wSecond=(ushort)this.dateTimePicker1.Value.Second;
+　　//星期和微秒不用设置
+　　SetLocalTime(st);
+}
+ 

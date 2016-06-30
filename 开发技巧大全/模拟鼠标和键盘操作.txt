@@ -1,0 +1,69 @@
+ 
+   模拟鼠标和键盘操作 
+
+--------------------------------------------------------------------------------
+ 
+作者：徐涛　　　时间：2005-1-25 
+  
+ 
+　　在程序中可以通过模拟鼠标和键盘操作给应用程序发送命令。 
+
+一、模拟键盘操作
+
+　　以下示例程序当点击button1按钮，模拟键盘在文本框textBox1中作输入操作，详细说明请参看MSDN帮助中的SendKeys类。
+
+//事件完整代码
+private void button1_Click(object sender, System.EventArgs e)
+{
+　　this.textBox1.Focus();　　　//先必须让文本框得到焦点，因为焦点在button1上
+　　SendKeys.Send("^a");　　　　//Ctrl+A
+　　SendKeys.Send("{DEL}"); 　　//Delete
+　　SendKeys.Send("+(ec)"); 　　//Shift+"ec"
+　　SendKeys.Send("{ENTER}");　 //Enter
+　　SendKeys.Send("+ec"); 　　　//Shift+'e'＋'c'
+　　SendKeys.Send("{ENTER}"); 　//Enter
+　　SendKeys.Send("{h 10}");　　//"hhhhhhhhhh"
+　　SendKeys.Send("{ENTER}"); 　//Enter
+　　SendKeys.Send("^%{DEL}");　//Alt+Ctrl+Del
+}
+
+
+
+
+二、模拟鼠标操作
+
+　　以下示例程序当点击DBButton按钮，模拟鼠标双击窗体事件，并将鼠标向左上方移动10*10象素，其它操作类似。
+
+//引入名字空间
+using System.Runtime.InteropServices 
+
+//申明
+[DllImport("user32")]
+private static extern int mouse_event(int dwFlags,int dx,int dy, int cButtons, int dwExtraInfo);
+
+const int MOUSEEVENTF_MOVE = 0x0001;
+const int MOUSEEVENTF_LEFTDOWN = 0x0002;
+const int MOUSEEVENTF_LEFTUP = 0x0004;
+const int MOUSEEVENTF_RIGHTDOWN = 0x0008;
+const int MOUSEEVENTF_RIGHTUP = 0x0010;
+const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+const int MOUSEEVENTF_MIDDLEUP = 0x0040;
+const int MOUSEEVENTF_ABSOLUTE = 0x8000;
+
+//事件完整代码
+private void Form_DoubleClick(object sender, System.EventArgs e)
+{
+　　MessageBox.Show("你双击了屏幕");
+}
+
+private void DBButton_Click(object sender, System.EventArgs e)
+{
+　　mouse_event(MOUSEEVENTF_MOVE,-10,-10,0,0); //移动鼠标，否则事件发生在按钮上
+　　Down,Up合为一次单击事件
+　　mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);
+　　mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0); 　　
+　　mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,0);
+　　mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,0); 
+}
+ 
+ 

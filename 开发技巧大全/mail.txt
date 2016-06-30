@@ -1,0 +1,298 @@
+如何使用C#访问POP3服务器
+内容: 
+This is a follow up to my SMTP example that shows how to 
+access your POP3 server. This program connects and logs on 
+to your POP3 server, and checks to see how many new 
+messages you have. 
+
+The instantiation of the POP is in Main() like this: 
+POP pop = new POP("pop-server", "loginname", "password"); 
+You must replace "pop-server" with the name of your POP 
+server, "loginname" with your own log in, and "password" 
+with your password. The class has two methods. The Connect 
+method takes care of actually logging in to the server. The 
+TCPClient class is used to establish the connection. 
+The "user" and "pass" commands are used to login. Connect 
+returns a NetworkStream object created during the 
+connection process. The second method is 
+GetNumberOfNewMessages, which returns the number of unread 
+messages on the server. The response to the "stat" command 
+is parsed to extract the number of new messages. 
+
+
+Requirement:
+
+Requires .NET SDK 
+
+
+How To Compile?
+
+
+csc /r:System.Net.dll /r:System.IO.dll pop.cs  
+
+Source Code 
+
+using System.Net.Sockets; 
+using System.IO; 
+using System.Net; 
+using System;
+
+class POP 
+{ 
+string POPServer; 
+string user; 
+string pwd; 
+public POP(){} 
+public POP(string server, string _user, string _pwd) 
+{ 
+POPServer = server; 
+user = _user; 
+pwd = _pwd; 
+} 
+private NetworkStream Connect() 
+{ 
+TCPClient sender = new TCPClient(POPServer,110); 
+Byte[] outbytes; 
+string input; 
+NetworkStream ns = null; 
+try{ 
+ns = sender.GetStream(); 
+StreamReader sr = new StreamReader(ns); 
+Console.WriteLine(sr.ReadLine() );
+
+input = "user " + user + "\r\n"; 
+outbytes = System.Text.Encoding.ASCII.GetBytes
+(input.ToCharArray()); 
+ns.Write(outbytes,0,outbytes.Length) ; 
+Console.WriteLine(sr.ReadLine() );
+
+input = "pass " + pwd + "\r\n"; 
+outbytes = System.Text.Encoding.ASCII.GetBytes
+(input.ToCharArray()); 
+ns.Write(outbytes,0,outbytes.Length) ; 
+Console.WriteLine(sr.ReadLine() );
+
+return ns; 
+} 
+catch(InvalidOperationException ioe){ 
+Console.WriteLine("Could not connect to mail server"); 
+return ns; 
+} 
+} 
+public int GetNumberOfNewMessages() 
+{ 
+Byte[] outbytes; 
+string input; 
+try{ 
+NetworkStream ns = Connect(); 
+StreamReader sr = new StreamReader(ns);
+
+input = "stat" + "\r\n"; 
+outbytes = System.Text.Encoding.ASCII.GetBytes
+(input.ToCharArray()); 
+ns.Write(outbytes,0,outbytes.Length); 
+string resp = sr.ReadLine(); 
+Console.WriteLine(resp); 
+string[] tokens = resp.Split(new Char[] {' '});
+
+input = "quit" + "\r\n"; 
+outbytes = System.Text.Encoding.ASCII.GetBytes
+(input.ToCharArray()); 
+ns.Write(outbytes,0,outbytes.Length); 
+Console.WriteLine(sr.ReadLine());
+
+sr.Close(); 
+ns.Close(); 
+return tokens[1].ToInt32(); 
+} 
+catch(InvalidOperationException ioe){ 
+Console.WriteLine("Could not connect to mail server"); 
+return 0; 
+} 
+} 
+public static void Main() 
+{ 
+POP pop = new POP("pop-server", "loginname", "password"); 
+Console.WriteLine("New Messages = {0}", 
+pop.GetNumberOfNewMessages() ); 
+Console.ReadLine(); 
+} 
+}   
+
+
+======================
+命令解析部分
+
+private bool SwitchCommand(string POP3_commandTxt)
+		{
+			try
+			{
+				//---- Parse command --------------------------------------------------//
+				string[] cmdParts = POP3_commandTxt.TrimStart().Split(new char[]{' '});
+				string POP3_command = cmdParts[0];
+					   POP3_command = POP3_command.ToUpper();
+				//---------------------------------------------------------------------//
+
+				//----- loging stuff --------------------------------------------------------------------------//
+				if(m_pPOP3_Server.LogCommands){
+					string lCmdTxt = POP3_commandTxt.Replace("\r\n","<CRLF>");
+					m_pLogWriter.AddEntry(lCmdTxt,this.SessionID,m_ConnectedIp,"C");
+				}
+				//---- End of loging ---------------------------------------------------------------------------//
+
+				switch(POP3_command)
+				{
+					case "USER":
+						USER(Core.GetArgsText(POP3_commandTxt,"USER"));
+						break;
+
+					case "PASS":
+						PASS(Core.GetArgsText(POP3_commandTxt,"PASS"));
+						break;
+					
+					case "STAT":
+						STAT();
+						break;
+
+					case "LIST":
+						LIST(Core.GetArgsText(POP3_commandTxt,"LIST"));
+						break;
+
+					case "RETR":					
+						RETR(Core.GetArgsText(POP3_commandTxt,"RETR"));
+						break;
+
+					case "DELE":
+						DELE(Core.GetArgsText(POP3_commandTxt,"DELE"));
+						break;
+
+					case "NOOP":
+						NOOP();
+						break;
+
+					case "RSET":
+						RSET();
+						break;
+
+					case "QUIT":
+						QUIT();
+						return true;
+
+
+					//----- Optional commands ----- //
+					case "UIDL":
+						UIDL(Core.GetArgsText(POP3_commandTxt,"UIDL"));
+						break;
+
+					case "APOP":
+						APOP(Core.GetArgsText(POP3_commandTxt,"APOP"));
+						break;
+
+					case "TOP":
+						TOP(Core.GetArgsText(POP3_commandTxt,"TOP"));
+						break;
+										
+					default:					
+						SendData("-ERR Invalid command\r\n");
+
+						//---- Check that maximum bad commands count isn't exceeded ---------------//
+						if(m_BadCmdCount > m_pPOP3_Server.MaxBadCommands-1){
+							SendData("421 Too many bad commands, closing transmission channel\r\n");
+							return true;
+						}
+						m_BadCmdCount++;
+						//-------------------------------------------------------------------------//
+
+						break;
+				
+				}
+			}
+			catch(Exception x)
+			{
+				// Connection lost
+				if(!m_pClientSocket.Connected){
+					return true;
+				}
+				
+				SendData("-ERR Unkown temp error\r\n");
+				m_pPOP3_Server.OnSysError(x,new System.Diagnostics.StackTrace());
+			}
+			
+			return false;
+		}
+
+===========================
+我做了一个pop3接收客户端，在收取邮件时，服务器返回得内容如下：
+
++OK Return-Path: <com_com@21cn.com>Delivered-To: yysscheng@sina.comReceived: (qmail 32409 invoked from network); 28 Nov 2002 01:31:31 -0000Received: from unknown (HELO 21cn.com) (61.140.60.248)  by 202.106.187.186 with SMTP; 28 Nov 2002 01:31:31 -0000Received: from 21cn.com([127.0.0.1]) by 21cn.com(AIMC 2.9.5.6)	with SMTP id jm93de57653; Thr, 28 Nov 2002 09:48:55 +0800Received: from 21cn.com([10.2.2.1]) by 21cn.com(AIMC 2.9.5.1)	with SMTP id jm73de5e038; Thr, 28 Nov 2002 09:48:55 +0800Content-Type: text/plainContent-Transfer-Encoding: 8bitMIME-Version: 1.0Message-ID: <ow978871906566.19829@webmail1.inner-21cn.com>X-AIMailer: AIMC 2.9.5.6 2002.10.10X-AIMime: MIME/SMIME Lib 2.9 2.9 2002.10.10Date: Thu, 28 Nov 2002 09:34:33 +0800 (CST)From: "??????"<com_com@21cn.com>To: yysscheng <yysscheng@sina.com>Cc: Subject: =?gb2312?b?sOy5q9fUtq+7rw==?=X-Priority: 3X-Originating-IP: 61.163.14.2X-AIMC-AUTH: (null)X-AIMC-MAILFROM: com_com@21cn.com??????    ??????????????????????????    ??????????                          ??????             11.28----------------------------------------------?????????????????????????????????? http://y.21cn.com ????A??210099???????????????????? http://sms.21cn.com/baobei/sjsy.html 21CN??????3??????12??10?????????? http://mail.21cn.com/huodong/9yue/ 21CN????????????????????????U?? http://mail.21cn.com/huodong/11yue/business/ 
+
+其中的汉字如何解析出来？
+（注：我得连接类如下：
+public class Pop3Connection
+	{
+		private TcpClient socket;
+		private StreamReader reader;
+		private StreamWriter writer;
+		private bool connected;
+		public bool Connected
+		{
+			get{return connected;}
+		}
+		public Pop3Connection()
+		{
+			// TODO: 在此处添加构造函数逻辑
+			connected=false;
+			socket=new TcpClient();
+		}
+		~Pop3Connection()
+		{
+			socket=null;
+		}
+		internal void Open(string host,int port)
+		{
+			if(host==null || host.Trim()=="")
+			{
+				throw new ArgumentException("Host is null!");
+			}
+			if(port<0)
+			{
+				throw new ArgumentException("Port is invalid!");
+			}
+			try
+			{
+
+				socket.Connect(host,port);
+				reader=new StreamReader(socket.GetStream(),System.Text.Encoding.ASCII );
+				writer=new StreamWriter(socket.GetStream(),System.Text.Encoding.ASCII);
+				connected=true;
+			}
+			catch(Exception e)
+			{
+				connected=false;
+			}
+		}
+		internal void SendCommand(string cmd)
+		{
+			writer.WriteLine(cmd);
+			writer.Flush();
+		}
+		internal void GetReply(out string reply )
+		{
+			if(Connected)
+			{reply=reader.ReadLine();}
+			else
+			{reply="";}
+		}
+		internal void Close()
+		{
+			reader.Close();
+			writer.Flush();
+			writer.Close();
+			reader=null;
+			writer=null;
+			socket.Close();
+			connected=false;
+		}
+	}
+）
+

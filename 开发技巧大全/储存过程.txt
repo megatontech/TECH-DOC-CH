@@ -1,0 +1,38 @@
+string sproc="Sp_InsertMyTable";
+SqlCommand cmd=new SqlCommand(sproc);
+cmd.CommandType=CommandType.StoreProcedure;
+cmd.Connection=this.myConnection;
+
+SqlParameter para1=new SqlParameter("v_id",SqlDbType.Char,10);
+para1.value=ID;
+cmd.Parameters.Add(para1);
+
+SqlParameter para2=new SqlParameter("v_name",SqlDbType.VarChar,20);
+//这个数据类型是Oracle的，不知道SqlServer是不是一样，不好意思:)
+para2.value=name;
+cmd.Parameters.Add(para2);
+
+if(cmd.Connection.State!=ConnectionState.Open)
+     cmd.Connection.Open();
+int iAffectRows=cmd.ExecuteNonQuery();
+cmd.Connection.Close();
+return iAffectRows;
+
+
+
+
+===============================
+short shortRtn = 0;
+				SqlConnection myCnn = new SqlConnection(strCon);
+				SqlCommand cmdGetUserName = new SqlCommand();
+				myCnn.Open();
+				cmdGetUserName = myCnn.CreateCommand();
+				cmdGetUserName.CommandType = CommandType.StoredProcedure;
+				cmdGetUserName.CommandText = "PR_SelectUserName";
+				cmdGetUserName.Parameters.Add(new SqlParameter("@strUserCode",strUserCode));
+				cmdGetUserName.Parameters.Add(new SqlParameter("@intRtn",shortRtn));
+				cmdGetUserName.Parameters["@intRtn"].Direction = ParameterDirection.InputOutput;
+				strUserName = cmdGetUserName.ExecuteScalar().ToString();
+				shortRtn = (short)cmdGetUserName.Parameters["@intRtn"].Value;
+				myCnn.Close();
+				return shortRtn;

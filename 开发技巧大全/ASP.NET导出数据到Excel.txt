@@ -1,0 +1,154 @@
+ASP.NET导出数据到Excel 
+ 
+该方法只是把asp.net页面保存成html页面只是把后缀改为xlc不过excel可以读取，接下连我看看还有别的方式能导出数据，并利用模版生成。 
+
+下面是代码 
+
+县新建一个asp.ne的tweb应用程序把代码粘贴进去就好了 
+
+html页面代码 
+
+
+<%@ Page language="c#" Codebehind="OutExcel.aspx.cs" AutoEventWireup="false" Inherits="eMeng.Exam.OutPutExcel" %> 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" > 
+<HTML> 
+<HEAD> 
+<title>OutPutExcel</title> 
+</HEAD> 
+<body> 
+<form id="Form1" method="post" runat="server"> 
+<asp:datagrid id="DataGrid1" runat="server"> 
+<Columns> 
+<asp:BoundColumn></asp:BoundColumn> 
+</Columns> 
+</asp:datagrid> 
+<P> 
+<asp:Label id="Label1" runat="server">文件名：</asp:Label> 
+<asp:TextBox id="TextBox1" runat="server"></asp:TextBox> 
+<asp:button id="Button1" runat="server" Text="输出到Excel"></asp:button></P> 
+</form> 
+</body> 
+</HTML> 
+
+接下来是cs页面里的代码 
+
+using System; 
+using System.Collections; 
+using System.ComponentModel; 
+using System.Data; 
+using System.Drawing; 
+using System.Web; 
+using System.Web.SessionState; 
+using System.Web.UI; 
+using System.Web.UI.WebControls; 
+using System.Web.UI.HtmlControls; 
+using System.Data.SqlClient; 
+
+namespace eMeng.Exam 
+{ 
+/// <summary> 
+/// OutPutExcel 的摘要说明。 
+/// </summary> 
+public class OutPutExcel : System.Web.UI.Page 
+{ 
+protected System.Web.UI.WebControls.Button Button1; 
+protected System.Web.UI.WebControls.DataGrid DataGrid1; 
+protected System.Web.UI.WebControls.TextBox TextBox1; 
+protected System.Web.UI.WebControls.Label Label1; 
+private DataSet myDS =new DataSet(); 
+
+private void Page_Load(object sender, System.EventArgs e) 
+{ 
+// 在此处放置用户代码以初始化页面 
+if(!Page.IsPostBack) 
+{ 
+Data_Load();//调用方法填充表格 
+} 
+
+} 
+/// <summary> 
+/// 创建数据源 
+/// </summary> 
+/// <returns>DataView</returns> 
+private void Data_Load() 
+{ 
+//数据库连接字符串Catalog为指定的数据库名称，DataSource为要连接的SQL服务器名称 
+string myConn ="User Id=sa;Password=sa;Initial Catalog=test;Data Source=zxb;Connect Timeout=20"; 
+//查询字符串 
+string mySQLstr="SELECT * FROM fy"; 
+//连接数据库操作 
+SqlConnection myConnection = new SqlConnection(myConn); 
+//执行SQL语句操作 
+SqlDataAdapter myDataAdapter = new SqlDataAdapter(mySQLstr,myConnection); 
+//打开数据库 
+myConnection.Open(); 
+//向DataSet填充数据，填充数据库服务器中test库中的fy表 
+myDataAdapter.Fill(myDS,"fy"); 
+//向DastaGrid填充数据 
+DataGrid1.DataSource=myDS; 
+DataGrid1.DataBind(); 
+} 
+/// <summary> 
+/// 输出到Excel 
+/// </summary> 
+/// <param name="sender"></param> 
+/// <param name="e"></param> 
+private void Button1_Click(object sender, System.EventArgs e) 
+{ 
+if(TextBox1.Text=="") 
+{ 
+Response.Write("<SCRIPT language=javascript>"); 
+Response.Write("window.alert(''请输入文件名'');"); 
+Response.Write("</SCRIPT>"); 
+} 
+else 
+{ 
+Response.Clear(); 
+Response.Buffer= true; 
+Response.Charset="GB2312"; //设置了类型为中文防止乱码的出现 
+Response.AppendHeader("Content-Disposition","attachment;filename="+TextBox1.Text+".xls"); //定义输出文件和文件名 
+Response.ContentEncoding=System.Text.Encoding.GetEncoding("GB2312");//设置输出流为简体中文 
+Response.ContentType = "application/ms-excel";//设置输出文件类型为excel文件。 
+this.EnableViewState = false; 
+System.Globalization.CultureInfo myCItrad = new System.Globalization.CultureInfo("ZH-CN",true); 
+System.IO.StringWriter oStringWriter = new System.IO.StringWriter(myCItrad); 
+System.Web.UI.HtmlTextWriter oHtmlTextWriter = new System.Web.UI.HtmlTextWriter(oStringWriter); 
+this.DataGrid1.RenderControl(oHtmlTextWriter); 
+Response.Write(oStringWriter.ToString()); 
+} 
+} 
+
+#region Web 窗体设计器生成的代码 
+override protected void OnInit(EventArgs e) 
+{ 
+// 
+// CODEGEN: 该调用是 ASP.NET Web 窗体设计器所必需的。 
+// 
+InitializeComponent(); 
+base.OnInit(e); 
+} 
+
+/// <summary> 
+/// 设计器支持所需的方法 - 不要使用代码编辑器修改 
+/// 此方法的内容。 
+/// </summary> 
+private void InitializeComponent() 
+{ 
+this.DataGrid1.ItemDataBound += new System.Web.UI.WebControls.DataGridItemEventHandler(this.DataGrid1_ItemDataBound); 
+this.Button1.Click += new System.EventHandler(this.Button1_Click); 
+this.Load += new System.EventHandler(this.Page_Load); 
+
+} 
+#endregion 
+
+private void DataGrid1_ItemDataBound(object sender, System.Web.UI.WebControls.DataGridItemEventArgs e) 
+{ 
+if(e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem) 
+{ 
+e.Item.Cells[0].Attributes.Add("style","vnd.ms-excel.numberformat:@"); 
+e.Item.Cells[3].Attributes.Add("style","vnd.ms-excel.numberformat:￥#,###.00"); 
+} 
+} 
+} 
+} 
+ 

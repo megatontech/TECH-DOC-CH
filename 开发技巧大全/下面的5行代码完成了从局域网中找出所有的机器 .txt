@@ -1,0 +1,12 @@
+  下面的5行代码完成了从局域网中找出所有的机器 
+foreach(DirectoryEntry domain in root.Children)
+{
+	lb_pcName.Items.Add("★★★"+domain.Name+"★★★");
+	foreach(DirectoryEntry pc in domain.Children)
+	{
+		if(pc.Name!="Schema")//Schema是结束标记
+		lb_pcName.Items.Add(" "+pc.Name);
+	}
+}
+
+有谁可以给我仔细讲讲这段代码吗？谢谢啦。初学！

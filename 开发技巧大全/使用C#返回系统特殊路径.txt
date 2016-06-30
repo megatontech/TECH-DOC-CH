@@ -1,0 +1,86 @@
+using System;
+using Microsoft.Win32;
+
+namespace SystemPathsApp
+{
+/// <summary>
+/// Summary description for SystemPaths.
+/// </summary>
+public class SystemPaths
+{
+public SystemPaths()
+{
+//
+// TODO: Add constructor logic here
+//
+folders = OpenRegistryPath(Registry.CurrentUser,@"\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders");
+}
+
+private RegistryKey folders;
+
+private RegistryKey OpenRegistryPath(RegistryKey root,string s)
+{
+s = s.Remove(0,1) + @"\";
+while (s.IndexOf(@"\") != -1)
+{
+root = root.OpenSubKey(s.Substring(0,s.IndexOf(@"\"))); 
+s = s.Remove(0,s.IndexOf(@"\") + 1);
+}
+return root;
+}
+
+/// <summary>
+/// </summary>
+/// <param name="path">
+/// Desktop 桌面目录
+/// Fonts 字体目录
+/// NetHood 网上邻居
+/// Personal 我的文档目录
+/// Programs 开始菜单程序目录
+/// Recent 存放用户最近访问文件快捷方式的目录
+/// SendTo 发送到目录
+/// StartMenu 开始菜单目录
+/// Startup 开始菜单启动项目录
+/// Favorites 收藏夹目录
+/// History 网页历史目录
+/// Cookies cookies目录
+/// Cache 缓存目录
+/// AppData 应用程序数据目录
+/// PrintHood 打印目录
+/// </param>
+/// <returns></returns>
+public string Customize(string path)
+{
+return folders.GetValue(path).ToString();
+}
+
+public string Desktop()
+{
+return Customize("Desktop");
+}
+
+public string Cookies()
+{ 
+return Customize("Cookies");
+}
+
+public string MyDocuments()
+{ 
+return Customize("Personal");
+
+}
+
+public string History()
+{ 
+return Customize("History");
+}
+
+public string Favorites()
+{ 
+return Customize("Favorites");
+}
+
+}
+}
+ 
+

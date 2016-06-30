@@ -1,0 +1,631 @@
+总结：ADO.NET在开发中的部分使用方法和技巧 
+   
+ 
+如何使用 SqlDataAdapter 来检索多个行
+
+以下代码阐明了如何使用 SqlDataAdapter 对象发出可生成 DataSet 或 DataTable 的命令。它从 SQL Server Northwind 数据库中检索一组产品类别。
+
+using System.Data;
+using System.Data.SqlClient;
+
+public DataTable RetrieveRowsWithDataTable()
+{
+  using ( SqlConnection conn = new SqlConnection(connectionString) )
+  {
+    conn.Open();
+    SqlCommand cmd = new SqlCommand("DATRetrieveProducts", conn);
+    cmd.CommandType = CommandType.StoredProcedure;
+    SqlDataAdapter adapter = new SqlDataAdapter( cmd );
+    DataTable dataTable = new DataTable("Products");
+    adapter .Fill(dataTable);
+    return dataTable;
+  }
+}
+
+使用 SqlAdapter 生成 DataSet 或 DataTable 
+1.
+ 创建一个 SqlCommand 对象以调用该存储过程，并将其与一个 SqlConnection 对象（显示）或连接字符串（不显示）相关联。
+ 
+2.
+ 创建一个新的 SqlDataAdapter 对象并将其与 SqlCommand 对象相关联。 
+ 
+3.
+ 创建一个 DataTable（也可以创建一个 DataSet）对象。使用构造函数参数来命名 DataTable。 
+ 
+4.
+ 调用 SqlDataAdapter 对象的 Fill 方法，用检索到的行填充 DataSet 或 DataTable。 
+ 
+
+如何使用 SqlDataReader 来检索多个行
+以下代码片段阐明了可检索多个行的 SqlDataReader 方法。
+
+using System.IO;
+using System.Data;
+using System.Data.SqlClient;
+
+public SqlDataReader RetrieveRowsWithDataReader()
+{
+  SqlConnection conn = new SqlConnection(
+         "server=(local);Integrated Security=SSPI;database=northwind");
+  SqlCommand cmd = new SqlCommand("DATRetrieveProducts", conn );
+  cmd.CommandType = CommandType.StoredProcedure;
+  try
+  {
+    conn.Open();
+    // Generate the reader. CommandBehavior.CloseConnection causes the
+    // the connection to be closed when the reader object is closed
+    return( cmd.ExecuteReader( CommandBehavior.CloseConnection ) );
+  }
+  catch
+  {
+    conn.Close();
+    throw;
+  }
+}
+
+// Display the product list using the console
+private void DisplayProducts()
+{
+  SqlDataReader reader = RetrieveRowsWithDataReader();
+  try
+  {
+    while (reader.Read())
+    {
+      Console.WriteLine("{0} {1} {2}", 
+                        reader.GetInt32(0).ToString(), 
+                        reader.GetString(1) );
+    }
+  }
+  finally
+  {
+    reader.Close(); // Also closes the connection due to the
+                    // CommandBehavior enum used when generating the reader
+  }
+}
+
+使用 SqlDataReader 检索行 
+1.
+ 创建一个用来执行存储过程的 SqlCommand 对象，并将其与一个 SqlConnection 对象相关联。 
+ 
+2.
+ 打开连接。 
+ 
+3.
+ 通过调用 SqlCommand 对象的 ExecuteReader 方法创建一个 SqlDataReader 对象。 
+ 
+4.
+ 要从流中读取数据，请调用 SqlDataReader 对象的 Read 方法来检索行，并使用类型化访问器方法（如 GetInt32 和 GetString 方法）来检索列值。 
+ 
+5.
+ 使用完读取器后，请调用其 Close 方法。
+ 
+
+如何使用 XmlReader 检索多个行
+可以使用 SqlCommand 对象来生成 XmlReader 对象，后者可提供对 XML 数据的基于流的只进访问。命令（通常为存储过程）必须产生基于 XML 的结果集，对于 SQL Server 2000 而言，该结果集通常包含一个带有有效 FOR XML 子句的 SELECT 语句。以下代码片段阐明了该方法：
+
+public void RetrieveAndDisplayRowsWithXmlReader()
+{
+  using( SqlConnection conn = new SqlConnection(connectionString) )
+  {;
+    SqlCommand cmd = new SqlCommand("DATRetrieveProductsXML", conn );
+    cmd.CommandType = CommandType.StoredProcedure;
+try
+  {
+      conn.Open();
+    XmlTextReader xreader = (XmlTextReader)cmd.ExecuteXmlReader();
+    while ( xreader.Read() )
+    {
+      if ( xreader.Name == "PRODUCTS" ) 
+      {
+        string strOutput = xreader.GetAttribute("ProductID");
+        strOutput += " ";
+        strOutput += xreader.GetAttribute("ProductName");
+        Console.WriteLine( strOutput );
+      }
+    }
+    xreader.Close();  // XmlTextReader does not support IDisposable so it can't be
+                      // used within a using keyword 
+  }
+}
+  
+
+上述代码使用了以下存储过程：
+
+CREATE PROCEDURE DATRetrieveProductsXML
+AS
+SELECT * FROM PRODUCTS 
+FOR XML AUTO
+GO
+
+使用 XmlReader 检索 XML 数据 
+1.
+ 创建一个 SqlCommand 对象来调用可生成 XML 结果集的存储过程（例如，在 SELECT 语句中使用 FOR XML 子句）。将该 SqlCommand 对象与某个连接相关联。 
+ 
+2.
+ 调用 SqlCommand 对象的 ExecuteXmlReader 方法，并且将结果分配给只进 XmlTextReader 对象。当您不需要对返回的数据进行任何基于 XML 的验证时，这是应该使用的最快类型的 XmlReader 对象。 
+ 
+3.
+ 使用 XmlTextReader 对象的 Read 方法来读取数据。 
+ 
+
+如何使用存储过程输出参数来检索单个行
+借助于命名的输出参数，可以调用在单个行内返回检索到的数据项的存储过程。以下代码片段使用存储过程来检索 Northwind 数据库的 Products 表中包含的特定产品的产品名称和单价。
+
+void GetProductDetails( int ProductID, 
+                        out string ProductName, out decimal UnitPrice )
+{
+  using( SqlConnection conn = new SqlConnection(
+        "server=(local);Integrated Security=SSPI;database=Northwind") )
+  {
+    // Set up the command object used to execute the stored proc
+    SqlCommand cmd = new SqlCommand( "DATGetProductDetailsSPOutput", conn )
+    cmd.CommandType = CommandType.StoredProcedure;
+    // Establish stored proc parameters.
+    //  @ProductID int INPUT
+    //  @ProductName nvarchar(40) OUTPUT
+    //  @UnitPrice money OUTPUT
+
+    // Must explicitly set the direction of output parameters
+    SqlParameter paramProdID = 
+             cmd.Parameters.Add( "@ProductID", ProductID );
+    paramProdID.Direction = ParameterDirection.Input;
+    SqlParameter paramProdName = 
+             cmd.Parameters.Add( "@ProductName", SqlDbType.VarChar, 40 );
+    paramProdName.Direction = ParameterDirection.Output;
+    SqlParameter paramUnitPrice = 
+             cmd.Parameters.Add( "@UnitPrice", SqlDbType.Money );
+    paramUnitPrice.Direction = ParameterDirection.Output;
+
+    conn.Open();
+    // Use ExecuteNonQuery to run the command. 
+    // Although no rows are returned any mapped output parameters 
+    // (and potentially return values) are populated 
+    cmd.ExecuteNonQuery( );
+    // Return output parameters from stored proc
+    ProductName = paramProdName.Value.ToString();
+    UnitPrice = (decimal)paramUnitPrice.Value; 
+  }
+}
+
+使用存储过程输出参数来检索单个行 
+1.
+ 创建一个 SqlCommand 对象并将其与一个 SqlConnection 对象相关联。 
+ 
+2.
+ 通过调用 SqlCommand 的 Parameters 集合的 Add 方法来设置存储过程参数。默认情况下，参数都被假设为输入参数，因此必须显式设置任何输出参数的方向。 
+
+注 一种良好的习惯做法是显式设置所有参数（包括输入参数）的方向。
+ 
+3.
+ 打开连接。 
+ 
+4.
+ 调用 SqlCommand 对象的 ExecuteNonQuery 方法。这将填充输出参数（并可能填充返回值）。 
+ 
+5.
+ 通过使用 Value 属性，从适当的 SqlParameter 对象中检索输出参数。 
+ 
+6.
+ 关闭连接。 
+ 
+
+上述代码片段调用了以下存储过程。
+
+CREATE PROCEDURE DATGetProductDetailsSPOutput
+@ProductID int,
+@ProductName nvarchar(40) OUTPUT,
+@UnitPrice money OUTPUT
+AS
+SELECT @ProductName = ProductName, 
+       @UnitPrice = UnitPrice 
+FROM Products 
+WHERE ProductID = @ProductID
+GO
+
+如何使用 SqlDataReader 来检索单个行
+可以使用 SqlDataReader 对象来检索单个行，尤其是可以从返回的数据流中检索需要的列值。以下代码片段对此进行了说明。
+
+void GetProductDetailsUsingReader( int ProductID, 
+                        out string ProductName, out decimal UnitPrice )
+{
+  using( SqlConnection conn = new SqlConnection(
+         "server=(local);Integrated Security=SSPI;database=Northwind") )
+  {
+    // Set up the command object used to execute the stored proc
+    SqlCommand cmd = new SqlCommand( "DATGetProductDetailsReader", conn );
+    cmd.CommandType = CommandType.StoredProcedure;
+    // Establish stored proc parameters.
+    //  @ProductID int INPUT
+
+    SqlParameter paramProdID = cmd.Parameters.Add( "@ProductID", ProductID );
+    paramProdID.Direction = ParameterDirection.Input;
+    conn.Open();
+    using( SqlDataReader reader = cmd.ExecuteReader() )
+    {
+      if( reader.Read() ) // Advance to the one and only row
+      {
+        // Return output parameters from returned data stream
+        ProductName = reader.GetString(0);
+        UnitPrice = reader.GetDecimal(1);
+       }
+    }
+  }
+}
+
+使用 SqlDataReader 对象来返回单个行 
+1.
+ 建立 SqlCommand 对象。 
+ 
+2.
+ 打开连接。 
+ 
+3.
+ 调用 SqlDataReader 对象的 ExecuteReader 方法。 
+ 
+4.
+ 通过 SqlDataReader 对象的类型化访问器方法（在这里，为 GetString 和 GetDecimal）来检索输出参数。 
+ 
+
+上述代码片段调用了以下存储过程。
+
+CREATE PROCEDURE DATGetProductDetailsReader
+@ProductID int
+AS
+SELECT ProductName, UnitPrice FROM Products
+WHERE ProductID = @ProductID
+GO
+
+如何使用 ExecuteScalar 来检索单个项
+ExecuteScalar 方法专门适用于仅返回单个值的查询。如果查询返回多个列和/或行，ExecuteScalar 将只返回第一行的第一列。
+
+以下代码说明了如何查找与特定产品 ID 相对应的产品名称：
+
+void GetProductNameExecuteScalar( int ProductID, out string ProductName )
+{
+  using( SqlConnection conn = new SqlConnection(
+         "server=(local);Integrated Security=SSPI;database=northwind") )
+  {
+    SqlCommand cmd = new SqlCommand("LookupProductNameScalar", conn );
+    cmd.CommandType = CommandType.StoredProcedure;
+
+    cmd.Parameters.Add("@ProductID", ProductID );
+    conn.Open();
+    ProductName = (string)cmd.ExecuteScalar();
+  }
+}
+
+使用 ExecuteScalar 来检索单个项 
+1.
+ 建立一个 SqlCommand 对象来调用存储过程。 
+ 
+2.
+ 打开连接。 
+ 
+3.
+ 调用 ExecuteScalar 方法。注意，该方法返回一个对象类型。它包含检索到的第一列的值，并且必须转化为适当的类型。 
+ 
+4.
+ 关闭连接。 
+ 
+
+上述代码使用了以下存储过程：
+
+CREATE PROCEDURE LookupProductNameScalar
+@ProductID int
+AS
+SELECT TOP 1 ProductName
+FROM Products
+WHERE ProductID = @ProductID
+GO
+
+如何使用存储过程输出或返回参数来检索单个项
+可以使用存储过程输出或返回参数来查找单个值。以下代码阐明了输出参数的用法：
+
+void GetProductNameUsingSPOutput( int ProductID, out string ProductName )
+{
+  using( SqlConnection conn = new SqlConnection(
+        "server=(local);Integrated Security=SSPI;database=northwind") )
+  {
+    SqlCommand cmd = new SqlCommand("LookupProductNameSPOutput", conn );
+    cmd.CommandType = CommandType.StoredProcedure;
+
+    SqlParameter paramProdID = cmd.Parameters.Add("@ProductID", ProductID );
+    ParamProdID.Direction = ParameterDirection.Input;
+    SqlParameter paramPN = 
+           cmd.Parameters.Add("@ProductName", SqlDbType.VarChar, 40 );
+    paramPN.Direction = ParameterDirection.Output;
+
+    conn.Open();
+    cmd.ExecuteNonQuery();
+    ProductName = paramPN.Value.ToString();  
+  }
+}
+
+使用存储过程输出参数来检索单个值 
+1.
+ 建立一个 SqlCommand 对象来调用存储过程。 
+ 
+2.
+ 通过将 SqlParameters 添加到 SqlCommand 的 Parameters 集合中，设置任何输入参数和单个输出参数。
+ 
+3.
+ 打开连接。 
+ 
+4.
+ 调用 SqlCommand 对象的 ExecuteNonQuery 方法。 
+ 
+5.
+ 关闭连接。 
+ 
+6.
+ 通过使用输出 SqlParameter 的 Value 属性来检索输出值。 
+ 
+
+上述代码使用了以下存储过程。
+
+CREATE PROCEDURE LookupProductNameSPOutput 
+@ProductID int,
+@ProductName nvarchar(40) OUTPUT
+AS
+SELECT @ProductName = ProductName
+FROM Products
+WHERE ProductID = @ProductID
+GO
+
+以下代码阐明了如何使用返回值来指明是否存在特定行。从编码角度来看，这类似于使用存储过程输出参数，不同之处在于必须将 SqlParameter 方向显式设置为 ParameterDirection.ReturnValue。
+
+bool CheckProduct( int ProductID )
+{
+  using( SqlConnection conn = new SqlConnection(
+       "server=(local);Integrated Security=SSPI;database=northwind") )
+  {
+    SqlCommand cmd = new SqlCommand("CheckProductSP", conn );
+    cmd.CommandType = CommandType.StoredProcedure;
+
+    cmd.Parameters.Add("@ProductID", ProductID );
+    SqlParameter paramRet =  
+           cmd.Parameters.Add("@ProductExists", SqlDbType.Int );
+    paramRet.Direction = ParameterDirection.ReturnValue;
+    conn.Open();
+    cmd.ExecuteNonQuery();
+  }
+  return (int)paramRet.Value == 1;
+}
+
+通过使用存储过程返回值来检查是否存在特定行 
+1.
+ 建立一个 SqlCommand 对象来调用存储过程。 
+ 
+2.
+ 设置一个输入参数，该参数含有要访问的行的主键值。 
+ 
+3.
+ 设置单个返回值参数。将一个 SqlParameter 对象添加到 SqlCommand 的 Parameters 集合中，并将其方向设置为 ParameterDirection.ReturnValue。 
+ 
+4.
+ 打开连接。 
+ 
+5.
+ 调用 SqlCommand 对象的 ExecuteNonQuery 方法。 
+ 
+6.
+ 关闭连接。 
+ 
+7.
+ 通过使用返回值 SqlParameter 的 Value 属性来检索返回值。 
+ 
+
+上述代码使用了以下存储过程。 
+
+CREATE PROCEDURE CheckProductSP 
+@ProductID int
+AS
+IF EXISTS( SELECT ProductID
+           FROM Products
+           WHERE ProductID = @ProductID )
+  return 1
+ELSE
+  return 0
+GO
+
+如何使用 SqlDataReader 来检索单个项
+可以使用 SqlDataReader 对象并通过调用命令对象的 ExecuteReader 方法来获取单个输出值。这要求编写稍微多一点的代码，因为必须调用 SqlDataReader Read 方法，然后通过该读取器的访问器方法之一来检索需要的值。以下代码阐明了 SqlDataReader 对象的用法。
+
+bool CheckProductWithReader( int ProductID )
+{
+  using( SqlConnection conn = new SqlConnection(
+         "server=(local);Integrated Security=SSPI;database=northwind") )
+  {
+    SqlCommand cmd = new SqlCommand("CheckProductExistsWithCount", conn );
+    cmd.CommandType = CommandType.StoredProcedure;
+
+    cmd.Parameters.Add("@ProductID", ProductID );
+    cmd.Parameters["@ProductID"].Direction = ParameterDirection.Input;
+    conn.Open();
+    using( SqlDataReader reader = cmd.ExecuteReader(
+                                CommandBehavior.SingleResult ) )
+    {
+    if( reader.Read() )
+    {
+      return (reader.GetInt32(0) > 0);
+    }
+    return false;
+  }
+}
+
+上述代码采用了以下存储过程。
+
+CREATE PROCEDURE CheckProductExistsWithCount 
+@ProductID int
+AS
+SELECT COUNT(*) FROM Products
+WHERE ProductID = @ProductID
+GO
+
+如何编写 ADO.NET 手动事务处理代码
+以下代码显示了如何充分利用 SQL Server .NET 数据提供程序所提供的事务处理支持，通过事务来保护资金转帐操作。该操作在同一数据库中的两个帐户之间转移资金。
+
+public void TransferMoney( string toAccount, string fromAccount, decimal amount )
+{
+  using ( SqlConnection conn = new SqlConnection(
+            "server=(local);Integrated Security=SSPI;database=SimpleBank" ) )
+  {
+    SqlCommand cmdCredit = new SqlCommand("Credit", conn );
+    cmdCredit.CommandType = CommandType.StoredProcedure;
+    cmdCredit.Parameters.Add( new SqlParameter("@AccountNo", toAccount) );
+    cmdCredit.Parameters.Add( new SqlParameter("@Amount", amount ));
+
+    SqlCommand cmdDebit = new SqlCommand("Debit", conn );
+    cmdDebit.CommandType = CommandType.StoredProcedure;
+    cmdDebit.Parameters.Add( new SqlParameter("@AccountNo", fromAccount) );
+    cmdDebit.Parameters.Add( new SqlParameter("@Amount", amount ));
+
+    conn.Open();
+    // Start a new transaction
+    using ( SqlTransaction trans = conn.BeginTransaction() )
+    {
+      // Associate the two command objects with the same transaction
+      cmdCredit.Transaction = trans;
+      cmdDebit.Transaction = trans;
+      try
+      {
+        cmdCredit.ExecuteNonQuery();
+        cmdDebit.ExecuteNonQuery();
+        // Both commands (credit and debit) were successful
+        trans.Commit();
+      }
+      catch( Exception ex )
+      {
+        // transaction failed
+        trans.Rollback();
+        // log exception details . . .
+        throw ex;
+      }
+    }
+  }
+}
+
+如何使用 Transact-SQL 执行事务处理
+以下存储过程阐明了如何在 Transact-SQL 存储过程内部执行事务性资金转帐操作。
+
+CREATE PROCEDURE MoneyTransfer
+@FromAccount char(20),
+@ToAccount char(20),
+@Amount money
+AS
+BEGIN TRANSACTION
+-- PERFORM DEBIT OPERATION
+UPDATE Accounts
+SET Balance = Balance - @Amount
+WHERE AccountNumber = @FromAccount
+IF @@RowCount = 0
+BEGIN
+  RAISERROR('Invalid From Account Number', 11, 1)
+  GOTO ABORT
+END
+DECLARE @Balance money
+SELECT @Balance = Balance FROM ACCOUNTS
+WHERE AccountNumber = @FromAccount
+IF @BALANCE < 0
+BEGIN
+  RAISERROR('Insufficient funds', 11, 1)
+  GOTO ABORT
+END
+-- PERFORM CREDIT OPERATION
+UPDATE Accounts 
+SET Balance = Balance + @Amount 
+WHERE AccountNumber = @ToAccount
+IF @@RowCount = 0
+BEGIN
+  RAISERROR('Invalid To Account Number', 11, 1)
+  GOTO ABORT
+END
+COMMIT TRANSACTION
+RETURN 0
+ABORT:
+  ROLLBACK TRANSACTION
+GO
+
+该存储过程使用 BEGIN TRANSACTION、COMMIT TRANSACTION 和 ROLLBACK TRANSACTION 语句来手动控制该事务。
+
+如何编写事务性 .NET 类
+以下示例代码显示了三个服务性 .NET 托管类，这些类经过配置以执行自动事务处理。每个类都使用 Transaction 属性进行了批注，该属性的值确定是否应该启动新的事务流，或者该对象是否应该共享其直接调用方的事务流。这些组件协同工作来执行银行资金转帐任务。Transfer 类被使用 RequiresNew 事务属性进行了配置，而 Debit 和 Credit 被使用 Required 进行了配置。结果，所有这三个对象在运行时都将共享同一事务。
+
+using System;
+using System.EnterpriseServices;
+
+[Transaction(TransactionOption.RequiresNew)]
+public class Transfer : ServicedComponent
+{
+  [AutoComplete]
+  public void Transfer( string toAccount, 
+                        string fromAccount, decimal amount )
+  {
+    try
+    {
+      // Perform the debit operation
+      Debit debit = new Debit();
+      debit.DebitAccount( fromAccount, amount );
+      // Perform the credit operation
+      Credit credit = new Credit();
+      credit.CreditAccount( toAccount, amount );
+    }
+    catch( SqlException sqlex )
+    {
+      // Handle and log exception details
+      // Wrap and propagate the exception
+      throw new TransferException( "Transfer Failure", sqlex );    
+    }
+  }
+}
+[Transaction(TransactionOption.Required)]
+public class Credit : ServicedComponent
+{
+  [AutoComplete]
+  public void CreditAccount( string account, decimal amount )
+  {
+    try
+    {
+      using( SqlConnection conn = new SqlConnection(
+              "Server=(local); Integrated Security=SSPI"; database="SimpleBank") )
+      {
+        SqlCommand cmd = new SqlCommand("Credit", conn );
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.Add( new SqlParameter("@AccountNo", account) );
+        cmd.Parameters.Add( new SqlParameter("@Amount", amount ));
+        conn.Open();
+        cmd.ExecuteNonQuery();
+      }
+    }
+  }catch( SqlException sqlex ){
+     // Log exception details here
+     throw; // Propagate exception
+  }
+}
+[Transaction(TransactionOption.Required)]
+public class Debit : ServicedComponent
+{
+  public void DebitAccount( string account, decimal amount )
+  {
+    try
+    {
+      using( SqlConnection conn = new SqlConnection(
+              "Server=(local); Integrated Security=SSPI"; database="SimpleBank") )
+      {
+        SqlCommand cmd = new SqlCommand("Debit", conn );
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.Add( new SqlParameter("@AccountNo", account) );
+        cmd.Parameters.Add( new SqlParameter("@Amount", amount ));
+        conn.Open();
+        cmd.ExecuteNonQuery();
+      } 
+    }
+    catch (SqlException sqlex)
+    {
+      // Log exception details here
+      throw; // Propagate exception back to caller
+    }
+  }
+}
+
+ 

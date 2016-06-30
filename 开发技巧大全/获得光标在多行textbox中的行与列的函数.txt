@@ -1,0 +1,75 @@
+获得光标在多行textbox中的行与列的函数 
+ 
+ Public Function checkrow() As String
+
+
+
+        Dim row As Integer = Me.TextBox1.SelectionStart
+
+
+
+        Dim i As Integer
+
+
+
+        Dim p As Integer
+
+
+
+        Dim count As Integer = 0
+
+
+
+        Dim count1 As Integer = 0
+
+
+
+        For i = 0 To Me.TextBox1.Lines.GetUpperBound(0)
+
+
+
+            count += Me.TextBox1.Lines(i).Length + 2 ' 一个回车相当于2个
+
+
+
+            If row <= count Then
+
+
+
+                If i = 0 Then
+
+
+
+                    p = row
+
+
+
+                Else
+
+
+
+                    p = row - count1
+
+
+
+                End If
+
+
+
+                Return "行：" & CStr(i) & "/列：" & CStr(p)
+
+
+
+            End If
+
+
+
+            count1 += Me.TextBox1.Lines(i).Length + 2
+
+
+
+        Next
+
+
+
+    End Function

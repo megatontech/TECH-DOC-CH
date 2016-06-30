@@ -1,0 +1,28 @@
+可以用DSA和RSA，如：
+using System;
+using System.Text;
+using System.Security.Cryptography;
+
+ class dsacrypto_SignData {
+	public static void Main(String[] args){
+		//先要将字符串转换为字节数组，这与编码有关。
+		String str = "this is a test.";
+		byte[] bytes = Encoding.ASCII.GetBytes(str);
+		//选择签名方式，有RSA和DSA
+		DSACryptoServiceProvider dsac = new DSACryptoServiceProvider();
+		byte[] sign = dsac.SignData(bytes);
+		//sign便是出来的签名结果。
+
+		//下面是认证了
+		DSACryptoServiceProvider dsac2 = new DSACryptoServiceProvider();
+		dsac2.FromXmlString(dsac.ToXmlString(false));
+		bool ver = dsac2.VerifyData(bytes, sign);
+		if (ver) {
+			Console.WriteLine("通过");
+		} else {
+			Console.WriteLine("不能通过");
+		}
+	}
+ }
+
+RSA类似，不过RSA比DSA慢得多，但比DSA安全。RSA可以选择关键字的大小，越大越安全

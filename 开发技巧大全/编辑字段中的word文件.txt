@@ -1,0 +1,84 @@
+我是这样做的，将word文件存入一个字段，sql为image型，access为ole型，首先将文件复制到本地硬盘上进行编辑，然后将编辑后的文件上传，示例代码如下：
+
+		private void btnEditFile_Click(object sender, System.EventArgs e)
+		{
+			//首先导出文件到本地
+			string filename=MyTools.GetRandFileName+".doc";//自定义函数，得到一个随机的文件名
+			if(MyTools.DownLoadFile(this.m_DataRow,"文件内容",filename,"doc"))//下载文件
+			{
+				bool bTopMost=this.TopMost;
+				this.TopMost=false;
+				System.Diagnostics.ProcessStartInfo myFun=new System.Diagnostics.ProcessStartInfo(filename);
+				System.Diagnostics.Process fun=System.Diagnostics.Process.Start(myFun);
+				fun.WaitForExit();
+				this.TopMost=bTopMost;
+
+				//再将文件传回来
+				MyTools.UpLoadFile(this.m_DataRow,"文件内容",filename);
+			}
+		}
+/// <summary>
+		/// 将文件从datarow中下载到本地硬盘
+		/// </summary>
+		/// <param name="p_DataRow">含有文件内容的行</param>
+		/// <param name="p_FieldName">存放文件的字段名</param>
+		/// <param name="p_FiledName">存放的文件名</param>
+		/// <param name="p_FileExt">文件扩展名</param>
+		public static bool DownLoadFile(DataRow p_DataRow,string p_FieldName,string p_FileName,string p_FileExt)
+		{
+			bool bResult=false;
+			//首先将文件导出
+			if(p_DataRow[p_FieldName]!=DBNull.Value)
+			{
+				//如果文件名没有扩展名,则加上扩展名
+				string filename=p_FileName.Trim();
+				if(filename.IndexOf(".")<0)
+					filename+=p_FileExt;
+
+				Byte[] byteBLOBData =  new Byte[0];
+				byteBLOBData = (Byte[])p_DataRow[p_FieldName];
+				try
+				{
+					FileStream fs=new FileStream(filename,FileMode.OpenOrCreate);
+					fs.Write(byteBLOBData,0,byteBLOBData.Length);
+					fs.Close();
+					bResult=true;
+				}
+				catch(Exception ee)
+				{
+					MessageBox.Show(ee.Message);
+				}
+			}
+			return bResult;
+		}
+
+		/// <summary>
+		/// 将本地文件上传到datarow中
+		/// </summary>
+		/// <param name="p_DataRow">当前行</param>
+		/// <param name="p_FieldName">包含文件内容的字段名</param>
+		/// <param name="p_FileName">本地文件名</param>
+		public static bool UpLoadFile(DataRow p_DataRow,string p_FieldName,string p_FileName)
+		{
+			bool bResult=false;
+			FileInfo fileinfo=new FileInfo(p_FileName);
+			if(fileinfo.Exists)
+			{
+				try
+				{
+					FileStream fs=new FileStream(p_FileName,FileMode.Open);
+					byte [] myData = new Byte [fs.Length ];
+					fs.Position = 0;
+					fs.Read (myData,0,Convert.ToInt32 (fs.Length ));
+					p_DataRow[p_FieldName] = myData;
+					fs.Close();//关闭文件
+					bResult=true;
+				}
+				catch
+				{
+				}
+			}
+			else
+				MessageBox.Show("文件:"+p_FileName+"不存在!");
+			return bResult;
+		}

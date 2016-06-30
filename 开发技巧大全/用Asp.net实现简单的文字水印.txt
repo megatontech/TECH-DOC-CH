@@ -1,0 +1,42 @@
+用Asp.net实现简单的文字水印 
+ 
+经常看见MOP上有人贴那种动态的图片，就是把一个字符串作为参数传给一个动态网页，就会生成一个带有这个字符串的图片，这个叫做文字水印。像什么原来的熊猫系列，还有后来的大树和金条，都挺有意思。这东西看着挺好玩的，想做个玩玩。查了查资料，发现用.net来做这个是很容易的，就用Asp.net写了一个非常简单的。全部的代码如下： 
+
+<%@ Import Namespace="System" %> 
+<%@ Import Namespace="System.IO" %> 
+<%@ Import Namespace="System.Drawing" %> 
+
+<%@ Page language="vb" %> 
+
+<script runat="server"> 
+Dim FilePath As String = Server.MapPath("Talk.JPG") 
+
+Sub Page_Load(Sender As Object, E As EventArgs) 
+Dim image As System.Drawing.Image = System.Drawing.Image.FromFile( FilePath ) 
+Dim g As Graphics = Graphics.FromImage(image) 
+g.DrawImage(image, 0, 0, image.Width, image.Height) 
+Dim f As Font = new Font("华文行楷", 40) 
+Dim b As Brush = new SolidBrush(Color.Black) 
+Dim s As String = Left(Request.QueryString("str"), 7) 
+g.DrawString(s, f, b, 20, 190) 
+image.Save(Response.OutputStream, System.Drawing.Imaging.ImageFormat.Jpeg) 
+g.Dispose() 
+image.Dispose() 
+End Sub 
+</script> 
+
+只要把这个代码存成一个aspx文件，比如Test.aspx。然后放到wwwroot里面（假设你的虚拟目录是默认的）。再做一个Talk.JPG的图片，就可以在(20, 190)这个地方打印出“华文行楷”这种字体的文字了。调用方法很简单： 
+
+http://localhost/Test.aspx?str=测试一下下！ 
+
+对于打印的位置和字体还有图片文件都是可以自己设定的。另外，如果出现了以e文作为参数就可以正常显示，而对于中文就无法显示的情况，是因为Asp.net的web.config设置不正确造成了，需要进行如下设置： 
+
+<?xml version="1.0" encoding="utf-8"?> 
+<configuration> 
+<system.web> 
+<globalization requestEncoding="gb2312" responseEncoding="gb2312" culture="zh-CN" fileEncoding="gb2312"/> 
+</system.web> 
+</configuration> 
+
+这样，就可以正常显示了。做个玩玩吧，挺好玩的。 
+ 

@@ -1,0 +1,13 @@
+可以使用互斥体Mutex类型完成此功能。见如下代码：
+    [STAThread]
+    public static void Main(string[] args) 
+    {
+         //声明互斥体。
+         Mutex mutex = new Mutex(false, "ThisShouldOnlyRunOnce");
+         //判断互斥体是否使用中。
+         bool Running = !mutex.WaitOne(0, false);
+         if (! Running)
+             Application.Run(new FormLogin());
+         else
+             MessageBox.Show("应用程序已经启动！");
+    }

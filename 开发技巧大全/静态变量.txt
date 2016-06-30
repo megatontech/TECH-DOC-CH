@@ -1,0 +1,35 @@
+静态的占用内存中的一个固定地址，   
+  静态变量一旦被一个对象改变，改变后的值表现在程序中每一个调用它的地方。   
+  class   a   
+  {   
+      static   int   aa   =   0;   
+  }   
+  class   b   
+  {   
+      a   aa   =   new   a();   
+      int   b   =   3;   
+      aa.aa   =   b;   
+  }   
+  class   c   
+  {   
+      a   cc   =   new   a();   
+      System.out.printl(cc.a);..............................cc.a=3   
+  }   
+    
+  动态的占用不同的地址，   
+  动态变量值得变化只对他所在的累或方法有影响   
+  class   a   
+  {   
+        int   aa   =   0;   
+  }   
+  class   b   
+  {   
+      a   aa   =   new   a();   
+      int   b   =   3;   
+      aa.aa   =   b;   
+  }   
+  class   c   
+  {   
+      a   cc   =   new   a();   
+      System.out.printl(cc.a);..............................cc.a=0   
+  }

@@ -1,0 +1,56 @@
+一、截取系统消息
+
+方法一：
+
+//添加监视消息
+private void Form_Load(object sender, System.EventArgs e)
+{
+　　Application.AddMessageFilter(this);
+}
+
+//撤消消息监视
+private void Form_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+{
+　　Application.RemoveMessageFilter(this);
+}
+
+//截取消息，进行处理
+public bool PreFilterMessage(ref System.Windows.Forms.Message m)
+{
+　　switch(m.Msg )
+　　{
+　　　　case 513: 　　　　　　　//拦截左键单击事件　
+　　　　　　MessageBox.Show("哈哈，你点击了左键被拦截！");
+　　　　　　return true;　　　　//返回true则消息被裁取，系统不再处理
+　　　　case 516: 　　　　　　　//拦截左键单击事件　
+　　　　　　MessageBox.Show("哈哈，你点击了右键被拦截！");
+　　　　　　return true;　　　　//返回true则消息被裁取，系统不再处理
+　　　　default:
+　　　　　　return false; 　　　//返回false则消息未被裁取，系统会处理
+　　}
+} 
+
+方法二： 
+
+//截取消息，进行处理 
+protected override void WndProc(ref Message m) 
+{
+　　switch(m.Msg)
+　　{
+　　　　case 17:
+　　　　　　MessageBox.Show("哈哈，你不能关闭计算机！");
+　　　　　　m.Result=(IntPtr)0;
+　　　　　　break;
+　　　　case 513:
+　　　　　　MessageBox.Show("哈哈，你不能点击左键！");　
+　　　　　　m.Result=(IntPtr)0;
+　　　　　　break;
+　　　　case 516:
+　　　　　　MessageBox.Show("哈哈，你不能点击右键！");　
+　　　　　　m.Result=(IntPtr)0;
+　　　　　　break;
+　　　　default:
+　　　　　　base.WndProc(ref m);
+　　　　　　break;
+　　}
+} 

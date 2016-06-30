@@ -1,0 +1,27 @@
+用API （GetAsyncKeyState）实现，在WIN 2K，XP 下有效：
+
+Private Declare Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
+Private Const VK_LSHIFT = &HA0
+Private Const VK_RSHIFT = &HA1
+Private Const VK_LCTRL = &HA2
+Private Const VK_RCTRL = &HA3
+Private Const VK_LMENU = &HA4
+Private Const VK_RMENU = &HA5
+
+Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+If KeyCode = vbKeyShift And Shift = vbShiftMask And (GetAsyncKeyState(VK_LSHIFT) And &H8000) Then MsgBox "you click the Left Shift"
+If KeyCode = vbKeyShift And Shift = vbShiftMask And (GetAsyncKeyState(VK_RSHIFT) And &H8000) Then MsgBox "you click the RIGHT Shift"
+
+If KeyCode = vbKeyMenu And Shift = vbAltMask And (GetAsyncKeyState(VK_LMENU) And &H8000) Then MsgBox "you click the Left ALT" ' only ALT was pressed
+If KeyCode = vbKeyMenu And Shift = vbAltMask And (GetAsyncKeyState(VK_RMENU) And &H8000) Then MsgBox "you click the RIGHT ALT" ' only ALT was pressed
+
+If KeyCode = vbKeyControl And Shift = vbCtrlMask And (GetAsyncKeyState(VK_LCTRL) And &H8000) Then MsgBox "you click the Left CTRL"
+If KeyCode = vbKeyControl And Shift = vbCtrlMask And (GetAsyncKeyState(VK_RCTRL) And &H8000) Then MsgBox "you click the Right CTRL"
+
+End Sub
+
+Private Sub Form_Load()
+Me.KeyPreview = True
+End Sub
+
+ 

@@ -1,0 +1,176 @@
+如何与资源管理器互动剪切/拷贝/粘贴文件 
+
+作者：blueelf
+
+　 
+下载源代码 
+
+一.本文将向读者介绍下面两个问题的解决方案:
+1,用户在资源管理器（Windows Explorer）中剪切/拷贝（Cut/Copy）文件,然后在自己的应用程序中进行粘贴（Paste）操作；
+2.用户在自己的应用程序中剪切/拷贝文件,在资源管理其中粘贴操作。
+
+二.本文中的代码编写工具及测试环境:
+1,VC6.0， Platform SDK(无须MFC)；
+2.Windows 2000。
+
+三.概述
+    我们知道，在Windows中可以通过剪贴板(Clipboard)来共享和传递数据，比如在资源管理器（Windows Explorer）中可以剪切/拷贝/粘贴文件。同样我们也可以在自己的应用程序中通过剪贴板来完成这些工作，从而提高我们自己的应用程序与Windows操作系统之间的互操作性。但我们如何才能与资源管理器之类的应用程序共享和传递数据呢？本文提供的方法是：使用Windows本身提供的一些数据结构和API，通过剪贴板来实现数据共享和传递。 
+
+四.实现方法
+    首先，Windows在剪切/拷贝文件时并不是把文件名称写入剪贴板，而是在剪贴板中放入了一个DragAndDrop文件对象，并写入了一个状态值来标识操作类型（移动/拷贝，剪切其实就是移动，如果你剪切之后并没有粘贴，那么该文件依然存在而不会被删除)。依据这个知识，我们首先来看看在应用程序中如何识别出Windows 资源管理器的剪切/拷贝动作。
+
+在使用剪贴板前，我们首先要打开它：BOOL OpenClipboard(HWND hWnd);
+参数 hWnd 是打开剪贴板的窗口句柄，成功返回TRUE,失败返回FALSE。      
+之后，可以用GetClipboardData来得到剪贴板中的数据： HANDLE GetClipboardData(UINT uFormat);      
+uFormat是所需要数据的格式，例如本文拖放对象的格式为CF_HDROP。而表明该拖放对象类型（Move/Copy)的数据格式并不是Windows标准的剪贴板数据结构，而是一个简单的DWORD指针。我们可以通过下面的语句来注册一下数据类型 ： UINT uDropEffect=RegisterClipboardFormat("Preferred DropEffect");      
+这里返回的uDropEffect就是我们将要代入GetClipboardData函数的该数据结构的代码， 
+GetClipboardData函数返回是一个句柄，这只是Windows为了统一性而做的工作，我们可以根据需要来转换成相应的数据形式，比如我们的uDropEffect就 是一个DWORD指针。 
+前面我已经说过在剪贴板中放的是一个拖放对象，因此我们可以通过如下语句得到该对象： HDROP hDrop = HDROP( GetClipboardData( CF_HDROP));      
+如果确实存在一个hDrop对象，我们应该取得uDropEffect的数据，以便我们处理后面的文件： DWORD dwEffect=*((DWORD*)(GetClipboardData( uDropEffcet)));      
+关于这个值的含义，我们只要包含一下"OLEIDL.H"头文件即可，在该头文件中5种状态的定义而本文只关注： #define	DROPEFFECT_COPY	( 1 )
+#define	DROPEFFECT_MOVE	( 2 )      
+因此，我们可以通过 if(dwEffect & DROPEFFECT_COPY)
+  CopyFile(....);
+else (dwEffect & DROPEFFECT_MOVE)
+  MoveFile(...);      
+来完成剪切/拷贝操作。 
+在我们取得uDropEffect状态之后，我们需要得到文件列表，得到拖放对象中的文件列表可以通过DragQueryFile来实现： UINT DragQueryFile(HDROP hDrop, UINT iFile,LPTSTR lpszFile,UINT cch);      
+第二个参数是文件序列号，可以通过将iFile置为-1的方法来得到文件数量。 
+最后我们给出完整的例子： #include <Shellapi.h>
+#include <oleidl.h>
+
+....
+
+  UINT uDropEffect=RegisterClipboardFormat("Preferred DropEffect");
+
+	if( OpenClipboard( hWnd)) {
+		HDROP hDrop = HDROP( GetClipboardData( CF_HDROP));
+		if( hDrop) {
+			DWORD dwEffect,*dw;
+			dw=(DWORD*)(GetClipboardData( uDropEffect));
+			if(dw==NULL)
+				dwEffect=DROPEFFECT_COPY;
+			else
+				dwEffect=*dw;
+	    
+			char Buf[4096];
+			Buf[0] = 0;
+			UINT cFiles = DragQueryFile( hDrop, (UINT) -1, NULL, 0);
+			POINT Point;
+			char szFile[ MAX_PATH];
+			for( UINT count = 0; count < cFiles; count++ ) {
+			    DragQueryFile( hDrop, count, szFile, sizeof( szFile));
+				lstrcat(Buf,szFile);
+				lstrcat(Buf,"\n");
+			}
+	
+			if(dwEffect & DROPEFFECT_MOVE) {
+				MessageBox(NULL,Buf,"Move Files",MB_OK);
+			} else	if(dwEffect & DROPEFFECT_COPY) {
+					MessageBox(NULL,Buf,"Copy Files",MB_OK);
+			}
+
+			CloseClipboard();
+		}
+	}      
+    在这个例子中，我并没有进行文件操作，只是简单的显示一个消息框，实际应用时，需要使用MoveFile和CopyFile函数来完成，本文不做讨论。 
+    知道如何识别其他程序的剪切/拷贝 文件的动作后，我们对该操作的数据结构已经很了解了，要想让其他程序能识别我们的剪切/拷贝 文件动作其实就是将以上数据结构放入剪贴板的过程。 
+在我们这个例子中，往剪贴板中放的数据必须是内存对象：HGLOBAL。这个对象可以通过GlobalAlloc来生成。然后使用GlobalLock就可以得到该对象的内存地址，继而往里面写 数据。实际上在Win32中由于进程拥有独立的内存空间，因而常规的内存分配已经不需要GlobalLock了，看看MSDN就知道该函数主要就是为DDE和剪贴板服务的。 
+    根据前面的知识，要想让其他程序识别出我们的剪切/拷贝动作我们必须往剪贴板中放两项数据，现在就让我们来为DropEffect准备数据吧，同样我们需要先注册该数据格式： uDropEffect=RegisterClipboardFormat("Preferred DropEffect");      
+然后分配内存对象并得到指针： hGblEffect=GlobalAlloc(GMEM_ZEROINIT|GMEM_MOVEABLE|GMEM_DDESHARE,sizeof(DWORD));
+dwDropEffect=(DWORD*)GlobalLock(hGblEffect);      
+注意往剪贴板中放的数据必须使用GMEM_MOVEABLE标志，最后我们设置数据并解除锁定： if(COPY)
+  *dwDropEffect=DROPEFFECT_COPY;
+else 
+ *dwDropEffect=DROPEFFECT_MOVE;
+GlobalUnlock(hGblEffect);      
+这样我就为DropEffect准备还数据了，等一会儿我们连同文件拖放对象一起放入剪贴板。建立文件拖放对象的方法与DropEffect基本相同，只是文件拖放对象有特殊的数据结构 而不象DropEffect那样简单，该对象数据结构如下： +----------------------------+
+|  DROPFILES  |  Files List  |
++----------------------------+      
+DROPFILES是拖放对象的头数据，该结构在shlobj.h中定义： typedef struct _DROPFILES {
+    DWORD pFiles; 
+    POINT pt; 
+    BOOL fNC; 
+    BOOL fWide; 
+} DROPFILES, FAR * LPDROPFILES;       
+    pFiles指针是以对象首地址为参照的文件列表（上图中的Files List项）的offset量。通常该值等于DROPFILES结构的长度（我还没见过例外）；pt表明文件拖放的位置坐标，在这个例子里我们忽略为0； fNC表明pt值是否为客户区坐标(FALSE表明是屏幕坐标）；fWide表明Files List是否包含unicode，作为中国人，我们当然要设其为TRUE。DROPFILES结构之后紧跟Files List，Files List是一组宽字符串，之间以0相隔，比如："文件1\0文件2\0..." 
+我们可以通过MultiByteToWideChar函数将常规的字符串转换成宽字符串。下面就是生成拖放对象的代码： uDropFilesLen=sizeof(DROPFILES);
+dropFiles.pFiles =uDropFilesLen;
+dropFiles.pt.x=0;
+dropFiles.pt.y=0;
+dropFiles.fNC =FALSE;
+dropFiles.fWide =TRUE;
+
+uGblLen=uDropFilesLen+uBufLen<<1+8;
+//uBufLen是文件名字符传组的长度，由于要转换成宽字符，因此长度要乘2
+
+hGblFiles= GlobalAlloc(GMEM_ZEROINIT|GMEM_MOVEABLE|GMEM_DDESHARE, uGblLen);
+szData=(char*)GlobalLock(hGblFiles);
+memcpy(szData,(LPVOID)(&dropFiles),uDropFilesLen);
+//将DROPFILES copy到头部
+
+szFileList=szData+uDropFilesLen;
+//得到存放文件列表的首地址
+
+MultiByteToWideChar(CP_ACP,MB_COMPOSITE,
+	lpBuffer,uBufLen,(WCHAR *)szFileList,uBufLen);
+	
+GlobalUnlock(hGblFiles);      
+现在我们就可以将上面两组数据放入剪贴板中了，注意在写数据前应先清空剪贴板。为了方便大家使用，下面我给出实现此功能的独立的函数: VOID CutOrCopyFiles(char * lpBuffer,UINT uBufLen,BOOL bCopy)      
+lpBuffer是包括所有准备剪切/拷贝的文件名称的缓冲区；uBufLen是lpBuffer的长度；bCopy决定该操作是Copy还是Cut，TRUE为Copy,FALSE为Cut。例如我们可以这样调用该函数： char szFiles[]="c:\\1.txt\0c:\\2.txt\0";
+CutOrCopyFiles(szFiles,sizeof(szFiles),FALSE);      
+来剪切文件，或者使用： CutOrCopyFiles(szFiles,sizeof(szFiles),TRUE);      
+来拷贝文件。 #include <Shellapi.h>
+#include <Shlobj.h>
+#include <oleidl.h>      
+......
+
+VOID CutOrCopyFiles(char *lpBuffer,UINT uBufLen,BOOL bCopy)
+{
+	UINT uDropEffect;
+	DROPFILES dropFiles;
+	UINT uGblLen,uDropFilesLen;
+	HGLOBAL hGblFiles,hGblEffect;
+	char *szData,*szFileList;
+
+	DWORD *dwDropEffect;
+
+	uDropEffect=RegisterClipboardFormat("Preferred DropEffect");
+	hGblEffect=GlobalAlloc(GMEM_ZEROINIT|GMEM_MOVEABLE|GMEM_DDESHARE,sizeof(DWORD));
+	dwDropEffect=(DWORD*)GlobalLock(hGblEffect);
+	if(bCopy)
+		*dwDropEffect=DROPEFFECT_COPY;
+	else 
+		*dwDropEffect=DROPEFFECT_MOVE;
+	GlobalUnlock(hGblEffect);
+
+	uDropFilesLen=sizeof(DROPFILES);
+	dropFiles.pFiles =uDropFilesLen;
+	dropFiles.pt.x=0;
+	dropFiles.pt.y=0;
+	dropFiles.fNC =FALSE;
+	dropFiles.fWide =TRUE;
+
+	uGblLen=uDropFilesLen+uBufLen*2+8;
+	hGblFiles= GlobalAlloc(GMEM_ZEROINIT|GMEM_MOVEABLE|GMEM_DDESHARE, uGblLen);
+	szData=(char*)GlobalLock(hGblFiles);
+	memcpy(szData,(LPVOID)(&dropFiles),uDropFilesLen);
+	szFileList=szData+uDropFilesLen;
+
+	MultiByteToWideChar(CP_ACP,MB_COMPOSITE,
+			lpBuffer,uBufLen,(WCHAR *)szFileList,uBufLen);
+	
+	GlobalUnlock(hGblFiles);
+
+	if( OpenClipboard(NULL) )
+	{
+		EmptyClipboard();
+		SetClipboardData( CF_HDROP, hGblFiles );
+		SetClipboardData(uDropEffect,hGblEffect);
+		CloseClipboard();
+	}
+}      
+希望以上内容对你有所帮助。 
+    本文附上一个Demo工程,编译后生成CutCopy.exe程序,该程序的使用方法如下： 
+    启动程序后,可使用Windows 资源管理器等程序剪切/拷贝文件,然后点程序中的[CheckClipboard],Demo程序将分析剪贴板中的内容,并弹出消息框告知是Copy Files还是Cut Files,并给出文件列表.用户点[OK]关闭消息框后,文件列表 将被放入文本框中,此时用户可以通过[Cut]/[Copy]按钮来改变剪贴板中的属性。 
+    同时,用户可以通过[Browser]来选择若干文件到文本框中,然后点[Cut]/[Copy]进行操作,之后,用户既可以通过[CheckClipboard]检查剪贴板中的内容也可以通过在Windows 资源管理器等程序中进行粘贴(Paste)来检查其是否正确。 

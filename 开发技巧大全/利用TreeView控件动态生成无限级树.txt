@@ -1,0 +1,170 @@
+利用TreeView控件动态生成无限级树 
+
+
+项目需要，有一个树形菜单需要动态生成，联想到TreeView控件，决定用TreeView来实现
+
+首先注意到了TreeView控件有一个属性TreeNodeSrc
+这个属性可以指定一个固定格式的xml文件
+<?xml version="1.0" encoding="utf-8" ?> 
+<TREENODES>
+    <TREENODE text="aaaaaaaa" CheckBox="true"></TREENODE>
+    <TREENODE text="bbbbbbbb" CheckBox="true"></TREENODE>
+    <TREENODE text="cccccccccc" EXPANDED="true" CheckBox="true">
+        <TREENODE text="ddddddddd" CheckBox="true"></TREENODE>
+        <TREENODE text="eeeeeeeee" CheckBox="true"></TREENODE>
+    </TREENODE>
+    <TREENODE text="fffffffffffff" CheckBox="true"></TREENODE>
+</TREENODES>于是就想把数据库里的文件读出来写入一个xml文件中，然后再进行绑定
+既然是无限级菜单，肯定要用到递归来实现，于是就写了一个如下的递归算法
+private void CreateXml(XmlDocument objXMLDoc, XmlElement objRootElem, int belong)
+        {
+            //Get DataSet 这里的DataSet具体获取方法我省略掉了
+            DataSet ds = new DataSet();
+            
+            foreach(DataRow dr in ds.Tables[0].Rows)
+            {
+                //Create ChildNode TreeNode
+                XmlElement objXmlElem = objXMLDoc.CreateElement("TREENODE");
+                objRootElem.AppendChild(objXmlElem);
+
+                //Create Attributes Text
+                XmlAttribute objXmlAttText = objXMLDoc.CreateAttribute("Text");
+                objXmlAttText.Value = dr["text"].ToString().Trim();
+                objXmlElem.SetAttributeNode(objXmlAttText);
+
+                //Create Attributes CheckBox
+                XmlAttribute objXmlAttCB = objXMLDoc.CreateAttribute("CheckBox");
+                objXmlAttCB.Value = "True";
+                objXmlElem.SetAttributeNode(objXmlAttCB);
+
+                int id = int.Parse(dr["id"].ToString().Trim());
+                CreateXml(objXMLDoc, objXmlElem, id);
+            }
+        }
+然后用下面的方法来实现绑定
+private void BindXmlTree()
+        {
+            //Create Xml File
+            XmlDocument objXmlDoc = new XmlDocument();
+
+            //Insert Xml Declaration
+            XmlDeclaration objXmlDeclare = objXmlDoc.CreateXmlDeclaration("1.0", "UTF-8", "yes");
+            objXmlDoc.InsertBefore(objXmlDeclare, objXmlDoc.DocumentElement);
+
+            XmlElement objRootElem = objXmlDoc.CreateElement("TREENODES");
+            objXmlDoc.AppendChild(objRootElem);
+
+            CreateXml(objXmlDoc, objRootElem, 0);
+
+            objXmlDoc.Save("E:\\TreeMenu.xml");
+            TreeView2.TreeNodeSrc = "TreeMenu.xml";
+        }
+到最后两行我就停住了，因为问题出现了
+生成的objXmlDoc文件不知道用什么方式才能绑定上TreeNodeSrc
+我试了试直接 TreeView2.TreeNodeSrc = objXmlDoc;
+可是TreeNodeSrc是String型的数据，没办法
+有没有什么方法可以不保存这个objXmlDoc文件而直接绑定呢？
+
+于是就换了个办法来实现
+TreeView有一个节点控件叫TreeNode，直接把数据给TreeNode上
+
+
+private void CreateTree(int belong, Microsoft.Web.UI.WebControls.TreeNode rootnode)
+        {
+            DataSet ds = new DataSet();
+
+            foreach(DataRow dr in ds.Tables[0].Rows)
+            {
+                Microsoft.Web.UI.WebControls.TreeNode treenode = new Microsoft.Web.UI.WebControls.TreeNode();
+                treenode.Text = dr["text"].ToString().Trim();
+                treenode.CheckBox = true;
+                treenode.Expanded = true;
+                rootnode.Nodes.Add(treenode);
+
+                int id = int.Parse(dr["id"].ToString().Trim());
+                CreateTree(id, treenode);
+            }
+        }
+用的是一样的递归思想，而且我发现这样做还比较简单一些，很多TreeNode自带的属性很方便修改
+如果用Xml还要手动去添加每一个属性，麻烦
+在PageLoad里触发这个方法
+private void Page_Load(object sender, System.EventArgs e)
+        {
+            Microsoft.Web.UI.WebControls.TreeNode rootnode = new Microsoft.Web.UI.WebControls.TreeNode();
+            rootnode.Expanded = true;
+            TreeView2.Nodes.Add(rootnode);
+            CreateTree(0, rootnode);
+        }注意，这里为了实现递归，不得不添加一个空的根节点rootnode
+
+这样就算大致实现了
+另，数据库里的数据格式是这样的
+-----------------------------------------
+id                    text                     belong
+1                    aaaa                    0
+2                    bbbb                   0
+3                    cccc                    0
+4                    dddd                    1
+5                    eeee                    2
+6                    ffff                        4
+
+
+
+==========================================
+
+
+private void InitTree(TreeNodeCollection Nds,string parentId) 
+{ 
+TreeNode tmpNd; 
+DataRow[] rows = data.Tables[0].Select("ParentId='" + parentId + "'"); 
+foreach(DataRow row in rows) 
+{ 
+tmpNd = new TreeNode(); 
+tmpNd.ID = row["NodeId"].ToString(); 
+tmpNd.Text = row["NodeName"].ToString(); 
+tmpNd.NavigateUrl = row["Url"].ToString(); 
+Nds.Add(tmpNd); 
+if (row["NodeId"].ToString()!="2") 
+InitTree(tmpNd.Nodes, tmpNd.ID); 
+} 
+
+============================================
+
+
+
+# re: 利用TreeView控件动态生成无限级树  回复    
+2006-01-27 00:31 by QuickTech 
+Private Sub LoadTrv() 
+Dim Root As New Microsoft.Web.UI.WebControls.TreeNode 
+Root.Text = "ALL：" 
+Root.ImageUrl = "../images/trv_root.gif" 
+Root.SelectedImageUrl = "../images/trv_root.gif" 
+Root.ExpandedImageUrl = "../images/trv_root.gif" 
+
+Dim db As New DB 
+Dim con As SqlClient.SqlConnection = New SqlClient.SqlConnection(db.Constr) 
+Dim dr As SqlClient.SqlDataReader 
+Dim SQL As String = "select Floor_value,Floor_Title from basic_floor order by floor_value" 
+Dim cmd As SqlClient.SqlCommand = New SqlClient.SqlCommand(SQL, con) 
+con.Open() 
+dr = cmd.ExecuteReader 
+While dr.Read 
+Dim FloorNd As New Microsoft.Web.UI.WebControls.TreeNode 
+FloorNd.Text = dr("Floor_value") & ":" & dr("Floor_Title") 
+FloorNd.ImageUrl = "../images/TrvST2.bmp" 
+FloorNd.SelectedImageUrl = "../images/trvst10.bmp" 
+FloorNd.ExpandedImageUrl = "../images/trvst1.bmp" 
+Root.Nodes.Add(FloorNd) 
+End While 
+dr.Close() 
+con.Close() 
+con.Dispose() 
+cmd.Dispose() 
+End Sub 
+
+为什么我的代码不能显示呢?????????
+# re: 利用TreeView控件动态生成无限级树  回复    
+2006-01-27 00:34 by QuickTech 
+对不起 
+我的根都没加 
+问题解决了 
+

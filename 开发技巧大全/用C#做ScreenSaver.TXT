@@ -1,0 +1,207 @@
+ÓÃC#×öScreenSaver
+
+namespace Screen_Saver
+{
+using System;
+using System.Drawing;
+using System.Collections;
+using System.ComponentModel;
+using System.WinForms;
+using System.Data;
+
+
+/// <summary>
+/// Summary description for Form1.
+/// </summary>
+public class ScreenSaver : System.WinForms.Form
+{
+/// <summary>
+/// Required designer variable.
+/// </summary>
+private System.ComponentModel.Container components;
+private System.WinForms.Timer timerSaver;
+private System.WinForms.Label lblMarquee;
+
+private int iSpeed = 2;
+private string strMarqueeText="C Sharp Screen Saver";
+
+private System.Drawing.Font fontMarquee = new System.Drawing.Font ("Arial", 20, 
+System.Drawing.FontStyle.Bold); 
+private Color colorMarquee = System.Drawing.Color.FromARGB(255,255,255);
+
+private int iDistance;
+private int ixStart= 0;
+private int iyStart= 0; 
+
+public ScreenSaver()
+{ 
+InitializeComponent();
+
+lblMarquee.Font=fontMarquee;
+lblMarquee.ForeColor=colorMarquee; 
+System.Drawing.Cursor.Hide(); 
+}
+
+/// <summary>
+/// Clean up any resources being used.
+/// </summary>
+public override void Dispose()
+{
+base.Dispose();
+components.Dispose();
+}
+
+/// <summary>
+/// Required method for Designer support - do not modify
+/// the contents of this method with the code editor.
+/// </summary>
+private void InitializeComponent()
+{
+System.Resources.ResourceManager resources = new System.Resources.ResourceManager (typeof
+(ScreenSaver));
+this.components = new System.ComponentModel.Container ();
+this.timerSaver = new System.WinForms.Timer (this.components);
+this.lblMarquee = new System.WinForms.Label ();
+//@this.TrayHeight = 90;
+//@this.TrayLargeIcon = false;
+//@this.TrayAutoArrange = true;
+//@timerSaver.SetLocation (new System.Drawing.Point (7, 7));
+timerSaver.Interval = 1;
+timerSaver.Enabled = true;
+timerSaver.Tick += new System.EventHandler (this.timerSaver_Tick);
+lblMarquee.Location = new System.Drawing.Point (88, 0);
+lblMarquee.Size = new System.Drawing.Size (128, 48);
+lblMarquee.ForeColor = System.Drawing.Color.White;
+lblMarquee.TabIndex = 0;
+lblMarquee.Visible = false;
+this.MaximizeBox = false;
+this.StartPosition = System.WinForms.FormStartPosition.Manual;
+this.AutoScaleBaseSize = new System.Drawing.Size (5, 13);
+this.BorderStyle = System.WinForms.FormBorderStyle.None;
+this.KeyPreview = true;
+this.WindowState = System.WinForms.FormWindowState.Maximized;
+this.ShowInTaskbar = false;
+this.Icon = (System.Drawing.Icon) resources.GetObject ("$this.Icon");
+this.ControlBox = false;
+this.MinimizeBox = false;
+this.BackColor = System.Drawing.Color.Black;
+this.ClientSize = new System.Drawing.Size (300, 300);
+this.KeyDown += new System.WinForms.KeyEventHandler (this.Form1_KeyDown);
+this.MouseDown += new System.WinForms.MouseEventHandler (this.Form1_MouseDown);
+this.MouseMove += new System.WinForms.MouseEventHandler (this.Form1_MouseMove);
+this.Controls.Add (this.lblMarquee);
+}
+
+protected void timerSaver_Tick (object sender, System.EventArgs e)
+{ 
+lblMarquee.Text=strMarqueeText; 
+lblMarquee.Height=lblMarquee.Font.Height; 
+lblMarquee.Width=lblMarquee.Text.Length*(int)lblMarquee.Font.Size;
+
+PlayScreenSaver();
+}
+
+private void PlayScreenSaver()
+{
+//Get the working area of the the computer screen.
+System.Drawing.Rectangle ssWorkArea = System.WinForms.Screen.GetWorkingArea(this);
+
+lblMarquee.Location=new System.Drawing.Point(ssWorkArea.Width - iDistance,
+lblMarquee.Location.Y);
+
+//Make the label visible if it is not currently visible.
+lblMarquee.Visible=true;
+
+// Increment the label distance based on the speed set by the user.
+iDistance += iSpeed;
+// If the label is offscreen, then we want to reposition it to the right.
+if (lblMarquee.Location.X <= -(lblMarquee.Width))
+{
+//Reset the distance to 0.
+iDistance = 0;
+
+//If the label is at the top, move it to the middle.
+if (lblMarquee.Location.Y == 0)
+lblMarquee.Location=new System.Drawing.Point(lblMarquee.Location.X,
+(ssWorkArea.Height / 2));
+
+// If label is in the middle of the screen move it to the bottom.
+else if(lblMarquee.Location.Y== ssWorkArea.Height /2)
+lblMarquee.Location=new System.Drawing.Point(lblMarquee.Location.X,ssWorkArea.Height - 
+lblMarquee.Height);
+//Move the label back to the top.
+else
+lblMarquee.Location=new System.Drawing.Point(lblMarquee.Location.X,0);
+} 
+}
+
+protected void Form1_MouseDown (object sender, System.WinForms.MouseEventArgs e)
+{
+StopScreenSaver();
+}
+
+protected void Form1_MouseMove (object sender, System.WinForms.MouseEventArgs e)
+{
+// Determine if the mouse cursor position has been stored previously.
+if (ixStart == 0 && iyStart == 0)
+{
+//Store the mouse cursor coordinates.
+ixStart = e.X;
+iyStart = e.Y;
+return;
+}
+// Has the mouse cursor moved since the screen saver was started? 
+else if (e.X != ixStart || e.Y != iyStart)
+StopScreenSaver();
+
+}
+
+private void StopScreenSaver()
+{
+System.Drawing.Cursor.Show(); 
+timerSaver.Enabled=false;
+Application.Exit();
+}
+
+protected void Form1_KeyDown (object sender, System.WinForms.KeyEventArgs e)
+{
+StopScreenSaver(); 
+}
+
+/// <summary>
+/// The main entry point for the application.
+/// </summary>
+public static void Main(string[] args) 
+{
+if (args.Length==1)
+{
+//Display the options dialog box.
+if (args[0].Substring(0,2).Equals("/c"))
+{
+MessageBox.Show("Options are not available for this screen saver",
+" C# Screen Saver",
+MessageBox.IconInformation); 
+Application.Exit();
+}
+//Start the screen saver normally.
+else if (args[0]=="/s") 
+Application.Run(new ScreenSaver());
+
+//Diaplay the password dialog 
+else if (args[0]=="/a")
+{
+MessageBox.Show("Passwords are not available for this screen saver",
+" C# Screen Saver",
+MessageBox.IconInformation);
+Application.Exit();
+}
+} 
+//For any other args --> start.
+else 
+Application.Run(new ScreenSaver());
+}
+
+}
+}
+
+ 

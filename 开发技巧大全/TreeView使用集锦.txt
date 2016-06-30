@@ -1,0 +1,140 @@
+TreeView使用集锦
+
+
+1.下载地址
+http://msdn.microsoft.com/downloads/samples/internet/ASP_DOT_NET_ServerControls/WebControls/default.asp
+下载后是后缀为bat的版本
+(1)bulid.将bulid.bat的路径指向csc.exe所在路径,生成Microsoft.Web.UI.WebControls.dll。
+(2)在wwwroot下创建空目录webctrl_client\1_0。
+(3)将build\Runtime下的文件拷至webctrl_client\1_0下。
+(4)选择工具箱的自定义工具箱，添加Microsoft.Web.UI.WebControls.dll。
+有些麻烦
+但如果你能找到后缀是msi的自动安装版本，直接下一步就行（我一直用这个版本，hoho）
+安装后，通过“自定义工具箱”->“.net框架组件”把TreeView添加到工具箱里 
+2.运行时无法显示
+一般是TreeView的版本问题，最好下载英文版自动安装版本重新安装，安装前应该先到添加删除程序里卸掉原版本
+
+3.显示格式出错（非树状显示）
+TreeView要求客户端浏览器版本为IE5.5及以上，最好要求客户端升级为IE6.0
+
+4.框架里使用TreeView
+设置NavigateUrl、Target属性，可更新另外的Frame
+
+5.找不到TreeNode类
+使用TreeView，最好添加namespace：using Microsoft.Web.UI.WebControls;
+
+6.遍历TreeView节点(递归算法)
+private void Page_Load(object sender, System.EventArgs e)
+{
+ GetAllNodeText(TreeView1.Nodes);
+}
+void GetAllNodeText(TreeNodeCollection tnc)
+{
+ foreach(TreeNode node in tnc)
+ {
+  if(node.Nodes.Count!=0)
+   GetAllNodeText(node.Nodes);
+  Response.Write(node.Text + " ");
+ }
+}
+
+7.得到node结点的父节点
+TreeNode pnode;
+if(node.Parent is TreeNode)
+ pnode=(TreeNode)node.Parent;
+else
+ //node is root node
+
+8.修改TreeView样式（示例）
+<iewc:TreeView id="TreeView1" runat="server" HoverStyle="color:blue;background:#00ffCC;" DefaultStyle="background:red;color:yellow;" SelectedStyle="color:red;background:#00ff00;">
+用代码：
+TreeView1.DefaultStyle["font-size"] = "20pt";
+
+9.展开时不提交，改变选择节点时才提交
+将autopostback设置成false;  
+在body里添加  <body  onload="initTree()">  
+然后在PageLoad里写：  
+string  strTreeName  =  "TreeView1";  
+string  strRef  =  Page.GetPostBackEventReference(TreeView1);  
+string  strScript  =  "<script  language=\"JavaScript\">  \n"  +  "<!--  \n"  +  "            function  initTree()  {  \n"  +"                        "  +  strTreeName  +  ".onSelectedIndexChange  =  function()  {  \n"  +    "if  (event.oldTreeNodeIndex  !=    
+event.newTreeNodeIndex)  \n"  +  "this.queueEvent('onselectedindexchange',  event.oldTreeNodeIndex  +  ','  +  event.newTreeNodeIndex);  \n"  +    "window.setTimeout('"  +  strRef.Replace("'","\\'")    +  "',  0,  'JavaScript');  \n"  +    "                        }  \n"  +      "            }  \n"  +    "//  -->  \n"  +  "</script>";  
+Page.RegisterClientScriptBlock("InitTree",strScript  );  
+ 
+这样就只有你点击的节点更改的时候才提交！
+
+10.TreeView结合XML
+把XML文件设置为如下格式，然后直接设置TreeNodeSrc为该XML文件就行
+<?xml version="1.0" encoding="GB2312"?>
+<TREENODES>
+ <TREENODE TEXT="node0" EXPANDED="true">
+  <TREENODE TEXT="node1"/>
+  <TREENODE TEXT="node2"/>
+ </TREENODE>
+ <TREENODE TEXT="node3" NavigateURL="3.aspx"/>
+</TREENODES>
+或者用代码
+TreeView1.TreeNodeSrc="a.xml";
+TreeView1.DataBind();
+
+客户端控制TreeView
+http://expert.csdn.net/Expert/topic/1382/1382892.xml
+
+1.设置所选节点，如选中第二个节点
+function SetSelNode()
+{
+ TreeView1.selectedNodeIndex="1";
+}
+
+2.得到所选节点的Text，ID或NodeData
+function GetAttribute()
+{
+ alert(TreeView1.getTreeNode(TreeView1.selectedNodeIndex).getAttribute("Text"));
+}
+替换Text为ID或NodeData，可分别得到所选节点的ID或NodeData
+
+3.修改节点属性，如修改第一个节点的Text
+function ModifyNode()
+{
+ var node=TreeView1.getTreeNode("0");
+ node.setAttribute("Text","hgknight");
+}
+
+4.得到点击节点
+function TreeView1.onclick()
+{
+ alert(TreeView1.getTreeNode(TreeView1.clickedNodeIndex).getAttribute("Text"));
+}
+
+5.添加节点
+function AddNode()
+{
+ var node=TreeView1.createTreeNode();
+ node.setAttribute("Text","hgknight");
+ TreeView1.add(node);    
+}
+
+6.js遍历所有节点
+ var AllRootNode=new Array();
+ AllRootNode=TreeView1.getChildren();
+ AlertNode(AllRootNode);   
+
+ function AlertNode(NodeArray)
+ {
+  if(parseInt(NodeArray.length)==0)
+   return;
+  else
+  {
+   for(i=0;i<NodeArray.length;i++)
+   {
+    var cNode;
+    cNode=NodeArray[i];
+    alert(cNode.getAttribute("Text"));
+    if(parseInt(cNode.getChildren().length)!=0)
+     AlertNode(cNode.getChildren());    
+   }
+  }
+ }
+
+
+
+

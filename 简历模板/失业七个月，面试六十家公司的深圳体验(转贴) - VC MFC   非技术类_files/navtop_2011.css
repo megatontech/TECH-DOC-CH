@@ -1,0 +1,32 @@
+﻿
+/*top*/
+
+.nav_top_2011{width:auto; border-bottom:1px solid #ccc; height:20px; line-height:20px; font-size:12px;font-family:simsun; margin-bottom:4px; background:#fff}
+.nav_top_2011 p{margin:0 auto}
+.nav_top_2011 ul, .nav_top_2011 ul li{padding:0; margin:0; list-style:none;}
+.nav_top_2011 a:link,.nav_top_2011 a:visited,.nav_top_2011 a:active{color:#0000ca; text-decoration:underline;}
+.nav_top_2011 a:hover{color:#f00; text-decoration:underline;}
+.nav_top_2011 p{float:right; padding-right:4px; text-align:right;}
+.nav_top_2011 p a,.nav_top_2011 p a:link,.nav_top_2011 p a:visited,.nav_top_2011 p a:active { color:#444; text-decoration:none; padding:0 6px; font-family:arial,sans-serif;}
+.nav_top_2011 p a:hover { text-decoration:underline;}
+.nav_top_2011 p em{font-style:normal; font-weight:bold; color:#f00; font-family:arial,sans-serif; padding:0 10px;}
+.nav_top_2011 p a{padding-left:10px; font-family:arial,sans-serif;}
+.nav_top_2011 p a.user{color:#f00;}
+.nav_top_2011 p a.user:link, .nav_top_2011 p a.user:visited, .nav_top_2011 p a.user:active{text-decoration:none; font-weight:bold;color:#f00;}
+.nav_top_2011 p a.user:hover{text-decoration:underline; color:#f00;}
+.nav_top_2011 p a.red{color:#f00;}
+.nav_top_2011 p a.red:link, .nav_top_2011 p a.red:visited, .nav_top_2011 p a.red:active{text-decoration:none; font-weight:normal;color:#f00;}
+.nav_top_2011 p a.red:hover{text-decoration:underline; color:#f00;}
+.nav_top_2011 ul{float:left; padding-left:10px; text-align:left; height:20px; line-height:20px;}
+.nav_top_2011 ul li{float:left; padding-right:10px;}
+.nav_top_2011 ul li.more{ width:auto; text-align:left; font-weight:normal;}
+.nav_top_2011 ul li.more h2{font-size:12px; font-weight:normal; margin:0; background:url(http://csdnimg.cn/pubnav/images/pic_arrow.gif) 30px 5px no-repeat; width:40px; display:inline-block; cursor:pointer;}
+.nav_top_2011 ul li.more h2 a{font-weight:normal;}
+.nav_top_2011 ul li.more a:hover{color:#0000ca; font-weight:normal; text-decoration:underline;}
+.nav_top_2011 ul li.more ul{z-index:500; position:absolute; border:1px solid #ccc; background:#fff; padding:2px 8px 5px; font-size:12px; height:auto; display:none}
+.nav_top_2011 ul li.more ul li{line-height:24px; float:none; padding-right:0; font-weight:normal;}
+.nav_top_2011 ul li.more ul li a{font-weight:normal;}
+.nav_top_2011 ul li.more ul li a:link,.nav_top_2011 ul li.more ul li a:visited,.nav_top_2011 ul li.more ul l a:active{color:#0000ca; text-decoration:underline;}
+.nav_top_2011 ul li.more ul li a:hover{color:#f00; font-weight:normal; text-decoration:underline;}
+/****/
+

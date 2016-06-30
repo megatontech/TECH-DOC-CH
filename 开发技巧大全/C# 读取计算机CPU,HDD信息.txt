@@ -1,0 +1,22 @@
+C# 读取计算机CPU,HDD信息
+
+        public string getCpuInfo()	//读取CPU信息
+        {
+            ManagementClass mobj = new ManagementClass("Win32_Processor");
+            ManagementObjectCollection moc = mobj.GetInstances();
+            foreach (ManagementObject mo in moc)
+            {
+                return mo.Properties["ProcessorId"].Value.ToString();
+            }
+            return "";
+        }
+        public string getHddInfo()	//读取硬盘信息
+        {
+            ManagementClass mobj = new ManagementClass("Win32_PhysicalMedia");
+            ManagementObjectCollection moc = mobj.GetInstances();
+            foreach (ManagementObject mo in moc)
+            {
+                return mo.Properties["SerialNumber"].Value.ToString();
+            }
+            return "";
+        }

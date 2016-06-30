@@ -1,0 +1,32 @@
+Asp.Net中文本换行
+
+
+VB.NET
+
+    Function HtmlCode(ByVal fString)
+        If fString <> "" Then
+            fString = Replace(fString, Chr(13), "")
+            fString = Replace(fString, Chr(10) & Chr(10), "</P><P>")
+            fString = Replace(fString, Chr(10), "<BR>")
+            HtmlCode = fString
+        End If
+    End Function
+
+
+-------------------------------------
+
+C#.NET
+
+    private String HtmlCode(string TString)
+    {
+        if (TString != null)
+        {
+            TString = TString.Replace("\r", "<br>");
+            TString = TString.Replace(" ", "&nbsp;");
+            return TString;
+        }
+        else
+        {
+            return TString="无内容";
+        }
+    }

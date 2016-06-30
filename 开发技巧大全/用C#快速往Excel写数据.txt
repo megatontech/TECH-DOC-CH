@@ -1,0 +1,40 @@
+用C#快速往Excel写数据
+
+　　本示例是用于将ListView中的内容倒入到Excel，与常用的逐单元格写不同的是，本例子采用数据写入到range的方法。该方法效率明显较高。
+
+ 　　Excel.Application app = new Excel.ApplicationClass();
+　　if( app == null)
+　　{
+　　MessageBox.Show("Excel无法启动");
+　　return;
+　　}
+　　app.Visible = true;
+　　Excel.Workbooks wbs = app.Workbooks;
+　　Excel.Workbook wb = wbs.Add(Missing.Value);
+　　Excel.Worksheet ws = (Excel.Worksheet)wb.Worksheets[1];
+　　Excel.Range r = ws.get_Range("A1","H1");
+　　object [] objHeader = {"标题1","标题2","标题3",
+　　"标题4","标题5","标题6",
+　　"标题7","标题8"};
+　　r.Value = objHeader;
+　　if (lv.Items.Count >0)
+　　{
+　　r = ws.get_Range("A2",Missing.Value);  
+　　object [,] objData = new Object[this.lv.Items.Count,8];
+　　foreach(ListViewItem lvi in lv.Items)
+　　{
+　　objData[lvi.Index,0] = lvi.Text;
+　　objData[lvi.Index,1] = lvi.SubItems[1].Text;
+　　objData[lvi.Index,2] = lvi.SubItems[2].Text;
+　　objData[lvi.Index,3] = lvi.SubItems[3].Text;
+　　objData[lvi.Index,4] = lvi.SubItems[4].Text;
+　　objData[lvi.Index,5] = lvi.SubItems[5].Text;
+　　objData[lvi.Index,6] = lvi.SubItems[6].Text;
+　　objData[lvi.Index,7] = lvi.SubItems[7].Text;
+　　}
+　　r = r.get_Resize(lv.Items.Count,8);
+　　r.Value = objData;
+　　r.EntireColumn.AutoFit(); 
+　　}
+　　app = null; 
+

@@ -1,0 +1,29 @@
+鼠标停留在GridView某一行时  行的颜色改变
+
+protected void gvdegreetype_RowDataBound(object sender, GridViewRowEventArgs e)
+    {
+        if (e.Row.RowType == DataControlRowType.DataRow)
+        {
+            e.Row.Attributes.Add("onmouseover", "this.style.backgroundColor='GhostWhite'");
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor='white'");
+        }
+    }
+
+
+
+---------------------------------------------
+
+
+
+可以选择GRIDVIEW控件，然后双击RowDataBound事件
+
+ protected void GridView1_RowDataBound(object sender, GridViewRowEventArgs e)
+{
+ //当鼠标移到的时候设置该行颜色为""， 并保存原来的背景颜色
+ e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#6699CC'");
+ //当鼠标移走时还原该行的背景色
+ e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor");
+}
+
+
+

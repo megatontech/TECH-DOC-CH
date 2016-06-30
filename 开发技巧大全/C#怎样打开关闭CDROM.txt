@@ -1,0 +1,21 @@
+C#怎样打开关闭CDROM?
+using System;
+using System.Text;
+using System.Runtime.InteropServices;
+
+class CloseCD
+{
+
+  [DllImport( "winmm.dll", EntryPoint="mciSendStringA", CharSet=CharSet.Ansi )]
+  protected static extern int mciSendString( string lpstrCommand, StringBuilder lpstrReturnString, int uReturnLength, IntPtr hwndCallback );
+
+  public static void Main()
+  {
+
+    int ret = mciSendString( "set cdaudio door open", null, 0, IntPtr.Zero );
+
+    Console.ReadLine();
+	
+    ret = mciSendString( "set cdaudio door closed", null, 0, IntPtr.Zero );
+  }
+}
