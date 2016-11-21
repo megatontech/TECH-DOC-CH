@@ -1,0 +1,124 @@
+Servlet运行时的基本原理
+1)、当WEB客户请求Servlet服务或当WEB服务启动时，容器环境加载一个Java Servlet类。
+2)、容器环境也将根据客房请求创建一个Servlet对象实例，或者创建多个Servlet对象实例，并把这些实例加入到Servlet实例池中。
+3)、容器环境调用Servlet的初始化方法HttpServlet.init()进行Servlet实例化。在调用初始化时，要给init()方法传入一个ServletConfig对象，ServletConfig对象包含了初始化参数和容环境的信息,并负责向servlet传递信息，如果传递失败，则会发生ServletException。Servlet将不能正常工作。
+4)、容器环境利用一个HttpServletRequest和HttpServletResponse对象，封装从Web客户接收到的HTTP请求和由Servlet生成的响应。
+5)、容器环境把HttpServletRequest和HttpServletResponse对象传递给HttpServlet.Service()方法。这样，一个定制的Java Servlet就可以访问这种HTTP请求和响应接口。Servlet()方法可被多次调用，各调用过程运行在不同的线程中，互不干扰。
+6)、定制的Java Servlet从HttpServletRequest对象读取HTTP请求数据，访问来自HttpSession或Cookie对象的状态信息，进行特定应用的处理，并且用HttpServletResponse对象生成HTTP响应数据。
+7)、当WEB服务器和容器关闭时，会自动调用HttpServlet.destroy()方法关闭任何打开的资源，并进行一些关闭前的处理。
+
+
+Hibernate
+
+
+1.读取并解析配置文件
+2，读取并解析映射信息，创建SessionFactory
+3.打开Session
+4.创建事物Transation
+5.持久化操作
+6.提交事物
+7.关闭Session
+8.关闭SesstionFactiory
+
+
+Spring
+
+spring的最大作用ioc/di,将类与类的依赖关系写在配置文件中，
+ 
+程序在运行时根据配置文件动态加载依赖的类，降低的类与类之间
+ 
+的藕合度。它的原理是在applicationContext.xml加入bean标记,
+ 
+在bean标记中通过class属性说明具体类名、通过property标签说明
+ 
+该类的属性名、通过constructor-args说明构造子的参数。其一切都是
+ 
+返射，当通过applicationContext.getBean(“id名称”)得到一个类实例时，
+ 
+就是以bean标签的类名、属性名、构造子的参数为准，通过反射实例对象，
+ 
+唤起对象的set方法设置属性值、通过构造子的newInstance实例化得到对象。
+ 
+正因为spring一切都是反射，反射比直接调用的处理速度慢，所以这也是spring
+ 
+的一个问题。
+ 
+spring第二大作用就是aop，其机理来自于代理模式，代理模式
+ 
+有三个角色分别是通用接口、代理、真实对象
+ 
+代理、真实对象实现的是同一接口，将真实对象作为
+ 
+代理的一个属性，向客户端公开的是代理，当客户端
+ 
+调用代理的方法时，代理找到真实对象，调用真实对象
+ 
+方法，在调用之前之后提供相关的服务，如事务、安全、
+ 
+日志。其名词分别是代理、真实对象、装备、关切点、连接点。
+ 
+2、动态代理:不用写代理类，虚拟机根据真实对象实现的接口产生一个类，通过
+ 
+类实例化一个动态代理，在实例化动态代理时将真实对象
+ 
+及装备注入到动态代理中，向客户端公开的是动态代理，
+ 
+当客户端调用动态代理方法时，动态代理根据类的返射得
+ 
+到真实对象的Method,调用装备的invoke方法，将动态代理、
+ 
+Method、方法参数传与装备的invoke方法，invoke方法在唤
+ 
+起method方法前或后做一些处理。
+ 
+1、产生动态代理的类:
+ 
+java.lang.refect.Proxy
+ 
+2、装备必须实现InvocationHandler接口实现invoke方法
+ 
+3、反射
+ 
+什么是类的返射?
+ 
+通过类说明可以得到类的父类、实现的接口、内部类、构造函数、方法、属性
+ 
+并可以根据构造器实例化一个对象，唤起一个方法，取属性值，改属性值。
+ 
+如何得到一个类说明?
+ 
+Class cls=类.class;
+ 
+Class cls=对象.getClass();
+ 
+Class.forName(“类路径”);
+ 
+如何得到一个方法并唤起它?
+ 
+Class cls=类.class;
+ 
+Constructor cons=cls.getConstructor(new Class[]{String.class});
+ 
+Object obj=cons.newInstance(new Object[]{“aaa”});
+ 
+Method method=cls.getMethod(“方法名”,new Class[]{String.class,Integer.class});
+ 
+method.invoke(obj,new Object[]{“aa”,new Integer(1)});
+ 
+4、spring的三种注入方式是什么?
+ 
+setter
+ 
+interface
+ 
+constructor
+ 
+5、spring的核心接口及核类配置文件是什么?
+ 
+FactoryBean:工厂bean主要实现ioc/di
+ 
+ApplicationContext ac=new FileXmlApplicationContext(“applicationContext.xml”);
+ 
+Object obj=ac.getBean(“id值”);
+ 
+applicationContext.xml

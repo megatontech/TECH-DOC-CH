@@ -1,0 +1,14 @@
+JSP页面提交请求-->跳转到相应的action-->执行相关JavaBean-->返回输出到页面
+
+struts2框架的执行流程:
+1)用户发起请求(以.action结尾的请求表示请求一个Action)
+
+2)struts2框架的主控器(FilterDispatcher)接收用户发起的请求,然后判断这个请求交给Action处理还是交给web组件处理.如果请求的Action或者web组件不存在,那么出现404错误.
+在整个处理过程中需要一个辅助对象:Action映射器(ActionMapper).
+
+3)第二步判断的结果是交给Action处理,并且存在对应的Action.那么根据struts.xml文件中对此Action的配置信息,首先执行拦截此Action的所有拦截器,然后再执行请求的Action对象.		
+	在这个处理过程中需要辅助对象:Action代理(ActionProxy)、配置管理器    (ConfigurationManager)、ActionInvocation.
+
+4)Action执行完毕之后返回一个结果(此结果用字符串表示),这个结果经过拦截Action的所有拦截器之后,返回给主控器.主控器根据此结果从配置文件中找到真正的路径,然后将请求转发给对应的视图.
+5)由视图向客户端作出响应 
+

@@ -1,0 +1,34 @@
+servlet的运行原理
+struts的运行原理
+hibernate运行原理
+spring运行原理
+hibernate缓存机制
+jsp运行原理
+jsp九大内置对象
+数据库连接池原理
+el表达式运行在-------客户端
+什么是异步？什么是同步？
+ssh整合的工作流程
+ssh整合各各部分的。。。
+数据库事务
+jdbc
+开启线程  sleep  wait
+线程阻塞
+servlet生命周期
+请求转发和请求重定向的区别
+
+怎么获取form表达，有几种方式------4种（
+1.var form=document.forms[0];
+2.form=document.getElementsByName("testForm");
+3.form=document.all.testForm;）
+mvc
+什么是多态
+ServletContext
+值传递和引用传递
+
+
+struts1和struts2区别
+struts1是form传值，完全依赖servletAPI，属于侵入式开发，
+struts2用值栈传值，可以脱离servletAPI，就是一般的javaBean
+
+

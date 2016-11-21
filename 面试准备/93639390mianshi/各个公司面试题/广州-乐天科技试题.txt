@@ -1,0 +1,10 @@
+1.C/S和B/S的区别，优缺点有哪些？
+2.ADO.NET的常用对象
+3.MVC指的是什么？
+4.三层架构？
+5.为什么要用ISPORTBACK？	
+6.用户自定义控件？
+7.WEBSERVERS调用主要有哪两种方法？
+8.怎样在ASP.NET中改变DATAGRID的自动换行？
+9.怎样布置一个ASP.NET的界面？
+10.谈谈你对ASP和ASP.NET的区别？
