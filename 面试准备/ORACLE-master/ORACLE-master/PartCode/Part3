@@ -1,0 +1,63 @@
+--查询出部门为30的部门中员工工资大于平均工资的员工姓名和工资情况。
+select first_name,salary from EMPLOYEES where salary>(select avg(salary) from EMPLOYEES where department_id=30)and department_id=30;
+--在欧洲地区的国家中以字母’F’开头的国家名称和编号。
+select t.COUNTRY_NAME,t.COUNTRY_ID from (
+select a.COUNTRY_NAME,a.COUNTRY_ID from COUNTRIES a where a.REGION_ID=--选出欧洲的国家名称和编号
+(select b.REGION_ID from REGIONS b where b.REGION_NAME='Europe'))t--选出欧洲的id
+where t.COUNTRY_NAME like'F%';
+--查询公司老板直接管理的员工有哪些？
+select first_name from EMPLOYEES where MANAGER_ID=(select EMPLOYEE_ID from EMPLOYEES where MANAGER_ID is null);--查询部门经理
+--查询公司老板直管的员工也叫部门经理，他们直管的员工有哪些？ 
+select first_name,MANAGER_id from EMPLOYEES where exists
+(select EMPLOYEE_ID from EMPLOYEES where MANAGER_ID=--查询部门经理的ID 
+(select EMPLOYEE_ID from EMPLOYEES where MANAGER_ID is null));--查询总经理ID
+
+--查询出每个部门中，高出本部门平均工资的员工的雇员号和姓名
+select first_name,EMPLOYEE_ID from EMPLOYEES a, 
+(select DEPARTMENT_ID, avg(salary)as pj from EMPLOYEES group by DEPARTMENT_ID)b--每个部门平均工资
+where salary>b.pj and a.DEPARTMENT_ID=b.DEPARTMENT_ID;
+--删除班级是1班的所有学生
+delete from student where class_id =(select cid from class where class_name='1班');
+--删除表中重复的行
+delete from tt a where a.id in
+(
+  select b.id from tt b group by b.id having count(*)>=2
+) ;
+select t.* from (select rownum as rn  ,s.name,s.age,s.classnm from student s ) t where t.rn>3;
+--创建一个序列
+CREATE SEQUENCE  mysequence
+START WITH 1  INCREMENT BY  2
+MINVALUE 10 MAXVALUE 2000;
+-- 查看用户下定义了哪些序列信息
+SELECT * FROM user_sequences 
+ORDER BY sequence_name;
+--索引
+create table copy_employees as select * from hr.employees;
+set autotrace on;--跟踪
+--没有索引，查询first_name为Pat的用户 会全表扫描
+select * from copy_employees where first_name='Pat';
+/*执行计划
+| Id  | Operation         | Name           | Rows  | Bytes | Cost (%CPU)| Time
+   |
+--------------------------------------------------------------------------------
+----
+|   0 | SELECT STATEMENT  |                |     1 |   133 |     3   (0)| 00:00:
+01 |
+|*  1 |  TABLE ACCESS FULL| COPY_EMPLOYEES |     1 |   133 |     3   (0)| 00:00:
+01 |
+*/
+--创建索引给first_name
+create index index_employees_name on copy_employees(first_name);
+/*执行计划
+|   0 | SELECT STATEMENT            |                      |     1 |   133 |
+ 2   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID| COPY_EMPLOYEES       |     1 |   133 |
+ 2   (0)| 00:00:01 |
+|*  2 |   INDEX RANGE SCAN          | INDEX_EMPLOYEES_NAME |     1 |       |
+ 1   (0)| 00:00:01 |
+*/
+--函数索引（失效后用函数索引）
+select * from student_course where score/10>8;--索引失效  score>80效率高，score/10因为索引失效，效率会降低
+select * from student_course where round(score) =90;--索引失效 需要对round(score)建立索引
+--视图
+create view student_view as select * from STUDENT;

@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="DropProcedure" xml:space="preserve">
+    <value>--
+-- Dropping stored procedure {0:G} : 
+--
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[{0:G}]') AND OBJECTPROPERTY(id, N'IsProcedure') = 1)
+  DROP PROCEDURE [dbo].[{0:G}]
+  
+GO</value>
+  </data>
+  <data name="ReturnDatasetMethodTemplate" xml:space="preserve">
+    <value>{6:G}public {0:G}DataSet {1:G}({2:G})
+        {{
+            DbObject dbo = new DbObject();
+            SqlParameter[] parameters = new SqlParameter[]
+                {{
+{3:G} 
+                }};
+            return dbo.RunProcedure("{4:G}", parameters, "{5:G}");
+        }}</value>
+  </data>
+  <data name="ReturnRowsAffectedMethodTemplate" xml:space="preserve">
+    <value>{5:G}public {0:G}int {1:G}({2:G})
+		{{
+			int RowsAffected = 0;
+			int Result = 0;
+			DbObject dbo = new DbObject();
+			SqlParameter[] parameters = new SqlParameter[]
+				{{
+{3:G} 
+				}};
+			Result = dbo.RunProcedure("{4:G}", parameters, out RowsAffected);
+			return RowsAffected;
+        }}</value>
+  </data>
+  <data name="ReturnScalarMethodTemplate" xml:space="preserve">
+    <value>{5:G}public {0:G}int {1:G}({2:G})
+		{{
+			int RowsAffected = 0;
+			int Result = 0;
+			DbObject dbo = new DbObject();
+			SqlParameter[] parameters = new SqlParameter[]
+				{{
+{3:G} 
+				}};
+			Result = dbo.RunProcedure("{4:G}", parameters, out RowsAffected);
+			return Result;
+        }}</value>
+  </data>
+  <data name="SqlParameterTemplate" xml:space="preserve">
+    <value>new SqlParameter("{0:G}",{1:G})</value>
+  </data>
+  <data name="strDatabasesList2000" xml:space="preserve">
+    <value>SELECT dbid AS ID, NULL AS ParentID, name AS Text FROM [master].[dbo].[sysdatabases] ORDER BY [name]</value>
+  </data>
+  <data name="strDatabasesList2005" xml:space="preserve">
+    <value>SELECT database_id AS ID, NULL AS ParentID, name AS Text FROM sys.databases ORDER BY [name]</value>
+  </data>
+  <data name="strTablesAndColumns" xml:space="preserve">
+    <value>USE {0:G};
+
+SELECT  Cols.TABLE_NAME,
+        Cols.COLUMN_NAME,
+        Cols.ORDINAL_POSITION,
+        Cols.DATA_TYPE,
+		Cols.NUMERIC_PRECISION,
+		Cols.NUMERIC_SCALE,		
+        Cols.IS_NULLABLE,
+        Cols.CHARACTER_MAXIMUM_LENGTH,       
+        COLUMNPROPERTY(object_id(Cols.TABLE_NAME), Cols.COLUMN_NAME, 'IsIdentity') AS IsIdentity,
+        ( SELECT    COUNT(KCU.COLUMN_NAME)
+          FROM      INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU
+                    INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON KCU.TABLE_NAME = TC.TABLE_NAME
+                                                                          AND KCU.CONSTRAINT_NAME = TC.CONSTRAINT_NAME
+                                                                          AND TC.CONSTRAINT_TYPE = 'PRIMARY KEY'
+          WHERE     KCU.TABLE_NAME = Cols.TABLE_NAME
+                    AND KCU.COLUMN_NAME = Cols.COLUMN_NAME
+        ) AS IsIndex
+FROM    [INFORMATION_SCHEMA].[COLUMNS] Cols
+ORDER BY Cols.TABLE_NAME,
+        Cols.ORDINAL_POSITION</value>
+  </data>
+  <data name="strTablesList" xml:space="preserve">
+    <value>SELECT TABLE_NAME FROM [{0:G}].INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE'  
+AND TABLE_NAME &lt;&gt; 'dtproperties'  
+ORDER BY TABLE_NAME</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="table_sql_create" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\table_sql_create.ico;System.Drawing.Icon, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="WrapperClass_CSharp_Template" xml:space="preserve">
+    <value>using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.ComponentModel;
+using NovinMedia.Data;
+
+namespace {0:G}
+{{
+    [DataObject(true)]
+    public class {1:G}
+    {{
+{2:G}
+    }}
+}}</value>
+  </data>
+</root>
