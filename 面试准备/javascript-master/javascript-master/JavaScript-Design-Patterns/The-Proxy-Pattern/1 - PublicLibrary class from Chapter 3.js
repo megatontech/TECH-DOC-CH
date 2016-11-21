@@ -1,0 +1,59 @@
+/* From chapter 3. */
+
+var Publication = new Interface('Publication', ['getIsbn', 'setIsbn', 'getTitle', 
+  'setTitle', 'getAuthor', 'setAuthor', 'display']);
+var Book = function(isbn, title, author) { ... } // implements Publication
+
+/* Library interface. */
+// 创建一个图书馆接口
+var Library = new Interface('Library', ['findBooks', 'checkoutBook', 'returnBook']);
+
+/* PublicLibrary class. */
+
+var PublicLibrary = function(books) { // implements Library
+  this.catalog = {};
+  for(var i = 0, len = books.length; i < len; i++) {
+    this.catalog[books[i].getIsbn()] = { book: books[i], available: true };
+  }
+};
+PublicLibrary.prototype = {
+  // 查书
+  findBooks: function(searchString) {
+    var results = [];
+    for(var isbn in this.catalog) {
+      if(!this.catalog.hasOwnProperty(isbn)) continue;
+      if(searchString.match(this.catalog[isbn].getTitle()) ||
+          searchString.match(this.catalog[isbn].getAuthor())) {
+        results.push(this.catalog[isbn]);
+      }
+    }
+    return results;
+  },
+  // 借书
+  checkoutBook: function(book) {
+    var isbn = book.getIsbn();
+    if(this.catalog[isbn]) {
+      if(this.catalog[isbn].available) {
+        this.catalog[isbn].available = false;
+        return this.catalog[isbn];
+      }
+      else {
+        throw new Error('PublicLibrary: book ' + book.getTitle() + 
+          ' is not currently available.');
+      }
+    }
+    else {
+      throw new Error('PublicLibrary: book ' + book.getTitle() + ' not found.');
+    }
+  },
+  // 还书
+  returnBook: function(book) {
+    var isbn = book.getIsbn();
+    if(this.catalog[isbn]) {
+      this.catalog[isbn].available = true;
+    }
+    else {
+      throw new Error('PublicLibrary: book ' + book.getTitle() + ' not found.');
+    }    
+  }
+};

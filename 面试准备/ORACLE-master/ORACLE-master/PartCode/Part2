@@ -1,0 +1,72 @@
+--登录hr，ok  employees--员工档案  departments--部门信息
+ --查询所有员工信息
+select * from employees; 
+--查询所有员工的姓名和薪水，列名标注上姓名和薪水标题
+select FIRST_NAME||' '||LAST_NAME as 姓名,SALARY as 薪水 from employees;
+--查询1999-01-01之后入职的员工信息。
+select * from EMPLOYEES where HIRE_DATE>TO_DATE('1999-01-01','yyyy-mm-dd');
+--查询职位是程序员（IT_PROG）并且工资大于5k的员工	(多个条件之间并且关系用and，或者关系就用or)
+select * from EMPLOYEES WHERE job_id = 'IT_PROG' and SALARY>5000;
+--查询职位不是程序员（IT_PROG）并且工资大于5k的员工(不等于  ！=,<>)
+select * from EMPLOYEES WHERE job_id != 'IT_PROG' and SALARY>5000;
+--查询部门编号是30,60,100的所有员工信息(某列在某个范围内，可以用in，不在范围内用not in)
+select * from EMPLOYEES WHERE DEPARTMENT_ID in(30,60,100);
+--查询工资在4k到5k之间的员工
+select * from EMPLOYEES WHERE SALARY BETWEEN 4000 and 5000;
+--查询公司老板信息（manager_id为空的）判断一个列是否为空用is null, is not null
+select * from EMPLOYEES WHERE manager_id is null;
+--字符串拼接每个员工基本信息包括姓名，工作岗位，邮箱。
+ select '姓名：'||FIRST_NAME||' '||LAST_NAME||',岗位：'||JOB_ID||',邮箱：'||EMAIL as 基本信息 from employees;
+--搜索邮箱以“J”开头的员工信息 like 'J%'  %表示出现任意数量的任意字符  _表示出现任意字符，但是是一个字符
+select * from EMPLOYEES where EMAIL like'J%';   
+--搜索邮箱包含“EE”的员工信息
+select * from EMPLOYEES where EMAIL like'%EE%'; 
+--函数部分
+--查询员工总人数--显示结果为单值就是采用统计函数。sum(列名) ，avg(列名)，count(列名)个数，min(列名)，max（列名），
+--count列名建议采用唯一约束的列，或者非空的列，count函数会忽略值为空的行。
+ select count(employee_id) from employees;
+  select count(*) from employees;--不建议用*，解析所有的列，效率低
+   select count(1) from employees;
+---查出部门编号为60的员工总人数(select部分如果出现了统计函数，select部分就不能出现其他列)
+  select  count(employee_id) from employees where department_id=60;
+---查出IT部门的最高薪水和最低薪水，平均薪水
+  select   max(salary),min(salary),avg(salary)  from employees where job_id='IT_PROG';
+ --显示所有员工的姓名和工资信息，如果没录入工资显示为0  nvl(列名，0)--如果列名对应的行没有值，就显示右边参数值
+ select  first_name,nvl(commission_pct,0)   from employees  ; 
+--decode 函数
+--显示员工工资临界档次，等于3000显示低收入，等于5000显示中等，等于8000显示高薪。
+select decode(salary,3000,'低收入',5000,'中等',8000,'高薪','其他')as 档次 from employees; 
+--Count 函数和distinct关键字：
+--统计所有的姓氏有多少个
+select count(distinct LAST_NAME) from EMPLOYEES;
+-- --查询员工都来自那些部门
+select distinct department_id from EMPLOYEES where department_id is not null;
+--日期函数
+--日期转字符串
+select to_char(sysdate,'yyyy-MM-DD')from dual;
+--字符串转日期
+select to_date('1987/06/17','yyyy/MM/dd')from dual;
+--字符串处理
+select trim('    a  b   cd     ')from dual;
+select ltrim('    a  b   cd     ')from dual;
+select rtrim('    a  b   cd     ')from dual;
+select   instr('oracle wdp','wdp') from dual;
+
+--分组
+--按照部门编号进行分组，求每个部门的员工总人数,显示部门编号和该部门总人数
+select nvl(department_id,0),count(*)as 数量 from EMPLOYEES group by nvl(department_id,0) order by 数量 asc;
+---每个部门编号以及该部门的平均工资
+select nvl(department_id,0),round(avg(salary),0)as 平均工资 from employees group by nvl(department_id,0)order by 平均工资 desc;
+--每个部门编号以及部门平均工资,要求只显示平均工资大于4k的部门。
+select department_id,round(avg(salary),0) from employees  group by department_id having round(avg(salary),0)>4000 ;
+--四舍五入round(12.3456,2)
+select round(12.3456,2) from dual;
+--习题
+--2、选出EMP表中commission_pct为空的数据
+select * from EMPLOYEES WHERE commission_pct is null;
+--3、显示出表EMP中deptno为10的用户
+select first_name||' '||last_name from EMPLOYEES WHERE department_id=10;
+--5、找出姓名长度为6的SALESMAN雇员
+select first_name||' '||last_name as 姓名 from EMPLOYEES WHERE length(first_name||last_name)=6;
+--6、找出姓名的末位为字符‘N’的雇员
+select first_name||' '||last_name from EMPLOYEES WHERE first_name||last_name like'%n';
