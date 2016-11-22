@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<StoredProcedureGeneratorConfigFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.barnamenevis.org">
+  <GenerateWrapperClass>true</GenerateWrapperClass>
+  <AuthorName>Mehdi Keramati</AuthorName>
+  <PassNullAsDefaultParamaeterValue>false</PassNullAsDefaultParamaeterValue>
+  <StoredProceduresPrefix>sp_</StoredProceduresPrefix>
+  <AutoSaveScript>true</AutoSaveScript>
+  <GenerateSelectAllProc>true</GenerateSelectAllProc>
+  <GenerateSelectRowProc>true</GenerateSelectRowProc>
+  <GenerateInsertProc>true</GenerateInsertProc>
+  <GenerateUpdateProc>true</GenerateUpdateProc>
+  <GenerateDeleteRowProc>true</GenerateDeleteRowProc>
+  <WrapperClass_GenerateStaticMethods>false</WrapperClass_GenerateStaticMethods>
+  <WrapperClass_NameSpace>NovinMedia.Data.Layer</WrapperClass_NameSpace>
+  <AutoSaveWrapperClass>true</AutoSaveWrapperClass>
+</StoredProcedureGeneratorConfigFile>

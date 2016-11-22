@@ -1,0 +1,15 @@
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\bin\Debug\SP_Gen.exe.config
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\bin\Debug\SP_Gen.exe.manifest
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\bin\Debug\SP_Gen.application
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\bin\Debug\SP_Gen.exe
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\bin\Debug\SP_Gen.pdb
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.csprojResolveAssemblyReference.cache
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.frmMain.resources
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.frmOptions.resources
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.Properties.Resources.resources
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.csproj.GenerateResource.Cache
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.TrustInfo.xml
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.exe.manifest
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.application
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.exe
+C:\Users\Admin\Desktop\SQL存储过程生成器源码20130307\SQLSPGenerator_15392d3d-b1c4-4c52-87e4-bdc3adc6bd9d\obj\Debug\SP_Gen.pdb
