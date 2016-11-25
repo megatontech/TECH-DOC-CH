@@ -1,0 +1,49 @@
+其实，在seaman_X提供的链接中，已经对如何在WinForm中控制输入法作了相当详细地介绍了。针对您所关心的两个问题，即如何获取系统中所有的输入法，以及如何根据输入语言及其他特殊要求选择特定的输入法，下面我以两段程序片断再加以说明。
+
+1）遍历系统中所有的输入法，可以用以下程序片断：
+	foreach(InputLanguage lang in InputLanguage.InstalledInputLanguages)
+	{
+		this.textBox1.Text += "\r\nName> "+lang.LayoutName+"\r\nCulture> "+lang.Culture.Name + "\r\n";
+	}
+运行的结果类似：
+
+Name> Chinese (Simplified) - Microsoft Pinyin IME 3.0
+Culture> zh-CN
+Name> Chinese (Simplified) - US Keyboard
+Culture> zh-CN
+Name> Chinese (Traditional) - New Phonetic
+Culture> zh-TW
+Name> Japanese Input System (MS-IME2002)
+Culture> ja-JP
+Name> Chinese (Traditional) - US Keyboard
+Culture> zh-TW
+Name> Japanese
+Culture> ja-JP
+
+得到系统中所有的输入法以后，就可以通过Culture和Name来选择特定的输入语种和输入法。
+
+
+2）切换到简体中文输入法
+	if(InputLanguage.DefaultInputLanguage.LayoutName.IndexOf("Keyboard")==-1 && InputLanguage.DefaultInputLanguage.Culture.Name.Equals("zh-CN"))
+	{
+		InputLanguage.CurrentInputLanguage=InputLanguage.DefaultInputLanguage;
+	}
+	else
+	{
+		foreach(InputLanguage lang in InputLanguage.InstalledInputLanguages)
+		{
+			if(lang.Culture.Name.Equals("zh-CN") && lang.LayoutName.IndexOf("Keyboard")==-1)
+			{
+				InputLanguage.CurrentInputLanguage=lang;
+				break;
+			}
+		}
+	}
+在这段程序中，首先对系统默认的输入法进行判断，如果默认输入法的Culture是zh-CN，而且输入法名字中不包含"Keyboard"字样，说明默认输入法是一种简体中文输入法，而且不是"Chinese (Simplified) - US Keyboard"，这时就将系统默认的输入法作为当前输入法。
+
+如果以上条件不满足，则对系统中安装的所有输入法进行遍历，将遍历时所遇到的第一种Culture为zh-CN而且输入法名字不包含"Keyboard"字样的输入法作为当前输入法。
+
+Hogwarts - S(u)ddenly dis@ppeared...
+-
+本贴子以"现状"提供且没有任何担保，同时也没有授予任何权利。具体事项可参见使用条款(http://support.microsoft.com/directory/worldwide/zh-cn/community/terms_chs.asp)。
+为了为您创建更好的讨论环境，请参加我们的用户满意度调查(http://support.microsoft.com/directory/worldwide/zh-cn/community/survey.asp?key=(S,49854782))。

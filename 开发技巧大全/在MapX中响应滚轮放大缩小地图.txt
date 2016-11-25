@@ -1,0 +1,54 @@
+ 在MapX中响应滚轮放大缩小地图 
+Option Explicit
+
+Public Const GWL_WNDPROC = (-4)
+Public Const WM_COMMAND = &H111
+Public Const WM_MBUTTONDOWN = &H207
+Public Const WM_MBUTTONUP = &H208
+Public Const WM_MOUSEWHEEL = &H20A
+
+Public Oldwinproc   As Long
+Public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+Public Declare Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+Public Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long) As Long
+
+Public Function FlexScroll(ByVal hWnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+    Select Case wMsg
+        Case WM_MOUSEWHEEL
+            Select Case wParam
+                Case -7864320     '向下滚
+                    SetCurrentScale "ZoomOut", 2
+                Case 7864320       '向上滚
+                    SetCurrentScale "ZoomIn", 2
+          End Select
+    End Select
+    
+    FlexScroll = CallWindowProc(Oldwinproc, hWnd, wMsg, wParam, lParam)
+End Function
+
+
+Private Sub SetCurrentScale(strINorOut As String, dScale As Double)
+    If frmMain.Map1 Is Nothing Then Exit Sub
+    
+    If strINorOut = "ZoomIn" Then
+        frmMain.Map1.Zoom = (frmMain.Map1.Zoom) * dScale
+        frmMain.Map1.Refresh
+    ElseIf strINorOut = "ZoomOut" Then
+        frmMain.Map1.Zoom = (frmMain.Map1.Zoom) / dScale
+        frmMain.Map1.Refresh
+    End If
+End Sub
+
+
+
+
+Private Sub Form_Load()
+        
+    Oldwinproc = GetWindowLong(Map1.hWnd, GWL_WNDPROC)
+    SetWindowLong Map1.hWnd, GWL_WNDPROC, AddressOf FlexScroll
+
+End Sub
+
+Private Sub Form_Unload(Cancel As Integer)
+    SetWindowLong Map1.hWnd, GWL_WNDPROC, Oldwinproc
+End Sub

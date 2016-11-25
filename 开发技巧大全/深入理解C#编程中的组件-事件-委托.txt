@@ -1,0 +1,249 @@
+深入理解C#编程中的组件-事件-委托
+版权所有 codesky.net 2003-2005
+发表时间：2004-12-11    关键字:未知
+
+在组件编程中对事件的理解是十分重要的，C# 中的“事件”是当对象发生某些有趣的事情时，类向该类的客户提供通知的一种方法。与事件联系最为紧密的，个人认为是委托.委托可以将方法引用封装在委托对象内。为了弄清组件-事件-委托三者的关系，本人用实际的例子来谈 谈小弟的理解。
+
+　　首先创建一个Windows控件项目，添加如下控件样板。
+
+
+
+　　当事件触发时，会传递一个EventArgs类型的参数给事件处理方法，为了能传递自定义的信息，我们可以创建一个继承于EventArgs的事件参数 类，其定义如下:
+
+public class EventLoginArgs:System.EventArgs
+{
+public string strUserID;
+public string strUserName;
+public string strUserPWD;
+public bool bVaild;
+public EventLoginArgs(string userID，string userName，string userPWD)
+{
+strUserID = userID;
+strUserName = userName;
+strUserPWD = userPWD;
+
+}  
+
+　　再声明两个委托，它们是对EventLoginArgs和EventArgs对象中的信息的封装，如下:
+
+public delegate void UserLoginEventHandler(object sender，EventLoginArgs e);
+public delegate void CancelEventHandler(object sender，EventArgs e); 
+
+　　在组件中为了能让用户自定义某事件的处理方法，所以组件必需提供事件接口.如果只是继承于单个已有的Windows控件，可以重载已知的方 法进行添加自己的处理，也可以声明自定义的事件接口.而若组件中包含多个控件，应该根据实际需要声明事件接口，此处本人就两个按钮的 使用而声明两个自定义的事件接口，如下:
+
+public event UserLoginEventHandler SubmitLogin;
+public event CancelEventHandler Cancel;
+protected virtual void OnSubmitLogin(EventLoginArgs e)
+{
+if(this.SubmitLogin!=null)
+{ 
+SubmitLogin(this，e);
+}
+
+}
+protected virtual void OnCancel(EventArgs e)
+{
+if(this.Cancel!=null)
+{
+Cancel(this，e);
+} 
+
+　　其实SubmitLogin 是UserLoginEventHandler委托的实例，令人费解的是此事件的触发，传递，处理过程如何呢?
+
+　　在本例中是通过确定按钮来触发submitLogin事件的：
+
+private void btnOK_Click(object sender， System.EventArgs e)
+{ 
+if(txtID.Text != ""&&txtName.Text !=""&&txtPWD.Text !="")
+{
+intLoginTime++;
+OnSubmitLogin(new EventLoginArgs(txtID.Text，txtName.Text，txtPWD.Text));
+bLogin = TestUserInDB(new EventLoginArgs(txtID.Text，txtName.Text，txtPWD.Text));
+MessageBox.Show("this is the btnOK_click function!"，"In control"，MessageBoxButtons.OK);
+if(!bLogin)
+MessageBox.Show("Login in Failed!"，"Login Error"，MessageBoxButtons.OK);
+}
+else
+{
+MessageBox.Show("Your must input all the items!"，"Login Info"，MessageBoxButtons.OK);
+}
+} 
+
+　　注意本例中的对话框是为了帮助了解事件的过程，真正有用的是第二个例子。
+
+　　在btnOK_Click事件响应中，先对进行简单的有效性检查，建议实际工作应作加强完善.intLoginTime变量是尝试登录的次数.TestUserInDB是 通过已知信息在数据库中搜索出有关记录进行判断用户是否合法. 因为组件的测试是通过客户程序的，所以应该创建一个最简单明了的客户 程序.这是一个Windows应用程序，将编译好的组件添加到用户控件栏中，拖出到工作区中，添加SubmitLogin事件的响应程序，如下:
+
+private void userControl1_SubmitLogin(object sender， Userlogin.EventLoginArgs e)
+{
+MessageBox.Show("This is in test form!"+ userControl1.bLogin +"\ns Login times is 
+"+userControl1.intLoginTime +"\ne's strUserID="+e.strUserID，"Test"，MessageBoxButtons.OK);
+} 
+
+　　此时运行客户程序可得以下结果:
+
+This is in test form!
+this is the process in DB
+this is the btnOK_click function! 
+
+　　结果表明单击btnOK按钮时执行组件中的OnSubmitLogin(new EventLoginArgs(txtID.Text，txtName.Text，txtPWD.Text))，此方法又调用 SubmitLogin(this，e)，从而激发SubmitLogin事件，userControl1_SubmitLogin就进行响应，故打印第一行。
+
+　　跟着是执行TestUserInDB，它打印出第二行。
+
+　　最后是返回到btnOK_Click中输出最后一行。
+
+　　注意若btnOK_Click中的OnSubmitLogin和TestUserInDB所在的行调换位置，其结果是不同的.第二个例子中，二者的位置调换，先进行数据库 查询判断，再在SubmitLogin的事件响应userControl1_SubmitLogin中处理结果，下面的是例子二的主要代码:
+
+public delegate void UserLoginEventHandler(object sender，EventLoginArgs e);
+public delegate void CancelEventHandler(object sender，EventArgs e);
+
+public event UserLoginEventHandler SubmitLogin;
+public event CancelEventHandler Cancel;
+
+protected virtual void OnSubmitLogin(EventLoginArgs e)
+{
+if(this.SubmitLogin!=null)
+{ 
+SubmitLogin(this，e);
+}
+
+}
+protected virtual void OnCancel(EventArgs e)
+{
+if(this.Cancel!=null)
+Cancel(this，e);
+}
+public string Server
+{
+}
+public string DataBase
+{
+}
+public string TableSet
+{
+}
+public string UserForDB
+{
+}
+public string PWDForDB
+{
+}
+
+public bool TestUserInDB(EventLoginArgs e)
+{ 
+
+
+//MessageBox.Show("this is the process for DB!"，"TestUserInDB"，MessageBoxButtons.OK);
+bool bOK = false;
+if(this.strDataBase!=null && this.strServer!=null && this.strUserForDB!=null)
+{ 
+if(this.strPWDForDB==null)
+this.strPWDForDB = "";
+
+string strConnection = "server="+this.strServer +";database="+this.strDataBase 
+
+
++";UID="+this.strUserForDB +";PWD="+this.strPWDForDB;
+string strSQL = "select UserID，UserName，UserPWD from "+this.strTableSet+" where 
+
+
+UserID='"+e.strUserID+"' and UserName='"+e.strUserName +"' and UserPWD='"+e.strUserPWD+"'";
+SqlConnection conn = new SqlConnection(strConnection);
+try
+{
+conn.Open();
+}
+catch(SqlException ex)
+{
+MessageBox.Show("数据库不能打开!请检查有关参数."，"Error"，MessageBoxButtons.OK);
+return false;
+}
+SqlDataAdapter da = new SqlDataAdapter(strSQL，conn);
+DataSet ds = new DataSet();
+try
+{
+da.Fill(ds，this.strTableSet);
+}
+catch(SqlException ex)
+{
+......
+}
+foreach(DataRow row in ds.Tables[this.strTableSet].Rows)
+{
+if(row != null)
+{
+bOK = true; 
+}
+
+}
+.......
+}
+else
+{
+bOK = false;
+}
+return bOK;
+}
+private void btnOK_Click(object sender， System.EventArgs e)
+{ 
+if(txtID.Text != ""&&txtName.Text !=""&&txtPWD.Text !="")
+{
+intLoginTime++;
+bLogin = TestUserInDB(new EventLoginArgs(txtID.Text，txtName.Text，txtPWD.Text));
+if(!bLogin)
+MessageBox.Show("Login in Failed!"，"Login Error"，MessageBoxButtons.OK);
+else
+OnSubmitLogin(new EventLoginArgs(txtID.Text，txtName.Text，txtPWD.Text));
+}
+else
+{
+MessageBox.Show("Your must input all the items!"，"Login Info"，MessageBoxButtons.OK);
+}
+} 
+
+private void btnCancel_Click(object sender， System.EventArgs e)
+{
+OnCancel(e);
+}
+
+private void UserControl_Load(object sender， System.EventArgs e)
+{
+intLoginTime = 0;
+
+}
+} 
+
+public class EventLoginArgs:System.EventArgs
+{
+public string strUserID;
+public string strUserName;
+public string strUserPWD;
+public bool bVaild;
+public EventLoginArgs(string userID，string userName，string userPWD)
+{
+strUserID = userID;
+strUserName = userName;
+strUserPWD = userPWD;
+
+}
+}
+
+
+　　它的客户程序主要如下:
+
+private void userControl1_SubmitLogin(object sender， Userlogin.EventLoginArgs e)
+{
+　MessageBox.Show("This result is bLogin="+ userControl1.bLogin +" At "+userControl1.intLoginTime +" times \n 
+　　UserID="+e.strUserID+"\n UserName="+e.strUserName，"TestResult"，MessageBoxButtons.OK);
+}
+private void Form1_Load(object sender， System.EventArgs e)
+{
+　userControl1.Server = "localhost";
+　userControl1.DataBase="weiwen";
+　userControl1.TableSet = "TestUser";
+　userControl1.UserForDB="sa";
+　userControl1.PWDForDB = "sa";
+} 
+
+　　这两个例子的完整代码可以点击这里下载.
+
+　　读者可以参考学习，也可直接使用此组件，但使用时应当以Microsoft SQL Server 作为后台数据库，所用到的用户表格应有 UserID，UserName，UserPWD三列，同时在客户程序中应对有关参数初始化，SubmitLogin事件返回值是尝试次数intLoginTime和验证是否成功bLogin，可参考扩展例子二。

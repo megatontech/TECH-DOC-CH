@@ -1,0 +1,31 @@
+Enter file contents here--创建学生表
+create table student (student_no VARCHAR(10),student_name VARCHAR(20),student_age INT,
+student_sex char(1),student_score NUMBER);
+--增加虚拟列，学生分数减60
+ALTER table student add student_level as (student_score-60);
+--增加语句
+insert into student (student_no,STUDENT_NAME,student_age,student_sex,student_score) VALUES
+('001','张三',20,'1',80);
+insert into student (student_no,STUDENT_NAME,student_age,student_sex,student_score) VALUES
+('002','李四',22,'1',50);
+--所有的列都插入值
+insert into student (student_no,STUDENT_NAME,student_age,student_sex,student_score,STUDENT_ADDRESS) VALUES
+('003','王五',21,'1',60,'山东烟台');
+--张三的年龄改为30
+update student set student_age=30 where STUDENT_NAME='张三';
+--删除及格的学生
+delete from student where student_level>=0;
+--数据全部删除(可恢复)
+DELETE from student;
+--数据全部删除(不可恢复)
+TRUNCATE TABLE student;
+--更新张三的姓名，后面加一个单引号，单引号用来转译
+update student set student_name='张三''' where student_name='张三';
+--字符串的拼接||
+'姓名是：'||student_name||',年龄是：'||student_age
+--将一张表复制到另一张表
+create table whqemployee as select * from HR.EMPLOYEES;
+delete from WHQEMPLOYEE;
+insert into WHQEMPLOYEE select * from HR.EMPLOYEES;
+--提交
+commit;

@@ -1,0 +1,6 @@
+<OBJECT   id=WebBrowser   classid=CLSID:8856F961-340A-11D0-A96B-00C04FD705A2   height=0   width=0></OBJECT>   
+  <input   type=button   value=打印           onclick=document.all.WebBrowser.ExecWB(6,1)>   
+  <input   type=button   value=直接打印   onclick=document.all.WebBrowser.ExecWB(6,6)>   
+  <input   type=button   value=页面设置   onclick=document.all.WebBrowser.ExecWB(8,1)>   
+  <input   type=button   value="打印OK"   onclick="   return   myprint(this);">                         
+  <input   type=button   value=打印预览   onclick=document.all.WebBrowser.ExecWB(7,1)> 

@@ -1,0 +1,167 @@
+SELECT 
+	(case when a.colorder=1 then d.name else '' end) N'表名',
+	a.colorder N'字段序号',
+	a.name N'字段名',
+	(case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then '√'else '' end) N'标识',
+	(case when (SELECT count(*)
+	FROM sysobjects
+	WHERE (name in
+        	  (SELECT name
+	         FROM sysindexes
+        	 WHERE (id = a.id) AND (indid in
+                	   (SELECT indid
+	                  FROM sysindexkeys
+        	          WHERE (id = a.id) AND (colid in
+                	            (SELECT colid
+                        	   FROM syscolumns
+	                           WHERE (id = a.id) AND (name = a.name))))))) AND
+	       (xtype = 'PK'))>0 then '√' else '' end) N'主键',
+	b.name N'类型',
+	a.length N'占用字节数',
+	COLUMNPROPERTY(a.id,a.name,'PRECISION') as N'长度',
+	isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0) as N'小数位数',
+	(case when a.isnullable=1 then '√'else '' end) N'允许空',
+	isnull(e.text,'') N'默认值',
+	isnull(g.[value],'') AS N'字段说明'
+--into ##tx
+
+FROM  syscolumns  a left join systypes b 
+on  a.xtype=b.xusertype
+inner join sysobjects d 
+on a.id=d.id  and  d.xtype='U' and  d.name<>'dtproperties'
+left join syscomments e
+on a.cdefault=e.id
+left join sysproperties g
+on a.id=g.id AND a.colid = g.smallid  
+order by object_name(a.id),a.colorder
+
+
+
+====////sql////
+declare @Sql nvarchar(2000)
+set @Sql=
+
+'SELECT  '+
+'	(case when a.colorder=1 then d.name else '+char(39)+''+char(39)+' end) N'+char(39)+'表名'+char(39)+', '+
+'	a.colorder N'+char(39)+'字段序号'+char(39)+', '+
+'	a.name N'+char(39)+'字段名'+char(39)+',   '+
+'	(case when COLUMNPROPERTY( a.id,a.name,'+char(39)+'IsIdentity'+char(39)+')=1 then '+char(39)+'√'+char(39)+'else '+char(39)+''+char(39)+' end) N'+char(39)+'标识'+char(39)+', '+
+'	(case when (SELECT count(*) '+
+'	FROM sysobjects '+
+'	WHERE (name in '+
+'        	  (SELECT name '+
+'	         FROM sysindexes '+
+'        	 WHERE (id = a.id) AND (indid in '+
+'                	   (SELECT indid '+
+'	                  FROM sysindexkeys '+
+'        	          WHERE (id = a.id) AND (colid in '+
+'                	            (SELECT colid '+
+'                        	   FROM syscolumns '+
+'	                           WHERE (id = a.id) AND (name = a.name))))))) AND '+
+'	       (xtype = '+char(39)+'PK'+char(39)+'))>0 then '+char(39)+'√'+char(39)+' else '+char(39)+''+char(39)+' end) N'+char(39)+'主键'+char(39)+', '+
+'	b.name N'+char(39)+'类型'+char(39)+', '+
+'	a.length N'+char(39)+'占用字节数'+char(39)+', '+
+'	COLUMNPROPERTY(a.id,a.name,'+char(39)+'PRECISION'+char(39)+') as N'+char(39)+'长度'+char(39)+', '+
+'	isnull(COLUMNPROPERTY(a.id,a.name,'+char(39)+'Scale'+char(39)+'),0) as N'+char(39)+'小数位数'+char(39)+', '+
+'	(case when a.isnullable=1 then '+char(39)+'√'+char(39)+'else '+char(39)+''+char(39)+' end) N'+char(39)+'允许空'+char(39)+', '+
+'	isnull(e.text,'+char(39)+''+char(39)+') N'+char(39)+'默认值'+char(39)+', '+
+'	isnull(g.[value],'+char(39)+''+char(39)+') AS N'+char(39)+'字段说明'+char(39)+' '+
+--'--into ##tx '+
+' '+
+'FROM  syscolumns  a left join systypes b  '+
+'on  a.xtype=b.xusertype '+
+'inner join sysobjects d  '+
+'on a.id=d.id  and  d.xtype='+char(39)+'U'+char(39)+' and  d.name<>'+char(39)+'dtproperties'+char(39)+' '+
+'left join syscomments e '+
+'on a.cdefault=e.id '+
+'left join sysproperties g '+
+'on a.id=g.id AND a.colid = g.smallid '
+
+exec(@Sql)
+
+
+===仅保留表名、字段名、字段类型和字段说明
+declare @Sql nvarchar(2000)
+set @Sql=
+
+'SELECT  '+
+--'	(case when a.colorder=1 then d.name else '+char(39)+''+char(39)+' end) N'+char(39)+'表名'+char(39)+', '+
+'	 d.name  N'+char(39)+'表名'+char(39)+', '+
+--'	a.colorder N'+char(39)+'字段序号'+char(39)+', '+
+'	a.name N'+char(39)+'字段名'+char(39)+',   '+
+--'	(case when COLUMNPROPERTY( a.id,a.name,'+char(39)+'IsIdentity'+char(39)+')=1 then '+char(39)+'√'+char(39)+'else '+char(39)+''+char(39)+' end) N'+char(39)+'标识'+char(39)+', '+
+--'	(case when (SELECT count(*) '+
+--'	FROM sysobjects '+
+--'	WHERE (name in '+
+--'        	  (SELECT name '+
+--'	         FROM sysindexes '+
+--'        	 WHERE (id = a.id) AND (indid in '+
+--'                	   (SELECT indid '+
+--'	                  FROM sysindexkeys '+
+--'        	          WHERE (id = a.id) AND (colid in '+
+--'                	            (SELECT colid '+
+--'                        	   FROM syscolumns '+
+--'	                           WHERE (id = a.id) AND (name = a.name))))))) AND '+
+--'	       (xtype = '+char(39)+'PK'+char(39)+'))>0 then '+char(39)+'√'+char(39)+' else '+char(39)+''+char(39)+' end) N'+char(39)+'主键'+char(39)+', '+
+'	b.name N'+char(39)+'类型'+char(39)+', '+
+--'	a.length N'+char(39)+'占用字节数'+char(39)+', '+
+--'	COLUMNPROPERTY(a.id,a.name,'+char(39)+'PRECISION'+char(39)+') as N'+char(39)+'长度'+char(39)+', '+
+--'	isnull(COLUMNPROPERTY(a.id,a.name,'+char(39)+'Scale'+char(39)+'),0) as N'+char(39)+'小数位数'+char(39)+', '+
+--'	(case when a.isnullable=1 then '+char(39)+'√'+char(39)+'else '+char(39)+''+char(39)+' end) N'+char(39)+'允许空'+char(39)+', '+
+--'	isnull(e.text,'+char(39)+''+char(39)+') N'+char(39)+'默认值'+char(39)+', '+
+'	isnull(g.[value],'+char(39)+''+char(39)+') AS N'+char(39)+'字段说明'+char(39)+' '+
+--'--into ##tx '+
+' '+
+'FROM  syscolumns  a left join systypes b  '+
+'on  a.xtype=b.xusertype '+
+'inner join sysobjects d  '+
+'on a.id=d.id  and  d.xtype='+char(39)+'U'+char(39)+' and  d.name<>'+char(39)+'dtproperties'+char(39)+' '+
+'left join syscomments e '+
+'on a.cdefault=e.id '+
+'left join sysproperties g '+
+'on a.id=g.id AND a.colid = g.smallid '
+
+exec(@Sql)
+
+连字段说明都去掉
+declare @Sql nvarchar(2000)
+set @Sql=
+
+'SELECT  '+
+--'	(case when a.colorder=1 then d.name else '+char(39)+''+char(39)+' end) N'+char(39)+'表名'+char(39)+', '+
+'	 d.name  N'+char(39)+'表名'+char(39)+', '+
+--'	a.colorder N'+char(39)+'字段序号'+char(39)+', '+
+'	a.name N'+char(39)+'字段名'+char(39)+',   '+
+--'	(case when COLUMNPROPERTY( a.id,a.name,'+char(39)+'IsIdentity'+char(39)+')=1 then '+char(39)+'√'+char(39)+'else '+char(39)+''+char(39)+' end) N'+char(39)+'标识'+char(39)+', '+
+--'	(case when (SELECT count(*) '+
+--'	FROM sysobjects '+
+--'	WHERE (name in '+
+--'        	  (SELECT name '+
+--'	         FROM sysindexes '+
+--'        	 WHERE (id = a.id) AND (indid in '+
+--'                	   (SELECT indid '+
+--'	                  FROM sysindexkeys '+
+--'        	          WHERE (id = a.id) AND (colid in '+
+--'                	            (SELECT colid '+
+--'                        	   FROM syscolumns '+
+--'	                           WHERE (id = a.id) AND (name = a.name))))))) AND '+
+--'	       (xtype = '+char(39)+'PK'+char(39)+'))>0 then '+char(39)+'√'+char(39)+' else '+char(39)+''+char(39)+' end) N'+char(39)+'主键'+char(39)+', '+
+'	b.name N'+char(39)+'类型'+char(39)+' '+
+--'	a.length N'+char(39)+'占用字节数'+char(39)+', '+
+--'	COLUMNPROPERTY(a.id,a.name,'+char(39)+'PRECISION'+char(39)+') as N'+char(39)+'长度'+char(39)+', '+
+--'	isnull(COLUMNPROPERTY(a.id,a.name,'+char(39)+'Scale'+char(39)+'),0) as N'+char(39)+'小数位数'+char(39)+', '+
+--'	(case when a.isnullable=1 then '+char(39)+'√'+char(39)+'else '+char(39)+''+char(39)+' end) N'+char(39)+'允许空'+char(39)+', '+
+--'	isnull(e.text,'+char(39)+''+char(39)+') N'+char(39)+'默认值'+char(39)+', '+
+--'	isnull(g.[value],'+char(39)+''+char(39)+') AS N'+char(39)+'字段说明'+char(39)+' '+
+--'--into ##tx '+
+' '+
+' FROM  syscolumns  a left join systypes b  '+
+'on  a.xtype=b.xusertype '+
+'inner join sysobjects d  '+
+'on a.id=d.id  and  d.xtype='+char(39)+'U'+char(39)+' and  d.name<>'+char(39)+'dtproperties'+char(39)+' '+
+'left join syscomments e '+
+'on a.cdefault=e.id '+
+'left join sysproperties g '+
+'on a.id=g.id AND a.colid = g.smallid '
+
+exec(@Sql)

@@ -1,0 +1,208 @@
+
+在ASP.NET中使用Treeview控件和XML
+
+
+
+以前，在WEB页面中如果想使用树形控件的话，往往会有些麻烦，有时甚至要自己写代码来达到用树形列表显示数据的目的。在asp.net中，我们可以很方便地使用由微软提供的Internet Exploer Web Controls控件来实现树形列表。在微软提供的这套Internet Exploere Web Controls控件集合中，包括有MultiPage，TabStrip，TOOLbar，Treeview控件。在这篇文章中，我们来看在ASP.net中如何使用Treeview控件和XML来实现树形列表。 
+　　微软的这套控件可以在http://asp.net/IEWebControls/Download.aspx?tabindex=0&tabid=1中下载，下载后运行setup安装就可以了。现在我们来试下用Treeview控件做个简单的例子。
+
+　　在vs.net中新建一个WEB工程，之后在工具箱中，鼠标右键弹出的菜单中，选择“添加新项”，在自定义工具箱中，选择TREEVIEW控件（注意选择的是命名空间为Microsoft Internet Exploere web control的命名空间），按确定后，就可以在工具箱中出现Treeview控件了。
+
+　　接着，将treeview控件拖拉到窗体中，切换到HTML视图，这时会发现有如下代码：
+
+<%@ Register TagPrefix="ie" 
+Namespace="Microsoft.Web.UI.WebControls" 
+Assembly="Microsoft.Web.UI.WebControls" %> 
+
+　　当然，你可以改变TagPrefix的标记值，比如，改为FooBar，那么以后在引用Treeview控件时，就用如下方式引用：
+
+<FooBar:TreeView runat="server" ... /> 
+
+　　现在，我们可以通过点选Treeview控件的属性框中的nodes属性，来为该树添加各类结点了，由于比较简单，这里不详细讲述。下面是添加完各类结点后的代码：
+
+<form runat="server">
+　<ie:TreeView runat="server">
+　　<ie:TreeNode Text="Isaac Gibson" Expanded="True">
+　　　<ie:TreeNode Text="Birth - 1766" />
+　　　<ie:TreeNode Text="Death - 1827" />
+　　　<ie:TreeNode Text="Spouse">
+　　　<ie:TreeNode Text="Ritty Gibson" />
+　　　<ie:TreeNode Text="Married 1789" />
+　　　<ie:TreeNode Text="Children">
+　　　<ie:TreeNode Text="Phoebe Gibson">
+　　　<ie:TreeNode Text="Birth - 1790" />
+　　　<ie:TreeNode Text="Death - 1884" />
+　　　<ie:TreeNode Text="Spouse">
+　　　　<ie:TreeNode Text="James K. Mason" />
+　　　　<ie:TreeNode Text="Married 1819" />
+　　　</ie:TreeNode>
+　　</ie:TreeNode>
+　　<ie:TreeNode Text="John Gibson">
+　　　<ie:TreeNode Text="Birth - 1793" />
+　　　<ie:TreeNode Text="Death - 1802" />
+　　　......
+　　</ie:TreeNode>
+　</ie:TreeView>
+</form> 
+
+　　其中我们特别注意一下Expanded="True"中的Expanded属性，该属性当被设置为true时，则当页面被装载时，树形控件被全部展开。
+
+　　以上是在设计时，静态添加数据到树形控件的方法。而由于XML实质上也是以树形结构来表示数据的结构，因此，就可以通过使用XML文件绑定到树形控件的方法，来动态加载数据到控件中去，其中有两种方法可以实现：
+
+　　1）另外写一个符合TREEVIEW格式的XML文件
+
+　　2）通过XSL将XML进行转换。
+
+　　先来看下第一种方法，建一个XML文件作为例子，命名为aspnetbooks.xml:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<books>
+　<book price="34.95">
+　　<title>Teach Yourself Active Server Pages 3.0 in 21 Days</title>
+　　<authors>
+　　　<author>Mitchell</author>
+　　　<author>Atkinson</author>
+　　</authors>
+　　<year>1999</year> 
+</book>
+
+<book price="29.95">
+<title>Designing Active Server Pages</title>
+<authors>
+　<author>Mitchell</author>
+</authors>
+　<year>2000</year>
+</book>
+
+<book price="34.95">
+<title>ASP.NET: Tips, Tutorials, and Code</title>
+<authors>
+　<author>Mitchell</author>
+　<author>Mack</author>
+　<author>Walther</author>
+　<author>Seven</author>
+　<author>Anders</author>
+　<author>Nathan</author>
+　<author>Wahlin</author>
+</authors>
+<year>2001</year>
+</book>
+
+<book price="24.95">
+<title>ASP Unleashed</title>
+<authors>
+　<author>Walther</author> 
+</authors>
+<year>1998</year>
+</book>
+</books> 
+
+　　如果我们使用第一种方法，必须对XML进行重写，用以下的形式表示，才能绑定到树形控件中去：
+
+<TREENODES>
+<treenode text="...">
+<treenode text="...">
+</treenode>
+
+<treenode text="..." />
+
+...
+</TREENODES> 
+
+　　就是说，根结点必须是treenodes(大小写都无所谓)，每个子结点必须以<treenode>的形式排列。于是，我们对原来的XML文件改写为如下的形式：
+
+<?xml version="1.0" encoding="UTF-8"?>
+<TREENODES>
+　<treenode text="Teach Yourself Active Server_u80 ?ages 3.0 in 21 Days">
+　　<treenode text="Price - $34.95" />
+　　<treenode text="Authors"> 
+　　　<treenode text="Mitchell" />
+　　　<treenode text="Atkinson" />
+　　</treenode>
+　　<treenode text="Year Published - 2000" />
+　</treenode>
+
+　<treenode text="Designing Active Server Pages">
+　　<treenode text="Price - $29.95" />
+　　<treenode text="Authors"> 
+　　　<treenode text="Mitchell" />
+　　</treenode>
+　　<treenode text="Year Published - 2000" />
+　</treenode>
+〈/TREENODES> 
+
+　　增加以下代码：
+
+<form runat="server">
+　<ie:TreeView runat="server">
+　<ie:TreeNode runat="server" Text="ASP.NET Books" Expanded="True" TreeNodeSrc="aspnetbooks.xml" /> 
+　</ie:TreeView>
+</form> 
+
+　　这样就将该xml文件绑定到树形控件中去了，运行后可以看到结果：
+
+ASP.NET Books 
+Teach Yourself Active Server Pages 3.0 in 21 Days
+Designing Active Server Pages
+ASP.NET: Tips, Tutorials, and Code
+Programming ASP.NET 
+
+　　可以看到，使用第一种方法的确比较麻烦，不能对XML的结点进行筛选或者其他操作。而如果使用第二种方法的XSL，则可以根据需要随时对原来的XML进行格式的控制，十分方便。
+
+　　在使用XSL时，可以用如下的方法对树形控件进行绑定：
+
+<form runat="server">
+<ie:TreeView runat="server">
+<ie:TreeNode runat="server" Text="ASP.NET Books" Expanded="True" 
+TreeNodeSrc="aspnetbooks.xml" 
+TreeNodeXsltSrc="aspbooks.xsl" /> 
+</ie:TreeView>
+</form> 
+
+　　其中，treenodexsltsrc的属性中指定要转换的XSL文件，我们设计的XSL文件如下：
+
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version='1.0'>
+<xsl:template match="/books">
+　<TREENODES>
+　　<xsl:for-each select="book">
+　　<treenode>
+　　　<xsl:attribute name="text">
+　　　　<xsl:value-of select="title" />
+　　　</xsl:attribute>
+
+　　<treenode>
+　　　<xsl:attribute name="text">
+　　　　Price - $<xsl:value-of select="@price" />
+　　　</xsl:attribute>
+　　</treenode>
+
+　　<treenode text="Authors">
+　　　<xsl:for-each select="authors/author">
+　　　　<treenode>
+　　　　　<xsl:attribute name="text">
+　　　　　　<xsl:value-of select="text()" />
+　　　　　</xsl:attribute>
+　　　　</treenode>
+　　　</xsl:for-each>
+　　</treenode>
+
+　　<treenode>
+　　　<xsl:attribute name="text">
+　　　　Year Published - <xsl:value-of select="year" />
+　　　</xsl:attribute>
+　　</treenode>
+　</treenode>
+</xsl:for-each>
+</TREENODES>
+</xsl:template>
+</xsl:stylesheet> 
+
+　　在上面的XSL中，我们通过形如：
+
+<xsl:attribute name="text">
+<xsl:value-of select="title" />
+</xsl:attribute> 
+
+　　的属性设置，提取XML文件中每个结点的值，将其赋值给予treenode的text属性中。当然，也可以在XSL中使用XPATH等设置要显示的结点。
+
+　　运行后，结果同样与用第一种方法的一样，能正确显示树形控件，而且灵活性比较高。

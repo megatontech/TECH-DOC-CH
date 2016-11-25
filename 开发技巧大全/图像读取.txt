@@ -1,0 +1,43 @@
+注:MyTools.g_PhotoField为数据库表中的图象字段名称
+//将图片保存到数据库中
+				if(this.picPhoto.Image==null)
+				{
+					m_DataRow[MyTools.g_PhotoField]=DBNull.Value;
+				}
+				else
+				{
+					try 
+					{
+						MemoryStream ms = new MemoryStream ();
+						picPhoto.Image.Save (ms, System.Drawing.Imaging.ImageFormat.Bmp);
+						byte [] myData = new Byte [ms.Length ];
+						ms.Position = 0;
+						ms.Read (myData,0,Convert.ToInt32 (ms.Length ));
+						m_DataRow[MyTools.g_PhotoField] = myData;
+
+					}
+					catch(System.Exception ee) 
+					{
+						MessageBox.Show(ee.Message);
+					}
+				}//else
+
+//读取图象
+				if(this.m_DataRow[MyTools.g_PhotoField]!=DBNull.Value)
+				{
+					try
+					{
+						Byte[] byteBLOBData =  new Byte[0];
+						byteBLOBData = (Byte[])m_DataRow[MyTools.g_PhotoField];
+						MemoryStream stmBLOBData = new MemoryStream(byteBLOBData);
+						this.picPhoto.Image= Image.FromStream(stmBLOBData);
+					}
+					catch(Exception ex)
+					{
+						MessageBox.Show(ex.Message);
+					}
+				}
+				else
+				{
+					this.picPhoto.Image= null;
+				}

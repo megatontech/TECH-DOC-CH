@@ -1,0 +1,132 @@
+ASP .NET - ArrayList对象
+[前一节] [后一节] 
+
+--------------------------------------------------------------------------------
+
+ArrayList对象是一个由包含单一数据值的数据项组成的集合。
+
+
+--------------------------------------------------------------------------------
+
+创建ArrayList
+ArrayList对象是一个由包含单一数据值的数据项组成的集合。
+
+数据项是用Add()方法添加到ArrayList的。
+
+以下代码创建一个新的ArrayList对象，命名为mycountries，并加入4个数据项：
+
+<script runat="server">
+Sub Page_Load
+if Not Page.IsPostBack then
+  dim mycountries=New ArrayList
+  mycountries.Add("Norway")
+  mycountries.Add("Sweden")
+  mycountries.Add("France")
+  mycountries.Add("Italy")
+end if
+end sub
+</script>
+ 
+
+默认情况下，一个ArrayList对象包含16条记录。可以使用TrimToSize()方法限定ArrayList为其最终的实际大小：
+
+<script runat="server">
+Sub Page_Load
+if Not Page.IsPostBack then
+  dim mycountries=New ArrayList
+  mycountries.Add("Norway")
+  mycountries.Add("Sweden")
+  mycountries.Add("France")
+  mycountries.Add("Italy")
+  mycountries.TrimToSize()
+end if
+end sub
+</script>
+ 
+
+还可以用Sort()方法为ArrayList按字母顺序或数字顺序排序：
+
+<script runat="server">
+Sub Page_Load
+if Not Page.IsPostBack then
+  dim mycountries=New ArrayList
+  mycountries.Add("Norway")
+  mycountries.Add("Sweden")
+  mycountries.Add("France")
+  mycountries.Add("Italy")
+  mycountries.TrimToSize()
+  mycountries.Sort()
+end if
+end sub
+</script>
+ 
+
+要想按倒序排序，在Sort()方法的后面使用Reverse()方法：
+
+<script runat="server">
+Sub Page_Load
+if Not Page.IsPostBack then
+  dim mycountries=New ArrayList
+  mycountries.Add("Norway")
+  mycountries.Add("Sweden")
+  mycountries.Add("France")
+  mycountries.Add("Italy")
+  mycountries.TrimToSize()
+  mycountries.Sort()
+  mycountries.Reverse()
+end if
+end sub
+</script>
+ 
+
+
+--------------------------------------------------------------------------------
+
+数据绑定到ArrayList
+ArrayList对象对以下控件可以自动生成文本和值：
+
+asp:RadioButtonList 
+asp:CheckBoxList 
+asp:DropDownList 
+asp:Listbox 
+要绑定数据到RadioButtonList控件，首先在一个.aspx文件中创建一个RadioButtonList控件（不带有任何asp:ListItem元素）：
+
+<html>
+<body>
+<form runat="server">
+<asp:RadioButtonList id="rb" runat="server" />
+</form>
+</body>
+</html>
+ 
+
+然后添加脚本，建立序列并在把序列中的值绑定到RadioButtonList控件：
+
+<script runat="server">
+Sub Page_Load
+if Not Page.IsPostBack then
+  dim mycountries=New ArrayList
+  mycountries.Add("Norway")
+  mycountries.Add("Sweden")
+  mycountries.Add("France")
+  mycountries.Add("Italy")
+  mycountries.TrimToSize()
+  mycountries.Sort()
+  rb.DataSource=mycountries
+  rb.DataBind()
+end if
+end sub
+</script>
+<html>
+<body>
+<form runat="server">
+<asp:RadioButtonList id="rb" runat="server" />
+</form>
+</body>
+</html>
+ 
+
+RadioButtonList控件的DataSource属性被设置到ArrayList，它定义了RadioButtonList控件的数据源。RadioButtonList控件的DataBind()方法绑定数据源和RadioButtonList控件。
+
+注意：数据值被同时应用于控件的Text和Value属性。要想赋给Value的值与Text不同，使用Hashtable对象或是SortedList对象。
+

@@ -1,0 +1,107 @@
+字幕显示屏幕保护
+ 
+用C＃制作字幕显示屏幕保护
+版权所有 codesky.net 2003-2005
+发表时间：2005-3-13    关键字:未知
+
+作者: 马金虎 
+
+  本文介绍使用C#制作屏幕保护的方法，这个屏幕保护就是仿效视窗系统自带的字幕屏保。 
+   
+  　　屏幕保护程序的扩展名虽然是"scr"，但其实是一个可执行的"exe"文件。但他又是一个比较独特的"exe"文件。下面就来探讨一下，用C＃是如何编写屏幕保护的整个过程。 
+   
+  　　一．本文中介绍的程序设计及运行环境 
+   
+  　　　（1）.微软视窗2000 服务器版 
+   
+  　　　（2）..Net Framework SDK 正式版 
+   
+  　　二．C＃编写字幕显示屏保程序的关键步骤以及解决方法： 
+   
+  　　（1）.设定程序的窗体符合屏幕保护的要求： 
+   
+  　　由于屏幕保护程序就是一个可执行程序，所以在编写屏幕保护程序的时候，首先按照可执行程序来设计。但屏幕保护有自身的特点。譬如：屏幕保护都是充满整个屏幕的，并且没有无边。屏幕保护运行的时候，不能显示任务栏。在程序设计中实现这些特点，关键就在于对窗体的某些属性的设定上。下面是对窗体属性的设定，就可以满足屏幕保护的要求，具体如下： 
+   
+  this.Name = "ScreenSaver" ; 
+  //窗体运行后无边界 
+  this.FormBorderStyle = FormBorderStyle.None ; 
+  //程序运行后不显示在任务栏上 
+  this.ShowInTaskbar = false ; 
+  //窗体运行后，最大化，充满整个屏幕 
+   
+  　　（2）.使得字符在屏幕上不断移动： 
+   
+  　　实现字符在屏幕上像字符屏保一样不断移动，是通过一个定时器来完成的。不断移动的字符，其实就是一个Label组件。当设定好Label组件要显示的字符后，也就设定了在屏幕上要移动的字符。定时器每隔一段时间，都把Label组件的横坐标减去一个定值，这样在定时器的驱动下，Label组件的位置就变换了，带来的视觉效果，就是字符不断移动。 
+   
+  　　当Label组件的位置已经移动到屏幕的外面以后，这是就有把Label组件的横坐标回复到起始值（即：屏幕的最右边），然后判断Label组件的纵坐标是否位于屏幕的顶部，如果在顶部，则把纵坐标的位置重置在中部；如果在中部，则重置在底部；如果在底部，则重置在顶部。经过了这些判断，字符不仅可以实现从右往左移动，还可以变换字符进入屏幕的位置。从而也丰富了屏幕保护的内容。其实要实现这些判断，首先还必须知道屏幕的工作区域，因为只有先知道屏幕的工作区域，在能够实现对Label组件的横坐标和纵坐标的设定工作。下面就是实现此步骤地具体代码： 
+   
+  //得到计算机屏幕的工作区域 
+  Rectangle ssWorkArea = Screen.GetWorkingArea ( this ) ; 
+  lblMarquee.Location = new Point ( ssWorkArea.Width - iDistance , 
+  lblMarquee.Location.Y ) ; 
+  //显示标签 
+  lblMarquee.Visible = true ; 
+  // 增加2个象素点,你可以通过修改speed的值来改变标签的移动速度 
+  iDistance += speed ; 
+  // 如果标签已经走出屏幕，则把标签的位置重定位到屏幕的右边 
+  if ( lblMarquee.Location.X <= -( lblMarquee.Width ) ) 
+  { 
+  //Reset the distance to 0. 
+  iDistance = 0 ; 
+  //判断标签的位置是否在顶部，如果在，则重定位到中部 
+  if ( lblMarquee.Location.Y == 0) 
+  lblMarquee.Location = new Point ( lblMarquee.Location.X , ( ssWorkArea.Height / 2 ) ) ; 
+  //判断标签的位置是否在中部，如果在，则重定位到底部 
+  else if ( lblMarquee.Location.Y == ssWorkArea.Height / 2 ) 
+  lblMarquee.Location = new Point ( lblMarquee.Location.X , ssWorkArea.Height - lblMarquee.Height ) ; 
+  //重定位到顶部 
+  else 
+  lblMarquee.Location = new Point ( lblMarquee.Location.X , 0 ) ; 
+  } 
+   
+  　　（3）.检测键盘、鼠标状态，确定退出屏幕保护程序： 
+   
+  　　在屏幕保护运行的时候，当键盘被按动，或者鼠标移动，屏幕保护都会关闭。在实际的程序设计中，检测键盘是否被按动，通过"KeyDown"事件就可以判断。在程序中，判断鼠标是否移动的思路是通过二个全局变量记录下，程序刚刚运行的时候的鼠标的位置（即：X和Y），当鼠标移动的时候，判断移动后的位置和记录的位置是否有出入，如果有出入，就关闭屏保。下面代码功能就是检测鼠标移动，并结束屏幕保护，具体如下： 
+   
+  // 把鼠标刚刚开始移动的位置给记录下来 
+  if ( ixStart == 0 && iyStart == 0 ) 
+  { 
+  ixStart = e.X ; 
+  iyStart = e.Y ; 
+  return ; 
+  } 
+  //判断自屏幕保护程序运行后，鼠标的位置是否变动 
+  else if ( e.X != ixStart || e.Y != iyStart ) 
+  { 
+  Cursor .Show ( ) ; 
+  timerSaver.Enabled = false ; 
+  Application .Exit ( ) ; 
+  }; 
+   
+  　　其中"ixStar"和"iyStart"就是记录程序运行的时候，鼠标的起始位置。 
+   
+  　　（4）.对Windows对屏幕保护设定参数的响应： 
+   
+  　　当屏幕保护加入到Windows系统后，你就可以通过Windows系统来设定屏幕保护的属性了，由于我们制作的这个屏幕保护，没有可供设置的选项，但也要对Windows的"设置"按钮进行响应。而要完成这种响应，所用的知识就是在Windows系统中按动"设置"按钮，对屏幕保护进行设定时，其实也就对屏保程序传递"/c"字符。而要设定口令，则会传递"/a"字符，据此，可以得到代码： 
+   
+  if (args [ 0 ].Substring ( 0 , 2 ).Equals ( "/c" ) ) 
+  { 
+  MessageBox.Show("此屏幕保护没有可供设置的选项！","用C＃制造屏幕保护" , 
+  MessageBoxButtons.OK ,MessageBoxIcon.Information ) ; 
+  Application.Exit ( ) ; 
+  } 
+  else if ( args [ 0 ] == "/a" ) 
+  { 
+  MessageBox.Show("此屏幕保护没有可供设定口令的选项！","用C＃制造屏幕保护" , 
+  MessageBoxButtons.OK ,MessageBoxIcon.Information ) ; 
+  Application.Exit ( ) ; 
+  } 
+   
+  　　三．总结： 
+   
+  　　由于屏幕保护都是Windows程序，所以编译的时候，要产生Windows程序，编译的命令如下： 
+   
+  　　　　csc /t:winexe screen.cs 
+   
+  　　在正确编译"Screen.cs"后，可以得到"Screen.exe"文件，把"Screen.exe"改名为"Screen.scr"，并拷贝到Windows的"System32"目录中去。至此这个字符屏保就完成了从编写到配置的全部工作了。
+ 

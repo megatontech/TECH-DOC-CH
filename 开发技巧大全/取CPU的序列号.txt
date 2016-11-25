@@ -1,0 +1,10 @@
+可以取CPU的序列号。
+string cpuInfo = "";//cpu序列号
+ManagementClass cimobject = new
+ManagementClass("Win32_Processor");
+ManagementObjectCollection moc = cimobject.GetInstances();
+foreach(ManagementObject mo in moc)
+{
+cpuInfo = mo.Properties["ProcessorId"].Value.ToString();
+Response.Write(cpuInfo);
+}  

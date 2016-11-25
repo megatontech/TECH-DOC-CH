@@ -1,0 +1,399 @@
+简介
+
+　　Cookie 为 Web 应用程序保存用户相关信息提供了一种有用的方法。例如，当用户访问您的站点时，您可以利用 Cookie 保存用户首选项或其他信息，这样，当用户下次再访问您的站点时，应用程序就可以检索以前保存的信息。
+
+　　本文概要介绍 Cookie 在 ASP.NET 应用程序中的应用，为您展示在 ASP.NET 中应用 Cookie 的技术细节，例如编写 Cookie、然后再读取它们。同时，还将为您介绍 Cookie 的各种特性和各种特殊情况，以及 ASP.NET 对 Cookie 的支持。
+
+　　什么是 Cookie？
+
+　　Cookie 是一小段文本信息，伴随着用户请求和页面在 Web 服务器和浏览器之间传递。用户每次访问站点时，Web 应用程序都可以读取 Cookie 包含的信息。
+
+　　假设在用户请求访问您的网站 www.contoso.com 上的某个页面时，您的应用程序发送给该用户的不仅仅是一个页面，还有一个包含日期和时间的 Cookie。用户的浏览器在获得页面的同时还得到了这个 Cookie，并且将它保存在用户硬盘上的某个文件夹中。
+
+　　以后，如果该用户再次访问您站点上的页面，当该用户输入 URL www.contoso.com 时，浏览器就会在本地硬盘上查找与该 URL 相关联的 Cookie。如果该 Cookie 存在，浏览器就将它与页面请求一起发送到您的站点，您的应用程序就能确定该用户上一次访问站点的日期和时间。您可以根据这些信息向用户发送一条消息，也可以检查过期时间或执行其他有用的功能。
+
+　　Cookie 是与 Web 站点而不是与具体页面关联的，所以无论用户请求浏览站点中的哪个页面，浏览器和服务器都将交换 www.contoso.com 的 Cookie 信息。用户访问其他站点时，每个站点都可能会向用户浏览器发送一个 Cookie，而浏览器会将所有这些 Cookie 分别保存。
+
+　　以上就是 Cookie 的基本工作原理。那么，Cookie 有哪些用途呢？最根本的用途是 Cookie 能够帮助 Web 站点保存有关访问者的信息。更概括地说，Cookie 是一种保持 Web 应用程序连续性（即执行“状态管理”）的方法。浏览器和 Web 服务器除了在短暂的实际信息交换阶段以外总是断开的，而用户向 Web 服务器发送的每个请求都是单独处理的，与其他所有请求无关。然而在大多数情况下，都有必要让 Web 服务器在您请求某个页面时对您进行识别。例如，购物站点上的 Web 服务器跟踪每个购物者，以便站点能够管理购物车和其他的用户相关信息。因此 Cookie 的作用就类似于名片，它提供了相关的标识信息，可以帮助应用程序确定如何继续执行。
+
+　　使用 Cookie 能够达到多种目的，所有这些目的都是为了使 Web 站点记住您。例如，一个实施民意测验的站点可以简单地利用 Cookie 作为布尔值，表示您的浏览器是否已经参与了投票，从而避免您重复投票； 而那些要求用户登录的站点则可以通过 Cookie 来确定您是否已经登录过，这样您就不必每次都输入凭据。
+
+　　有关 Cookie 的更多背景信息，建议您阅读 Verizon Web 站点中的“How Internet Cookies Work”一文，地址为 http://www22.verizon.com/about/community/learningcenter/articles/displayarticle1/0,4065,1022z1,00.html （英文）。其作者详细解释了什么是 Cookie 以及 Cookie 是如何在浏览器和服务器之间交换信息的，他还全面总结了 Cookie 涉及的隐私问题。
+
+　　顺便问一下，您是否想知道它们为什么被称作“Cookie”？Jargon File（又称为“The New Hacker's Dictionary”）版本 4.3.3 对这一术语的词源给出了准确的定义和合理的解释。您可以在 http://www.catb.org/~esr/jargon/jargon.html#cookie（英文）找到相关的条目。
+
+　　在此后的内容中，本文将假设您已经知道什么是 Cookie，并且假设您已经清楚为什么要在 ASP.NET 应用程序中使用 Cookie。
+
+　　Cookie 的限制
+
+　　在开始讨论 Cookie 的技术细节之前，我想先介绍一下 Cookie 应用的几条限制。大多数浏览器支持最多可达 4096 字节的 Cookie，如果要将为数不多的几个值保存到用户计算机上，这一空间已经足够大，但您不能用一个 Cookie 来保存数据集或其他大量数据。在实际应用中，您可能并不希望在 Cookie 中保存大量的用户信息，而只希望保存用户编号或其他标识符。之后，当用户再次访问您的站点时，您就可以使用该用户 ID 在数据库中查找用户的详细信息。（有关保存用户信息的说明，请参阅 Cookie 和安全性。）
+
+　　浏览器还限制了您的站点可以在用户计算机上保存的 Cookie 数。大多数浏览器只允许每个站点保存 20 个 Cookie。如果试图保存更多的 Cookie，则最先保存的 Cookie 就会被删除。还有些浏览器会对来自所有站点的 Cookie 总数作出限制，这个限制通常为 300 个。
+
+　　您最可能遇到的 Cookie 限制是：用户可以设置自己的浏览器，拒绝接受 Cookie。您很难解决这个问题，除非完全不使用 Cookie 而是通过其他机制来保存用户相关信息。保存用户信息的一种常用方法是会话状态，但会话状态又依赖于 Cookie。这一点在后面的 Cookie 和会话状态中阐述。
+
+　　注意：有关状态管理和 Web 应用程序中用于保存信息的选项的详细信息，请参阅 Introduction to Web Forms State（英文）和 State Management Recommendations（英文）。
+更一般的经验很可能是，尽管 Cookie 在应用程序中非常有用，应用程序也不应该依赖于能够保存 Cookie。利用 Cookie 可以做到锦上添花，但不要利用它们来支持关键功能。如果您的应用程序必须使用 Cookie，则您可以通过测试来确定浏览器是否接受 Cookie。我在本文后面的检查浏览器是否接受 Cookie 一节中简单介绍了一种测试方法。
+
+　　编写 Cookie
+
+　　您可以利用页面的 Response（英文）属性来编写 Cookie，该属性提供的对象使用户可以将信息添加到由页面向浏览器呈现的信息中。Response 对象支持一个名为 Cookies（英文）的集合，您可以向其中添加要写入浏览器的 Cookie。
+
+　　注意：下面要讨论的 Response 对象和 Request 对象分别是包含 HttpResponse（英文）和 HttpRequest（英文）类实例的页面的属性。要在文档中查找 Response 和 Request 的信息，请参阅 HttpResponse 和 HttpRequest 下的内容。
+
+　　在创建 Cookie 时，您需要指定几个值。最初，您要指定 Cookie 的名称和其中保存的值。您可以创建多个 Cookie，每个 Cookie 都必须具有唯一的名称，以便日后读取时识别。（Cookie 是按名称保存的，所以如果您创建了两个名称相同的 Cookie，后保存的那一个将覆盖前一个。）
+
+　　您可能还希望指定 Cookie 的过期日期和时间。Cookie 一般都写入到用户的磁盘，然后可能一直都留在磁盘上。因此，您可以指定 Cookie 过期的日期和时间。当用户再次访问您的站点时，浏览器会先检查您站点的 Cookie 集合，如果某个 Cookie 已经过期，浏览器不会把这个 Cookie 随页面请求一起发送给服务器，而是删除这个已经过期的 Cookie。（您的站点可能已经在用户计算机上写入了多个 Cookie，每个 Cookie 都有各自的过期日期和时间。） 请注意，由浏览器负责管理硬盘上的 Cookie，这将影响您在应用程序中对 Cookie 的使用，我很快会介绍这方面的内容。
+
+　　一个 Cookie 的有效期应为多长？这取决于 Cookie 的用途，换句话说，取决于您的应用程序需要 Cookie 值保持有效的时间有多长。如果利用 Cookie 统计网站的访问者，您可以把有效期设置为 1 年，如果某个用户已有一年时间未访问您的站点，则可以把该用户当作新的访问者； 如果利用 Cookie 来保存用户的首选项，则可以把其设置为永远有效（例如 50 年后到期），因为定期重新设置首选项对用户而言是比较麻烦的。有时，您可能需要编写在数秒或数分钟内即过期的 Cookie。在本文后面的检查浏览器是否接受 Cookie 一节中，我列举了一个示例，该示例中创建的 Cookie 的实际有效期就只有几秒。
+
+　　注意：不要忘记用户随时可以删除自己计算机上的 Cookie，所以即使您保存了长期有效的 Cookie，用户也可以自行决定将其全部删除，同时清除保存在 Cookie 中的所有设置。
+
+　　如果没有设置 Cookie 的有效期，还是可以创建 Cookie，但它不会保存到用户的硬盘上，而是会成为用户会话信息的一部分。如果用户关闭浏览器或会话超时，该 Cookie 就会被删除。这种非永久性的 Cookie 很适合用来保存只需短时间保存的信息，或者保存由于安全原因不应该写入客户计算机磁盘的信息。例如，如果用户使用的是一台公用计算机，而您不希望把 Cookie 写入这种计算机的磁盘上，这时就可以使用非永久性的 Cookie。
+
+　　您可以通过多种方法把 Cookie 添加到 Response.Cookies 集合中。以下示例介绍了两种完成此任务的方法：
+
+Response.Cookies("userName").Value = "mike"
+Response.Cookies("userName").Expires = DateTime.Now.AddDays(1)
+
+Dim aCookie As New HttpCookie("lastVisit")
+aCookie.Value = DateTime.Now.ToString
+aCookie.Expires = DateTime.Now.AddDays(1)
+Response.Cookies.Add(aCookie)  
+
+　　该示例向 Cookies 集合中添加了两个 Cookie，一个称为“userName”，另一个称为“lastVisit”。对于第一个 Cookie，我直接设置了 Response.Cookies 集合的值。您可以使用这种方法向集合中添加值，因为 Response.Cookies 是从 NameObjectCollectionBase（英文）类型的特殊集合派生得到的。
+
+　　对于第二个 Cookie，我创建了 Cookie 对象的一个实例（HttpCookie [英文] 类型），并设置了其属性，然后通过 Add 方法把它添加到 Response.Cookies 集合。实例化 HttpCookie 对象时，您必须把 Cookie 名称作为构造函数的一部分进行传递。
+
+　　这两个示例完成了相同的任务，即向浏览器写入一个 Cookie。您要采用哪种方法主要取决于您的个人喜好。您可能会发现第二种方法在设置 Cookie 属性方面要稍微容易一些，但同时您也会注意到两者的差别并不是很大。
+
+　　在这两种方法中，有效期值必须为 DateTime 类型。而“lastVisited”值也是日期/时间值。但在这种情况下，我必须把日期/时间值转换为字符串，因为 Cookie 中的任何值最终都是以字符串的形式保存的。
+
+　　查看您的 Cookie
+
+　　您可能会发现，了解创建 Cookie 的效果会对您很有帮助。而查看 Cookie 是比较容易的，因为它们都是文本文件，关键在于您能找到它们。不同的浏览器保存 Cookie 的方式也不同。我将介绍 Internet Explorer 是如何保存 Cookie 的。如果您使用的是其他浏览器，请查看该浏览器的帮助，以了解有关 Cookie 处理方面的知识。
+
+　　查看 Cookie 的一个简便方法是让 Internet Explorer 为您查找。在 Internet Explorer 中，从“工具”菜单中选择“Internet 选项”，在“常规”选项卡中单击“设置”，然后单击“查看文件”。Internet Explorer 将打开一个窗口，显示所有的临时文件，包括 Cookie。在窗口中查找以“Cookie:”开头的文件 或查找文本文件。双击一个 Cookie，在默认的文本文件中打开它。
+
+　　您也可以在硬盘上查找 Cookie 的文本文件，从而打开 Cookie。Internet Explorer 将站点的 Cookie 保存在文件名格式为 <user>@<domain>.txt 的文件中，其中 <user> 是您的帐户名。例如，如果您的名称为 mikepope，您访问的站点为 www.contoso.com，那么该站点的 Cookie 将保存在名为 mikepope@www.contoso.txt 的文件中。（该文件名可能包含一个顺序的编号，如 mikepope@www.contoso[1].txt。） 
+
+　　这个 Cookie 文本文件是与用户相关的，所以会按照帐户分别保存。例如，在 Windows XP 中，您可以在如下所示的目录中找到 Cookie 文件：
+
+c:\Documents and Settings\<user>\Cookies
+
+　　要查找最新创建的 Cookie，可以按修改日期对目录内容进行排序，并查找最近修改的文件。
+
+　　您可以使用文本编辑器打开 Cookie。如果该文件包含多个 Cookie，这些 Cookie 之间将用星号 (*) 分隔。每个 Cookie 的第一行是 Cookie 的名称，第二行是值，其余各行则包含 Cookie 的日常处理信息，例如过期日期和时间。Cookie 中还有一个简单的校验和，如果更改 Cookie 名称或值的长度，浏览器就会检测到修改并删除该 Cookie。
+
+　　多值 Cookie（子键）
+
+　　以上示例为每个要保存的值（用户名、上次访问时间）都使用了一个 Cookie 。您也可以在一个 Cookie 中保存多个名称/值对。名称/值对也称作“键”或“子键”，具体取决于您读取的内容。（如果您熟悉 URL 的结构，就会发现子键与其中的查询字符串非常相象。） 例如，如果不希望创建名为“userName”和“lastVisit”的两个单独的 Cookie，可以创建一个名为“userInfo”的 Cookie，并使其包含两个子键：“userName”和“lastVisit”。
+
+　　有很多原因会让我们用子键来代替单独的 Cookie。最显而易见的是，把相关或类似的信息放在一个 Cookie 中会比较有条理。另外，由于所有信息都在一个 Cookie 中，所以诸如有效期之类的 Cookie 属性就适用于所有信息。（当然，如果要为不同类型的信息指定不同的过期日期，就应该把信息保存在单独的 Cookie 中。）
+
+　　带有子键的 Cookie 还可以帮助您减小 Cookie 的大小。如前面的 Cookie 的限制一节所述，Cookie 的总大小限制在 4096 字节以内，而且不能为一个网站保存超过 20 个 Cookie。利用带子键的单个 Cookie，站点的 Cookie 数量就不会超过 20 个的限制。此外，一个 Cookie 会占用大约 50 个字符的基本空间开销（用于保存有效期信息等），再加上其中保存的值的长度，其总和接近 4K 的限制。如果使用五个子键而不是五个单独的 Cookie，您可以省去四个 Cookie 的基本空间开销，总共能节省大约 200 个字节。
+
+　　要创建带子键的 Cookie，您可以使用用于编写单个 Cookie 的各种语法。以下示例显示了编写同一 Cookie 的两种不同方法，其中的每个 Cookie 都带有两个子键：
+
+Response.Cookies("userInfo")("userName") = "mike"
+Response.Cookies("userInfo")("lastVisit") = DateTime.Now.ToString
+Response.Cookies("userInfo").Expires = DateTime.Now.AddDays(1)
+
+Dim aCookie As New HttpCookie("userInfo")
+aCookie.Values("userName") = "mike"
+aCookie.Values("lastVisit") = DateTime.Now.ToString
+aCookie.Expires = DateTime.Now.AddDays(1)
+Response.Cookies.Add(aCookie) 
+
+　　控制 Cookie 有效范围
+
+　　默认情况下，一个站点的全部 Cookie 都一起保存在客户机上，而且所有这些 Cookie 都会随着对该站点发送的请求一起发送到服务器，也就是说，站点的每个页面都能得到该站点的所有 Cookie。但有时候，您可能希望 Cookie 更具有针对性，这时，您可以通过两种方法设置 Cookie 的有效范围： 
+
+　　把 Cookie 的有效范围限制在服务器上的一个文件夹中，实际上这样就将 Cookie 限制到站点上的某个应用程序。 
+
+　　把有效范围设置为某个域，从而允许您指定域中的哪些子域可以访问 Cookie。 
+
+　　将 Cookie 限制到某个文件夹或应用程序
+
+　　要将 Cookie 限制到服务器上的某个文件夹，请按如下方法设置 Cookie 的 Path 属性：
+
+Dim appCookie As New HttpCookie("AppCookie")
+appCookie.Value = "written " & Now.ToString
+appCookie.Expires = Now.AddDays(1)
+appCookie.Path = "/Application1"
+Response.Cookies.Add(appCookie) 
+
+　　当然，您也可以通过直接设置 Response.Cookies 来编写 Cookie，如前文所述。
+
+　　路径可以是站点根目录下的物理路径，也可以是虚拟根目录。这样一来，Cookie 就只能用于 Application1 文件夹或虚拟根目录中的页面。例如，如果您的站点名为 www.contoso.com，则前面示例中生成的 Cookie 就只能用于路径为 http://www.contoso.com/Application1/ 的页面以及该文件夹下的所有页面，而不适用于其他应用程序中的页面，如 http://www.contoso.com/Application2/ 或 http://www.contoso.com/ 下的页面。
+
+　　提示：通过对 Internet Explorer 和 Mozilla 浏览器进行测试发现，此处使用的路径是区分大小写的。一般而言，Windows 服务器上的 URL 不区分大小写，但这种情况例外。您无法控制用户如何在浏览器中输入 URL，但是，如果您的应用程序依赖于与特定路径相关的 Cookie，则请确保您所创建的所有超链接中的 URL 与 Path 属性值的大小写相匹配。
+
+　　将 Cookie 的有效范围限制到域
+
+　　默认情况下，Cookie 与特定的域相关联。例如，如果您的站点是 www.contoso.com，那么当用户向该站点请求页面时，您编写的 Cookie 就被发送到服务器。（有特定路径值的 Cookie 除外，我在上一节刚刚解释过。） 如果您的站点有子域（例如 contoso.com、sales.contoso.com 和 support.contoso.com），就可以把 Cookie 同特定的子域相关联。为此，需要设置 Cookie 的 Domain 属性，如下所示：
+
+Response.Cookies("domain").Value = DateTime.Now.ToString
+Response.Cookies("domain").Expires = DateTime.Now.AddDays(1)
+Response.Cookies("domain").Domain = "support.contoso.com" 
+
+　　如果按照这种方式设置域，则 Cookie 只能用于指定子域中的页面。
+
+　　您也可以利用 Domain 属性来创建可在多个子域中共享的 Cookie。例如，对域进行如下设置：
+
+Response.Cookies("domain").Value = DateTime.Now.ToString
+Response.Cookies("domain").Expires = DateTime.Now.AddDays(1)
+Response.Cookies("domain").Domain = "contoso.com" 
+
+　　这样，该 Cookie 就可用于主域、sales.contoso.com 和 support.contoso.com。
+
+　　读取 Cookie
+
+　　当浏览器向服务器发送请求时，该服务器的 Cookie 会与请求一起发送。在 ASP.NET 应用程序中，您可以使用 Request 对象来读取 Cookie。Request 对象的结构与 Response 对象的结构基本相同，所以从 Request 对象中读取 Cookie 的方法与向 Response 对象中写入 Cookie 的方法非常类似。以下示例显示了两种方法，目的都是获取名为“username”的 Cookie 的值并将值显示在 Label 控件中：
+
+If Not Request.Cookies("userName") Is Nothing Then
+　Label1.Text = Server.HtmlEncode(Request.Cookies("userName").Value)
+End If
+
+If Not Request.Cookies("userName") Is Nothing Then
+　Dim aCookie As HttpCookie = Request.Cookies("userName")
+　Label1.Text = Server.HtmlEncode(aCookie.Value)
+End If  
+
+　　在获取 Cookie 的值之前，应该确保该 Cookie 确实存在。否则，您将得到一个 System.NullReferenceException（英文）异常。还需要注意的是，在页面中显示 Cookie 的内容之前，我调用了 HttpServerUtility.HtmlEncode（英文）方法对 Cookie 的内容进行编码。之所以这样做，是因为我要显示 Cookie 的内容（一般您不会这样做）而且要确保没有任何恶意用户在 Cookie 中添加了可执行脚本。有关 Cookie 安全性的详细信息，请参阅 Cookie 和安全性。
+
+　　注意：由于不同的浏览器保存 Cookie 的方式也不同，所以同一台计算机上的不同浏览器不一定能够相互读取各自的 Cookie。例如，如果使用 Internet Explorer 测试一个页面，然后再使用其他浏览器进行测试，那么后者就不会找到 Internet Explorer 保存的 Cookie。当然，大多数人一般都是使用同一种浏览器进行 Web 交互的，因此在大多数情况下不会出现问题。但有时还是会遇到问题，比如您要测试应用程序对浏览器的兼容性。
+
+　　读取 Cookie 中子键值的方法与设置该值的方法类似。以下是获取子键值的一种方法：
+
+If Not Request.Cookies("userInfo") Is Nothing Then
+　Label1.Text = Server.HtmlEncode(Request.Cookies("userInfo")("userName"))
+　Label2.text = Server.HtmlEncode(Request.Cookies("userInfo")("lastVisit"))
+End If 
+
+　　在上面的示例中，我获取的是子键“lastVist”的值，在此前的讨论中我把该值设置为 DateTime 值的字符串表示形式。请记住，Cookie 是用字符串的形式保存值的，所以要将 lastVisit 值用作日期，就必须对其进行转换：
+
+Dim dt As DateTime
+dt = CDate(Request.Cookies("userInfo")("lastVisit")) 
+
+　　Cookie 中子键的类型是 NameValueCollection（英文）类型的集合。因此，另一种获取单个子键的方法是先获取子键集合，然后按名称提取子键的值，如下所示：
+
+If Not Request.Cookies("userInfo") Is Nothing Then
+　Dim UserInfoCookieCollection As _
+System.Collections.Specialized.NameValueCollection
+　UserInfoCookieCollection = Request.Cookies("userInfo").Values
+　Label1.Text = Server.HtmlEncode(UserInfoCookieCollection("userName"))
+　Label2.Text = Server.HtmlEncode(UserInfoCookieCollection("lastVisit"))
+End If 
+
+　　就像设置 Cookie 一样，使用哪种方法读取 Cookie 也由您自己决定。
+
+　　什么是有效期？
+
+　　您可以读取 Cookie 的名称和值，除此以外，需要了解的有关 Cookie 的信息并不是很多。虽然您可以获取 Domain 和 Path 属性，但是这些属性的用途很有限。例如，您可以读取 Domain 属性，但如果您的页面与 Cookie 不在相同的域，您根本就不会在页面的位置接收到该 Cookie。
+
+　　您无法读取的是 Cookie 的过期日期和时间。事实上，当浏览器向服务器发送 Cookie 信息时，浏览器并未将过期信息包括在内。您可以读取 Expires 属性，但总是返回为零的日期/时间值。
+
+　　在前面的编写 Cookie 一节中，我已经讲过，是浏览器负责管理 Cookie 的，Expires 属性就很好地印证了这一点。Expires 属性的主要作用是帮助浏览器执行有关 Cookie 保存的日常管理。从服务器的角度来看，Cookie 要么存在要么不存在，所以对服务器而言，有效期并不是有用的信息。所以，浏览器在发送 Cookie 时并不提供此信息。如果您需要 Cookie 的过期日期，就必须重新设置，关于这一点我将在修改和删除 Cookie 中介绍。
+
+　　更确切地说，您可以在向浏览器发送 Cookie 之前读取已在 Response 对象中设置的 Expires 属性，但您无法从返回的 Request 对象中获取有效期信息。
+
+　　读取 Cookie 集合
+
+　　前面的示例假设您要读取名称已知的 Cookie。有时，您可能需要读取可供页面使用的所有 Cookie。要读取可供页面使用的所有 Cookie 的名称和值，您可以利用如下代码遍历 Request.Cookies 集合：
+
+Dim i As Integer
+Dim output As String = ""
+Dim aCookie As HttpCookie
+For i = 0 to Request.Cookies.Count - 1
+　aCookie = Request.Cookies(i)
+　output &= "Cookie 名称 = " & Server.HtmlEncode(aCookie.Name) & "<br>"
+　output &= "Cookie 值 = " & Server.HtmlEncode(aCookie.Value) & _ 
+& "<br><br>"
+Next 
+Label1.Text = output 
+
+　　注意：运行此代码时，您很可能会看到一个名为“ASP.NET_SessionId”的 Cookie，ASP.NET 用这个 Cookie 来保存您的会话的唯一标识符。这个会话 Cookie 不会永久保存到您的硬盘上。有关会话 Cookie 的详细信息，请参阅本文后面的 Cookie 和会话状态。
+前面的示例有一个限制：如果 Cookie 有子键，就会以一个单独的名称/值字符串来显示子键。Cookie 的 HasKeys（英文）属性可以告诉您该 Cookie 是否有子键。如果有子键，您可以在子键集合中向下钻取，获取各个子键的名称和值。
+
+　　如前文所述，您可以从 Cookie 属性 Values（英文）中获取有关子键的信息，该属性是类型 NameValueCollection 的集合。您可以根据索引值从 Values 集合中直接读取子键值。相应的子键值可以从 Values 集合的成员 AllKeys（英文）中得到，该成员将返回一个字符串集合。
+
+　　以下示例是对前一示例的修改。示例中使用 HasKeys 属性来测试子键，如果检测到子键，就从 Values 集合中获取子键：
+
+Dim i As Integer
+Dim j As Integer
+Dim output As String = ""
+Dim aCookie As HttpCookie
+Dim subkeyName As String
+Dim subkeyValue As String
+For i = 0 To Request.Cookies.Count - 1
+　aCookie = Request.Cookies(i)
+　output &= "名称 = " & aCookie.Name & "<br>"
+　If aCookie.HasKeys Then
+　　For j = 0 To aCookie.Values.Count - 1
+　　　subkeyName = Server.HtmlEncode(aCookie.Values.AllKeys(j))
+　　　subkeyValue = Server.HtmlEncode(aCookie.Values(j))
+　　　output &= "子键名称 = " & subkeyName & "<br>"
+　　　output &= "子键值 = " & subkeyValue & "<br><br>"
+　　Next
+　Else
+　　output &= "值 = " & Server.HtmlEncode(aCookie.Value) & "<br><br>"
+　End If
+Next
+Label1.Text = output 
+
+　　您也可以把子键作为 NameValueCollection 对象进行提取，如下所示：
+
+If aCookie.HasKeys Then
+Dim CookieValues As _
+System.Collections.Specialized.NameValueCollection = aCookie.Values
+Dim CookieValueNames() As String = CookieValues.AllKeys
+For j = 0 To CookieValues.Count – 1
+　subkeyName = Server.HtmlEncode(CookieValueNames(j))
+　subkeyValue = Server.HtmlEncode(CookieValues(j))
+　output &= "子键名称 = " & subkeyName & "<br>"
+　output &= "子键值 = " & subkeyValue & "<br><br>"
+Next
+Else
+　output &= "值 = " & aCookie.Value & "<br><br>"
+End If 
+
+　　注意：请记住，我之所以调用 Server.HtmlEncode 方法，只是因为我要在页面上显示 Cookie 的值。如果您只是测试 Cookie 的值，就不必在使用前对其进行编码。
+
+　　修改和删除 Cookie
+
+　　有时，您可能需要修改某个 Cookie，更改其值或延长其有效期。（请记住，由于浏览器不会把有效期信息传递到服务器，所以您无法读取 Cookie 的过期日期。）
+
+　　当然，实际上您并不是直接更改 Cookie。尽管您可以从 Request.Cookies 集合中获取 Cookie 并对其进行操作，但 Cookie 本身仍然存在于用户硬盘上的某个地方。因此，修改某个 Cookie 实际上是指用新的值创建新的 Cookie，并把该 Cookie 发送到浏览器，覆盖客户机上旧的 Cookie。
+
+　　以下示例说明了如何更改用于储存站点访问次数的 Cookie 的值：
+
+Dim counter As Integer
+If Request.Cookies("counter") Is Nothing Then
+　counter = 0
+Else
+　counter = CInt(Request.Cookies("counter").Value)
+End If
+counter += 1
+Response.Cookies("counter").Value = counter.ToString
+Response.Cookies("counter").Expires = DateTime.Now.AddDays(1)  
+
+　　或者：
+
+Dim ctrCookie As HttpCookie
+Dim counter As Integer
+If Request.Cookies("counter") Is Nothing Then
+　ctrCookie = New HttpCookie("counter")
+Else
+　ctrCookie = Request.Cookies("counter")
+End If
+counter = CInt(ctrCookie.Value) + 1
+ctrCookie.Value = counter.ToString
+ctrCookie.Expires = DateTime.Now.AddDays(1)
+Response.Cookies.Add(ctrCookie) 
+
+
+　　删除 Cookie
+
+　　删除 Cookie（即把该 Cookie 从用户的硬盘上物理删除）是修改 Cookie 的一种形式。由于 Cookie 位于用户的计算机中，所以您无法直接将其删除。但是，您可以让浏览器为您删除 Cookie。修改 Cookie 的方法前面已经介绍过（即用相同的名称创建一个新的 Cookie），不同的是将其有效期设置为过去的某个日期。当浏览器检查 Cookie 的有效期时，就会删除这个已过期的 Cookie。
+
+　　所以，删除 Cookie 的方法与创建该 Cookie 的方法是相同的，只不过要把其有效期设置为过去的某个日期。以下示例比删除单个 Cookie 要稍微有趣一些，它使用的方法可以删除当前域的所有 Cookie：
+
+Dim i As Integer
+Dim cookieName As String
+Dim limit As Integer = Request.Cookies.Count - 1
+For i = 0 To limit
+　aCookie = Request.Cookies(i)
+　aCookie.Expires = DateTime.Now.AddDays(-1)
+　Response.Cookies.Add(aCookie)
+Next  
+
+　　修改或删除子键
+
+　　修改单个子键的方法与最初创建它的方法相同：
+
+Response.Cookies("userInfo")("lastVisit") = DateTime.Now.ToString
+Response.Cookies("userInfo").Expires = DateTime.Now.AddDays(1)  
+
+　　比较复杂的问题是如何删除单个子键。您不能只是简单地重新设置 Cookie 的过期日期，因为这样只能删除整个 Cookie 而不能删除单个子键。实际的解决方案是对包含子键的 Cookie 的 Values 集合进行操作。首先，通过从 Request.Cookies 对象中获取 Cookie 来重新创建 Cookie。然后，您就可以调用 Values 集合的 Remove 方法，将要删除的子键名称传递到 Remove 方法。接下来，您通常可以将修改后的 Cookie 添加到 Response.Cookies 集合，以便将修改后的 Cookie 发送回浏览器。
+
+　　以下代码显示了如何删除子键。在示例中，要删除的子键的名称在变量中指定。
+
+Dim subkeyName As String
+subkeyName = "userName"
+Dim aCookie As HttpCookie = Request.Cookies("userInfo")
+aCookie.Values.Remove(subkeyName)
+aCookie.Expires = DateTime.Now.AddDays(1)
+Response.Cookies.Add(aCookie)  
+
+　　Cookie 与安全性
+
+　　在使用 Cookie 时，您必须意识到其固有的安全弱点。我所指的安全性并不是隐私问题，正如我在前面的什么是 Cookie？中所述，隐私在更大程度上是某些用户面对的问题：这些用户很关心 Cookie 中的信息是如何被使用的。而 Cookie 的安全性问题与从客户机获取数据的安全性问题类似。对于初学者，就应用程序而言，Cookie 是用户输入的另一种形式，因而很容易被他人非法获取和利用。由于 Cookie 保存在用户自己的计算机上，所以用户至少可以看到您保存在 Cookie 中的信息。如果用户愿意，还能在浏览器向您发送 Cookie 之前修改该 Cookie。
+
+　　所以，您千万不要在 Cookie 中保存保密信息 - 用户名、密码、信用卡号等等。在 Cookie 中不要保存不应该由用户掌握的内容，也不要保存可能被其他窃取 Cookie 的人控制的内容。
+
+　　同样，要对从 Cookie 中得到的任何信息都持怀疑态度。不要认为得到的数据就是您当初设想的信息。处理 Cookie 值时采用的安全措施应该与处理 Web 页面中用户键入的数据时采用的安全措施相同。例如，在页面中显示值之前，我会对 Cookie 中的内容进行 HTML 编码。这是一种标准的方法，可以在显示之前净化从用户处得到的信息，对 Cookie 的处理与此相同。
+
+　　另一个需要关心的问题是，Cookie 是以纯文本的形式在浏览器和服务器之间传送的，任何可以截取 Web 通信的人都可以读取 Cookie。您可以对 Cookie 的属性进行设置，使其只能在使用安全套接字层（SSL，又称 https://）的连接上传输。SSL 并不能防止保存在用户计算机上的 Cookie 被他人读取或操作，但它能防止 Cookie 在传输途中被他人截取。本文不讨论 SSL，但您必须清楚，您可以对 Cookie 进行传输保护。有关 SSL 的详细信息，请参阅 Secure Sockets Layer: Protect Your E-Commerce Web Site with SSL and Digital Certificates（英文）。
+
+　　面对这些安全问题，如何才能安全地使用 Cookie？您可以在 Cookie 中保存一些不重要的数据，如用户首选项或其他对应用程序没有重大影响的信息。如果确实需要把某些敏感信息（如用户 ID）保存在 Cookie 中，就对这些信息进行加密。一种可行的方法是利用 ASP.NET Forms Authentication 实用程序创建一个身份验证票据，作为 Cookie 保存。本文不讨论有关加密的问题，但是，如果您需要在 Cookie 中保存敏感信息，就应该试着采取措施来隐藏信息，防止被他人盗用。
+
+　　在 Mitigating Cross-site Scripting With HTTP-only Cookies（英文）一文中，您可以了解到更多有关 Cookie 及其安全弱点的信息。
+
+　　检查浏览器是否接受 Cookie
+
+　　我在前面的 Cookie 的限制一节中曾经提到一个潜在问题，即用户可以设置自己的浏览器拒绝接受 Cookie。如何才能知道您是否可以读写 Cookie？在不能写入 Cookie 时不会出现任何错误（例如 Response.Cookies 不会抛出异常），因为服务器并不跟踪呈现页面后出现的情况。浏览器同样不会向服务器发送任何有关其当前的 Cookie 设置的信息。（也许您需要了解，但 HttpBrowserCapabilities.Cookies Property [英文] 属性并不会告诉您 Cookie 是否被启用，而只能告诉您当前的浏览器是否支持 Cookie。）
+
+　　一种确定浏览器是否接受 Cookie 的方法是先编写一个 Cookie，然后再尝试读取这个 Cookie。如果不能读取这个 Cookie，则可以认为该浏览器不接受 Cookie。
+
+　　我编写了一个简单的示例来说明如何测试 Cookie 是否被接受。该示例包含两个页面。在第一个页面中，我编写了一个 Cookie，然后把浏览器重新定向到第二个页面。第二个页面尝试读取这个 Cookie，转而将浏览器重新定向到第一个页面，并向 URL 添加一个带有测试结果的查询字符串变量。
+
+　　第一个页面的代码如下：
+
+Sub Page_Load()
+If Not Page.IsPostBack Then
+　If Request.QueryString("AcceptsCookies") Is Nothing Then
+　　Response.Cookies("TestCookie").Value = "ok"
+　　Response.Cookies("TestCookie").Expires = DateTime.Now.AddMinutes(1)
+　　Response.Redirect("TestForCookies.aspx?redirect="Server.UrlEncode(Request.Url.ToString))
+　Else
+　　labelAcceptsCookies.Text = "接受 Cookie = "Request.QueryString("AcceptsCookies")
+　End If
+End If
+End Sub 
+
+　　第一个页面测试是否有回信，如果没有，就搜索包含测试结果的查询字符串变量 (AcceptsCookies)。如果没有找到查询字符串变量，则表示测试还没有完成，代码就写出一个名为“TestCookie”的 Cookie。写出 Cookie 之后，示例调用 Response.Redirect 来切换到测试页面 (TestForCookies.aspx)。附加到测试页面的 URL 的是名为 redirect 的查询字符串变量，该变量中包含了当前页面的 URL，这样就能在执行测试后把重定向到该页面。
+
+　　测试页面可以完全由代码组成，不需要包含控件。以下就是我使用的代码：
+
+Sub Page_Load()
+　Dim redirect As String = Request.QueryString("redirect")
+　Dim acceptsCookies As String
+　' 是否接受 Cookie？
+　If Request.Cookies("TestCookie") Is Nothing Then
+　　' 没有 Cookie，因此不需要接受
+　　acceptsCookies = 0
+　Else
+　　acceptsCookies = 1
+　　' 删除测试 Cookie
+　　Response.Cookies("TestCookie").Expires =DateTime.Now.AddDays(-1)
+　End If
+　Response.Redirect(redirect & "?AcceptsCookies=" & acceptsCookies,True)
+End Sub 
+
+　　读取 redirect 查询字符串变量后，代码就尝试读取 Cookie。为了实现日常管理，如果该 Cookie 确实存在，就会被立即删除。测试完成后，代码从 redirect 查询字符串变量传递的 URL 构造一个新的 URL。新的 URL 也包括一个包含测试结果的查询字符串变量。最后一步是使用新的 URL 将浏览器重定向到原来的页面。
+
+　　这个示例十分简单，但说明了通过运行程序并查看结果来进行测试的基本原则。其中最需要改进的地方是要永久保存 Cookie 测试结果，这样用户就不必在每次浏览原始页面时都重复进行测试。但是，实际上并不能做到这一点。Cookie 不会起作用，原因是显而易见的。另一种可能是把测试结果保存在会话状态中，但在默认情况下，会话状态也依赖于 Cookie，而如果浏览器不接受 Cookie，会话状态也不会起作用。解决后一个问题的办法是采用无 Cookie 的会话状态。下一节我将简要介绍会话状态如何与 Cookie 协作。
+
+　　Cookie 和会话状态
+
+　　当用户访问您的站点时，服务器会为该用户创建唯一的会话，会话将一直延续到用户访问结束。对于每个会话，ASP.NET 都维护一种基于服务器的结构（会话状态），在该结构中应用程序可以保存用户的相关信息。有关详细信息，请参阅 Session State（英文）。
+
+　　ASP.NET 需要能跟踪每个用户的会话 ID，这样才能把用户映射到服务器上的会话状态信息。默认情况下，ASP.NET 使用一个非永久性的 Cookie 来保存会话状态。如果您使用读取 Cookie 一节的“读取 Cookie 集合”中的示例，您可能就会在 Cookie 中发现一个会话状态 Cookie。
+
+　　但是如果用户禁用了浏览器的 Cookie，会话状态就不能使用 Cookie 来保存会话 ID，会话状态也不会起作用。这就是为什么我在前面的检查浏览器是否接受 Cookie 中说，无法在 Cookie 测试完毕后把测试结果实际保存在会话状态中，因为没有 Cookie 就没有会话状态。
+
+　　ASP.NET 提供了一种解决方案，即利用无 Cookie 的会话。您可以配置自己的应用程序，不在 Cookie 中保存会话 ID，而是在站点页面的 URL 中保存。会话 ID 保存在 URL 中，也就是 ASP.NET 将 ID 保存在浏览器中，从而能够在用户请求其他页面时取回 ID。
+
+　　无 Cookie 会话可以避免浏览器拒绝 Cookie 的问题，使您能够使用会话状态。如果您的应用程序依赖于会话状态，您可能就需要对其进行配置，使它能使用无 Cookie 会话。但是，在某些情况下，如果用户与其他人共享 URL - 可能是用户通过电子邮件将 URL 发送给同事，而该用户的会话仍然处于激活状态 - 那么最终这两个用户可能共享同一个会话，结果将难以预料。
+

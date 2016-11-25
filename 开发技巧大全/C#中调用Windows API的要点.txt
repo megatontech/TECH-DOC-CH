@@ -1,0 +1,165 @@
+C#中调用Windows API的要点 
+ 
+
+　　在.Net Framework SDK文档中，关于调用Windows API的指示比较零散，并且其中稍全面一点的是针对Visual Basic .net讲述的。本文将C#中调用API的要点汇集如下，希望给未在C#中使用过API的朋友一点帮助。另外如果安装了Visual Studio .net的话，在C:\Program Files\Microsoft Visual Studio .NET\FrameworkSDK\Samples\Technologies\Interop\PlatformInvoke\WinAPIs\CS目录下有大量的调用API的例子。
+
+　　一、调用格式
+
+using System.Runtime.InteropServices; //引用此名称空间，简化后面的代码
+...
+//使用DllImportAttribute特性来引入api函数，注意声明的是空方法，即方法体为空。
+[DllImport("user32.dll")]
+public static extern ReturnType FunctionName(type arg1,type arg2,...);
+//调用时与调用其他方法并无区别  
+
+　　可以使用字段进一步说明特性，用逗号隔开，如：
+
+[ DllImport( "kernel32", EntryPoint="GetVersionEx" )] 
+DllImportAttribute特性的公共字段如下：
+
+　　1、CallingConvention 指示向非托管实现传递方法参数时所用的 CallingConvention 值。 
+
+　　CallingConvention.Cdecl : 调用方清理堆栈。它使您能够调用具有 varargs 的函数。
+　　CallingConvention.StdCall : 被调用方清理堆栈。它是从托管代码调用非托管函数的默认约定。
+
+　　2、CharSet 控制调用函数的名称版本及指示如何向方法封送 String 参数。
+
+　　此字段被设置为 CharSet 值之一。如果 CharSet 字段设置为 Unicode，则所有字符串参数在传递到非托管实现之前都转换成 Unicode 字符。这还导致向 DLL EntryPoint 的名称中追加字母“W”。如果此字段设置为 Ansi，则字符串将转换成 ANSI 字符串，同时向 DLL EntryPoint 的名称中追加字母“A”。大多数 Win32 API 使用这种追加“W”或“A”的约定。如果 CharSet 设置为 Auto，则这种转换就是与平台有关的（在 Windows NT 上为 Unicode，在 Windows 98 上为 Ansi）。CharSet 的默认值为 Ansi。CharSet 字段也用于确定将从指定的 DLL 导入哪个版本的函数。CharSet.Ansi 和 CharSet.Unicode 的名称匹配规则大不相同。
+
+　　对于 Ansi 来说，如果将 EntryPoint 设置为“MyMethod”且它存在的话，则返回“MyMethod”。如果 DLL 中没有“MyMethod”，但存在“MyMethodA”，则返回“MyMethodA”。对于 Unicode 来说则正好相反。如果将 EntryPoint 设置为“MyMethod”且它存在的话，则返回“MyMethodW”。如果 DLL 中不存在“MyMethodW”，但存在“MyMethod”，则返回“MyMethod”。如果使用的是 Auto，则匹配规则与平台有关（在 Windows NT 上为 Unicode，在 Windows 98 上为 Ansi）。如果 ExactSpelling 设置为 true，则只有当 DLL 中存在“MyMethod”时才返回“MyMethod”。
+
+　　3、EntryPoint 指示要调用的 DLL 入口点的名称或序号。 
+
+　　如果你的方法名不想与api函数同名的话，一定要指定此参数,例如：
+
+
+[DllImport("user32.dll",CharSet="CharSet.Auto",EntryPoint="MessageBox")]
+public static extern int MsgBox(IntPtr hWnd,string txt,string caption, int type); 
+
+　　4、ExactSpelling 指示是否应修改非托管 DLL 中的入口点的名称，以与 CharSet 字段中指定的 CharSet 值相对应。如果为 true，则当 DllImportAttribute.CharSet 字段设置为 CharSet 的 Ansi 值时，向方法名称中追加字母 A，当 DllImportAttribute.CharSet 字段设置为 CharSet 的 Unicode 值时，向方法的名称中追加字母 W。此字段的默认值是 false。 
+
+　　5、PreserveSig 指示托管方法签名不应转换成返回 HRESULT、并且可能有一个对应于返回值的附加 [out, retval] 参数的非托管签名。 
+
+　　6、SetLastError 指示被调用方在从属性化方法返回之前将调用 Win32 API SetLastError。 true 指示调用方将调用 SetLastError，默认为 false。运行时封送拆收器将调用 GetLastError 并缓存返回的值，以防其被其他 API 调用重写。用户可通过调用 GetLastWin32Error 来检索错误代码。
+
+
+ 
+二、参数类型：
+
+　　1、数值型直接用对应的就可。（DWORD -> int , WORD -> Int16）
+
+　　2、API中字符串指针类型 -> .net中string
+
+　　3、API中句柄 (dWord) -> .net中IntPtr
+
+　　4、API中结构 -> .net中结构或者类。注意这种情况下，要先用StructLayout特性限定声明结构或类
+
+　　公共语言运行库利用StructLayoutAttribute控制类或结构的数据字段在托管内存中的物理布局,即类或结构需要按某种方式排列。如果要将类传递给需要指定布局的非托管代码，则显式控制类布局是重要的。它的构造函数中用LayoutKind值初始化 StructLayoutAttribute 类的新实例。 LayoutKind.Sequential 用于强制将成员按其出现的顺序进行顺序布局。
+
+　　LayoutKind.Explicit 用于控制每个数据成员的精确位置。利用 Explicit， 每个成员必须使用 FieldOffsetAttribute 指示此字段在类型中的位置。如：
+
+
+[StructLayout(LayoutKind.Explicit, Size=16, CharSet=CharSet.Ansi)]
+public class MySystemTime 
+{
+[FieldOffset(0)]public ushort wYear; 
+[FieldOffset(2)]public ushort wMonth;
+[FieldOffset(4)]public ushort wDayOfWeek; 
+[FieldOffset(6)]public ushort wDay; 
+[FieldOffset(8)]public ushort wHour; 
+[FieldOffset(10)]public ushort wMinute; 
+[FieldOffset(12)]public ushort wSecond; 
+[FieldOffset(14)]public ushort wMilliseconds; 
+} 
+
+　　下面是针对API中OSVERSIONINFO结构，在.net中定义对应类或结构的例子：
+
+
+/**********************************************
+* API中定义原结构声明
+* OSVERSIONINFOA STRUCT
+* dwOSVersionInfoSize DWORD ?
+* dwMajorVersion DWORD ?
+* dwMinorVersion DWORD ?
+* dwBuildNumber DWORD ?
+* dwPlatformId DWORD ?
+* szCSDVersion BYTE 128 dup (?)
+* OSVERSIONINFOA ENDS
+*
+* OSVERSIONINFO equ <OSVERSIONINFOA>
+*********************************************/
+
+//.net中声明为类
+[ StructLayout( LayoutKind.Sequential )] 
+public class OSVersionInfo 
+{ 
+public int OSVersionInfoSize;
+public int majorVersion; 
+public int minorVersion;
+public int buildNumber;
+public int platformId;
+
+[ MarshalAs( UnmanagedType.ByValTStr, SizeConst=128 )] 
+public String versionString;
+}
+//或者
+//.net中声明为结构
+[ StructLayout( LayoutKind.Sequential )] 
+public struct OSVersionInfo2 
+{
+public int OSVersionInfoSize;
+public int majorVersion; 
+public int minorVersion;
+public int buildNumber;
+public int platformId;
+
+[ MarshalAs( UnmanagedType.ByValTStr, SizeConst=128 )] 
+public String versionString;
+}
+ 
+
+　　此例中用到MashalAs特性，它用于描述字段、方法或参数的封送处理格式。用它作为参数前缀并指定目标需要的数据类型。例如，以下代码将两个参数作为数据类型长指针封送给 Windows API 函数的字符串 (LPStr)： 
+
+
+[MarshalAs(UnmanagedType.LPStr)]
+String existingfile;
+[MarshalAs(UnmanagedType.LPStr)]
+String newfile; 
+
+　　注意结构作为参数时候，一般前面要加上ref修饰符，否则会出现错误：对象的引用没有指定对象的实例。 
+
+
+[ DllImport( "kernel32", EntryPoint="GetVersionEx" )] 
+public static extern bool GetVersionEx2( ref OSVersionInfo2 osvi );  
+
+　　三、如何保证使用托管对象的平台调用成功？
+
+　　如果在调用平台 invoke 后的任何位置都未引用托管对象，则垃圾回收器可能将完成该托管对象。这将释放资源并使句柄无效，从而导致平台invoke 调用失败。用 HandleRef 包装句柄可保证在平台 invoke 调用完成前，不对托管对象进行垃圾回收。
+
+　　例如下面： 
+
+
+FileStream fs = new FileStream( "a.txt", FileMode.Open );
+StringBuilder buffer = new StringBuilder( 5 );
+int read = 0;
+ReadFile(fs.Handle, buffer, 5, out read, 0 ); //调用Win API中的ReadFile函数  
+
+　　由于fs是托管对象，所以有可能在平台调用还未完成时候被垃圾回收站回收。将文件流的句柄用HandleRef包装后，就能避免被垃圾站回收:
+
+
+[ DllImport( "Kernel32.dll" )]
+public static extern bool ReadFile( 
+HandleRef hndRef, 
+StringBuilder buffer, 
+int numberOfBytesToRead, 
+out int numberOfBytesRead, 
+ref Overlapped flag );
+......
+......
+FileStream fs = new FileStream( "HandleRef.txt", FileMode.Open );
+HandleRef hr = new HandleRef( fs, fs.Handle );
+StringBuilder buffer = new StringBuilder( 5 );
+int read = 0;
+// platform invoke will hold reference to HandleRef until call ends
+ReadFile( hr, buffer, 5, out read, 0 );
+ 

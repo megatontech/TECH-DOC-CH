@@ -1,0 +1,31 @@
+Process myProcess = new Process();
+		
+			myProcess.StartInfo.FileName = "cmd.exe";
+			myProcess.StartInfo.UseShellExecute =false;
+			myProcess.StartInfo.CreateNoWindow = true;//notice here!
+			myProcess.StartInfo.RedirectStandardInput =true;
+			myProcess.StartInfo.RedirectStandardOutput = true;
+			myProcess.StartInfo.RedirectStandardError = true;
+			myProcess.Start();
+			StreamWriter sIn = myProcess.StandardInput;
+			sIn.AutoFlush = true;
+
+			StreamReader sOut  = myProcess.StandardOutput;
+			StreamReader sErr= myProcess.StandardError;
+			string cmd="dir";
+			sIn.Write(cmd+System.Environment.NewLine);
+			sIn.Write("exit" + System.Environment.NewLine);
+			
+			string s;
+			string e;
+			s = sOut.ReadToEnd();
+			e = sErr.ReadToEnd();
+
+			if(myProcess.HasExited==false)
+			{
+				myProcess.Kill();
+			}
+			sIn.Close();
+			sOut.Close();
+			sErr.Close();
+			myProcess.Close();

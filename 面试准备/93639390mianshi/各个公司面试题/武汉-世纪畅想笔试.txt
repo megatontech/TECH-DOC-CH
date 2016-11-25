@@ -1,0 +1,147 @@
+武汉世纪畅想数字传播有限公司  .NET笔试题    2006.12.9    
+
+公司在武昌雄楚大街图书出版城C座908室
+    
+
+
+1.填空：
+1、	面向对象的语言有_______特性、_______特性、_______特性。
+2、	ADO.NET有哪五大对象： 
+3、	能用foreach遍历访问的对象需要实现（   ）接口或声明（  ）方法的类型。
+
+2多选：
+1、正确的是：
+A．接口中可以有虚方法   B.一个类可实现多个接口  
+C.接口不能被实例化      D.接口中可以包含已实现的方法。
+
+2、读取数据库里的内容会用到以下那些：
+A execute non query     B execute sco（不记得了）
+C FILL                  D EXECUTE READER
+
+
+3、简答：
+private public internal protected 权限各自的调用方法。
+
+4、写SQL语句
+
+   在SQL里取出A表中第31—40条记录。（SQLServer,以自动增长的ID做主键，注意：ID可能不是 连续的。）
+
+5、列举ASP.NET页面之间传递值的几种方式？ 
+
+6、	看程序写结果
+Class class1
+{private string str = “class1.str”; 
+ Private int i = 0 ;
+ Static void stringconvert　(ｓｔｒｉｎｇ　ｓｔｒ　)
+　｛
+　　ｓｔｒ　＝　“string  being  converted .”; 
+　｝ 
+Static void stringconvert　(class1   C )
+{ C. str = “string being converted.”;}  
+Static void Add  (int i  ) 
+{i++；}
+Static void AddwithRef (ref int  i ) 
+{i++;}
+Static void Main （）
+｛　ｉｎｔ　ｉ１= 10; ｉｎｔ　ｉ２＝２０；
+　　ｓｔｒｉｎｇ　ｓｔｒ＝＂ｓｔｒ＂；
+ｃｌａｓｓ１　ｃ＝ｎｅｗ　ｃｌａｓｓ１（）；
+Ａｄｄ（ｉ１）；
+ＡｄｄｗｉｔｈＲｅｆ（ｒｅｆ　ｉ２）；
+Ａｄｄ（ｃ．ｉ）；
+ｓｔｒｉｎｇｃｏｎｖｅｒｔ（ｓｔｒ）；
+ｓｔｒｉｎｇｃｏｎｖｅｒｔ（ｃ）；
+ｃｏｎｓｏｌｅ．ｗｒｉｔｅｌｉｎｅ（ｉ１）；
+ｃｏｎｓｏｌｅ．ｗｒｉｔｅｌｉｎｅ（ｉ２）；
+ｃｏｎｓｏｌｅ．ｗｒｉｔｅｌｉｎｅ（ｃ．ｉ）；
+ｃｏｎｓｏｌｅ．ｗｒｉｔｅｌｉｎｅ（ｓｔｒ）；
+ｃｏｎｓｏｌｅ．ｗｒｉｔｅｌｉｎｅ（ｃ．ｓｔｒ）；　
+　｝  　
+}
+
+7看程序写结果
+public  abstract class A
+{
+  public A ()
+  {
+   console.writeline('A');
+  }
+  public virtual void Fun()
+  {
+   console.writeline("A.Fun()" );
+   }
+}
+
+public class B : A
+{
+ 	public B ()
+        {
+	  console.writeline('B');	
+	}
+	public new void Fun()
+	{
+	 console.writeline(" B.Fun()" );	
+	}
+        public static void Main()
+        {
+  	  A a = new B();
+          a.Fun();
+	}
+
+}
+
+8看程序写结果
+public class A
+{
+    public virtual void Fun1( int i)
+    {
+     console.writeline(i);
+    }
+    public void Fun2 ( A a )
+    {
+	a.Fun1(1);
+        Fun1(5);
+     }
+}
+public class B : A
+{	
+	public override  void Fun1(int i)
+        { 
+	  base.Fun1( i+1 );
+		
+         }
+        public static void Main()
+        {
+
+         B b = new B();
+         A a = new A();
+	 a.Fun2(b);
+	 b.Fun2(a);
+	}
+}
+
+
+9 C#设计程序：  有这样规则的几个数： 1,1,2,3,5,8,13,21,34,55...... 用递归的方法算出第30数是多少？
+参考答案：
+Public static int foo(int i)
+{
+  If(i<=0)
+{
+   Return 0;
+}
+If(i>0&&i<=2)
+{
+  Return 1;
+}
+Else
+Return foo(i-1)+foo(i-2);
+}
+
+10 C#设计程序：
+  猫大叫一声。所有的老鼠都开始逃跑，主人被惊醒。
+要求 1 要有联动性，老鼠和主人的行为是被动的。
+         2 考虑可扩展性，猫的叫声可能引起其它联动效应。
+
+
+
+

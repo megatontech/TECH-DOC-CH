@@ -1,0 +1,129 @@
+using System;
+using System.Drawing;
+using System.Drawing.Text;
+using System.Drawing.Drawing2D;
+using System.Collections;
+using System.ComponentModel;
+using System.Windows.Forms;
+using System.Data; 
+
+namespace WindowsApplication1
+{
+/// <summary>
+/// Form1.的摘要说明。
+/// </summary>
+public class Form1 : System.Windows.Forms.Form
+{
+	/// <summary>
+	/// 必需的设计器变量。
+	/// </summary>
+
+	private System.ComponentModel.Container components = null;
+	private string TextToDraw = "【孟宪会之精彩世界】";
+
+	public Form1()
+	{
+		//
+		// Windows 窗体设计器支持所必需的
+		//
+
+		InitializeComponent(); 
+
+		// 在 InitializeComponent 调用后添加任何构造函数代码
+
+		this.SetStyle(ControlStyles.ResizeRedraw,true);
+
+	}
+
+
+	/// <summary>
+	/// 清理所有正在使用的资源。
+	/// </summary>
+
+	protected override void Dispose( bool disposing )
+	{
+		if( disposing )
+		{
+			if (components != null) 
+			{
+				components.Dispose();
+			}
+		}
+		base.Dispose( disposing );
+	}
+
+
+	#region Windows Form Designer generated code
+	/// <summary>
+	/// 设计器支持所需的方法 - 不要使用代码编辑器修改
+	/// 此方法的内容。
+	/// </summary>
+	private void InitializeComponent()
+	{
+		// 
+		// Form1
+		// 
+		this.AutoScaleBaseSize = new System.Drawing.Size(16, 36);
+		this.BackColor = System.Drawing.Color.White;
+		this.ClientSize = new System.Drawing.Size(376, 293);
+		this.Font = new System.Drawing.Font("Tahoma", 21.75F, 
+			System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((System.Byte)(0)));
+		this.Name = "Form1";
+		this.Text = "Form1";
+		this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
+
+	}
+
+	#endregion
+
+
+	/// <summary>
+	/// 应用程序入口点
+	/// </summary>
+
+	[STAThread]
+	static void Main() 
+	{
+		Application.Run(new Form1());
+	}
+
+	protected override void OnPaintBackground(PaintEventArgs e)
+	{
+		LinearGradientBrush b = new LinearGradientBrush(this.ClientRectangle,
+			Color.Blue,Color.AliceBlue,90f);
+		e.Graphics.FillRectangle(b,this.ClientRectangle);
+		b.Dispose();
+	}
+
+	private void Form1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
+	{
+		// 创建一个小的Bitmap
+		Bitmap bm = new Bitmap(this.ClientSize.Width/4,this.ClientSize.Height/4);
+
+		//得到 Graphics 对象
+		Graphics g = Graphics.FromImage(bm);
+
+		// 必须使用 antialiased rendering hint
+		g.TextRenderingHint = TextRenderingHint.AntiAlias;
+
+		//this matrix zooms the text out to 1/4 size and offsets it by a little right and down
+
+		Matrix mx = new Matrix(0.25f,0,0,0.25f,3,3);
+
+		g.Transform = mx;
+
+		// 画阴影
+
+		g.DrawString(TextToDraw,Font,new SolidBrush( Color.FromArgb(128, Color.Black)), 
+			10, 10, StringFormat.GenericTypographic );
+		
+		g.Dispose();
+		e.Graphics.InterpolationMode=InterpolationMode.HighQualityBicubic;
+		e.Graphics.TextRenderingHint=TextRenderingHint.AntiAlias;
+		e.Graphics.DrawImage(bm,this.ClientRectangle,0,0,bm.Width,bm.Height,GraphicsUnit.Pixel);
+		e.Graphics.DrawString(TextToDraw,Font,Brushes.White,10,10,StringFormat.GenericTypographic);
+		bm.Dispose();
+	}
+}
+}
+

@@ -1,0 +1,106 @@
+启动后台线程可以用下面的语句：
+CheckOnline online=new CheckOnline();
+
+用户可以将它放到GLOBAL。ASAX中，我是没有了，只放到了一个ASPX文件中做简单的测试。如下
+
+//start.aspx
+
+<%@ Page Language="c#" autoEventWireup=true Debug="true" %>
+<%@ Assembly Name="Soholife" %>
+<%@Import Namespace="System"%>
+<%@Import Namespace="Soholife"%>
+<%@Import Namespace="System.Collections"%>
+
+
+
+<script runat="Server" Language="C#">
+void Page_Load(Object sender, EventArgs args) 
+{
+    CheckOnline online=new CheckOnline();
+}
+
+</script>
+
+
+<html><head>
+<style type="text/css">
+    td{font-size:12;}
+    .bgcolor{background:#ffffcc;}
+</style>
+</head>
+<body><center>
+
+
+
+</center></body></html>
+
+
+而我们还需要一个程序来显示当前在线拥护的数据，程序如下：
+
+//online.aspx
+
+<%@ Page Language="c#" autoEventWireup=true Debug="true" %>
+<%@ Assembly Name="Soholife" %>
+<%@Import Namespace="System"%>
+<%@Import Namespace="Soholife"%>
+<%@Import Namespace="System.Collections"%>
+
+
+
+<script runat="Server" Language="C#">
+void Page_Load(Object sender, EventArgs args) 
+{
+    OnLineUser temp= new OnLineUser();
+    
+    ArrayList alluser =temp.alluser;
+    string str="";
+    str += "<tr bgcolor=#ffff99>";
+    str += "<td width=100 align=center class=coolbar>用户</td>";
+    str += "<td align=center width=150 class=coolbar>登陆时间</td>";
+    str += "<td align=center width=150 class=coolbar>最近时间</td>";
+    str += "<td width=100 height=20 class=coolbar>当前位置</td>";
+    str += "</tr>";
+    
+    
+    for ( int i = 0 ; i < alluser.Count ; i++)
+    { 
+        Soholife.User tempuser=(Soholife.User)alluser[i] ;
+        str += "<tr bgcolor=white>";
+        str += "<td>" + tempuser.name + "</td>";
+        str += "<td>" + tempuser.lasttime + "</td>";
+        str += "<td>" + tempuser.curtime + "</td>";
+        str += "<Td>" + tempuser.iswhere + "</td>";
+        str += "</tr>";
+    }
+    maininfo.Text=str;    
+}
+
+</script>
+
+
+<html><head>
+<style type="text/css">
+    td{font-size:12;}
+    .bgcolor{background:#ffffcc;}
+</style>
+<script language=javascript>
+function openwindow(url,w,h)
+    {
+    window.open(url,"","toolbar=no,menubar=no,directories=no,status=yes,width=" + w + ",height=" + h + ",scrollbars=yes,resizable=yes");
+    return false;
+    }
+</script>
+</head>
+
+<body bgcolor="#ccffcc"><center>
+<Br>
+<table width=450 bgcolor=white cellpadding="0" cellspacing="0" style="border:none";>
+    <Tr><td colspan=2 align=center class=bar>当前在线用户</td></tr>
+</table><br>
+<asp:Label font-size="8pt" id="showmsg" runat="server"/>
+<table width=450 bgcolor=white cellpadding="2" cellspacing="1" class="Grid">
+    <asp:Label font-size="8pt" id="maininfo" runat="server"/>
+</table>
+</center></body></html>
+
+

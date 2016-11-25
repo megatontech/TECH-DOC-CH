@@ -1,0 +1,137 @@
+--inner join on a.id=b.id  left join 
+--练习 1. 选择不是在欧洲的国家 regions ,countries 国家
+select a.COUNTRY_NAME  from countries a inner join regions b on a.REGION_ID=b.REGION_ID
+where b.REGION_NAME<>'Europe';
+--2.在日本上班的员工
+select first_name,d.country_name from employees a inner join departments b on a.department_id=b.department_id
+inner join locations c  on b.location_id=c.location_id  inner join countries  d
+on c.country_id=d.country_id  where d.country_name='United States of America' ;
+--3.在Roma城市上班的员工且工资大于5k
+select a.first_name, c.CITY,a.salary from employees a inner join departments b on a.department_id=b.department_id
+inner join locations c  on b.location_id=c.location_id     where c.CITY='Seattle' and a.salary>5000;
+
+--4.在欧洲上班的员工
+select first_name,d.country_name from employees a 
+inner join departments b on a.department_id=b.department_id
+inner join locations c  on b.location_id=c.location_id  
+inner join countries  d on c.country_id=d.country_id 
+inner join regions e on d.region_id=e.region_id
+where e.region_name='Europe' ;
+/*Student(stu_id学号,Stu_name,Stu_age,Stu_sex) 学生表 			
+Course(course_id,course_name) 课程表 			
+SC(Sid,Cid,score) 成绩表 		*/	
+--26、查询每门课程被选修的学生数 	
+select count(SID) 
+from SC 
+group by CID;
+--27、查询出只选修了一门课程的全部学生的学号和姓名
+select s.STUDENT_ID,s.STUDENT_NAME 
+from STUDENT s, SC 
+where s.STUDENT_ID= SC.SID 
+group by s.STUDENT_ID,s.STUDENT_NAME
+having count(SC.CID)=1;
+--28、查询男生、女生人数
+select 男,女
+from (select count(a.STUDENT_ID) as 男 from STUDENT a where a.STUDENT_SEX=1),
+(select count(b.STUDENT_ID) as 女 from STUDENT b where b.STUDENT_SEX=0);
+select decode(STUDENT_SEX,1,'男',0,'女')as SEX,count(*) from STUDENT group by STUDENT_SEX;
+--29、查询姓“张”的学生名单
+select * from STUDENT where STUDENT_NAME like '张%';
+--30、查询同名同性学生名单，并统计同名人数
+select * from (select * from STUDENT a where a.STUDENT_NAME in
+(
+  select b.STUDENT_NAME from STUDENT b group by b.STUDENT_NAME having count(*)>=2
+)),(select count(*) from STUDENT a where a.STUDENT_NAME in
+(
+  select b.STUDENT_NAME from STUDENT b group by b.STUDENT_NAME having count(*)>=2
+));
+update STUDENT set STUDENT_AGE=to_date('1981-02-14','yyyy-mm-dd')where STUDENT_NAME='王五';
+--31、1981年出生的学生名单(注：Student表中Sage列的类型是datetime) 	
+select * from STUDENT where to_char(STUDENT_AGE,'yyyy')=1981;
+--32、查询每门课程的平均成绩，结果按平均成绩升序排列，平均成绩相同时，按课程号降序排列
+select CID,avg(score)from SC,COURSE group by CID order by CID desc;
+--33、查询平均成绩大于85的所有学生的学号、姓名和平均成绩 			
+SELECT STUDENT_ID,STUDENT_NAME,avg(score) 
+FROM SC a inner join STUDENT b on
+a.SID=b.STUDENT_ID 
+GROUP BY STUDENT_ID,STUDENT_NAME 
+HAVING avg(score)>=85;
+--34、查询课程名称为“数据库”，且分数低于60的学生姓名和分数
+select a.STUDENT_NAME,t.SCORE from STUDENT a inner join
+(select SID,SCORE from SC where CID=(--查询出课程成绩和学生ID
+select COURSE_ID from COURSE where COURSE_NAME='数据库'))t on t.SID=a.STUDENT_ID where t.SCORE<60;--查询课程ID
+--35、查询所有学生的选课情况；		
+select STUDENT_NAME ,STUDENT_ID,d.COURSE_NAME from STUDENT c inner join(
+select b.SID,a.COURSE_NAME from COURSE a inner join(--查询出学生ID对应的选课
+select SID,CID from SC group by SID,CID)b on a.COURSE_ID=b.CID)d on c.STUDENT_ID=d.SID order by STUDENT_ID;--查询出学生选课的ID
+--36、查询任何一门课程成绩在70分以上的姓名、课程名称和分数；
+select STUDENT_NAME,COURSE_NAME,score from SC a inner join COURSE b on a.CID=b.COURSE_ID inner join STUDENT c on a.SID=c.STUDENT_ID where a.score>70;
+--37、查询不及格的课程，并按课程号从大到小排列 		
+select a.STUDENT_NAME,CID,t.SCORE from STUDENT a inner join
+(select SID,CID,SCORE from SC where CID in(--查询出课程成绩和学生ID
+select COURSE_ID from COURSE))t on t.SID=a.STUDENT_ID where t.SCORE<60 order by CID desc;--查询课程ID
+--38、查询课程编号为003且课程成绩在80分以上的学生的学号和姓名；
+select a.STUDENT_NAME,a.STUDENT_ID,t.SCORE from STUDENT a inner join
+(select SID,SCORE from SC where CID=(--查询出课程成绩和学生ID
+select COURSE_ID from COURSE where COURSE_ID='003'))t --查询课程ID
+on t.SID=a.STUDENT_ID where t.SCORE>80;
+--1、编写一个pl/sql程序块，从emp表中对名字以”a”或”s”开始的所有雇员按他们基本薪水的10%给他们加薪。
+declare
+cursor c is select EMPLOYEE_ID,salary from COPY_EMPLOYEES where first_name like 'A%' or first_name like 'S%';
+--定义航记录的类型     
+eid int;
+sal number;
+begin
+open c;
+loop
+fetch c into eid,sal;
+exit when c%notfound;
+update COPY_EMPLOYEES set salary=sal*1.1 where employee_id=eid;
+commit;
+end loop;
+end;
+--2.接受一个部门号，从emp表中显示该部门的所有雇员的姓名，工作和薪水
+set serveroutput on;
+accept departid prompt '请输入部门号：'
+declare
+cursor c is select * from COPY_EMPLOYEES where DEPARTMENT_ID=&departid;
+record COPY_EMPLOYEES%rowType;
+--定义航记录的类型     
+begin
+open c;
+loop
+fetch c into record;
+exit when c%notfound;
+dbms_output.PUT_LINE('姓名是：'||record.first_name||'   年龄是：'||record.HIRE_DATE);
+commit;
+end loop;
+end;
+--3.某公司要根据雇员的职位来加薪，公司决定按下列加薪结构处理：
+--职位    加薪幅度
+--Clerk      500
+--Salesman   1000
+--Analyst     1500
+--Otherwise   2000
+--编写一一个程序块，接收一个雇员名，从emp表中实现上述加薪处理。
+set serveroutput on;
+accept departid prompt '请输入雇员名：'
+declare
+  cursor c is select * from copy_employees where first_name=&departid;
+  record copy_employees %rowtype;
+begin
+  open c;
+  loop
+    fetch c into record;
+    exit when c%notfound;
+    if record.job_id='SA_MAN'
+        then update copy_employees set salary=salary+1000 where employee_id=record.employee_id;
+         elsif record.job_id='Clerk'
+        then update copy_employees set salary=salary+500 where employee_id=record.employee_id;
+         elsif record.job_id='Analyst'
+        then update copy_employees set salary=salary+1500 where employee_id=record.employee_id;
+        else
+         update copy_employees set salary=salary+2000 where employee_id=record.employee_id;
+    end if;
+    commit;
+  end loop;
+end;

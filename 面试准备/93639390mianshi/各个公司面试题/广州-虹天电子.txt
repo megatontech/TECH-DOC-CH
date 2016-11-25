@@ -1,0 +1,165 @@
+ 
+ 
+ 
+ 
+考试时间为30分钟
+还剩：  秒  
+     
+ 在线应聘 
+  
+赵永强你好！请认真填写下面的试题！ (每题5分)  
+(1).在对SQL Server 数据库操作时应选用（A ）。 
+   A) SQL Server .NET Framework 数据提供程序； 
+   B) OLE DB .NET Framework 数据提供程序； 
+   C) ODBC .NET Framework 数据提供程序； 
+   D) Oracle .NET Framework数据提供程序； 
+ 
+ 
+(2).下列选项中，（C ）是引用类型。 
+   A) enum类型 
+   B) struct类型 
+   C) string类型 
+   D) int类型 
+ 
+ 
+(3).关于ASP.NET中的代码隐藏文件的描述正确的是（A ） 
+   A) Web窗体页的程序的逻辑由代码组成，这些代码的创建用于与窗体交互。编程逻辑唯一与用户界面不同的文件中。该文件称作为“代码隐藏”文件，如果用C＃创建，该文件将具有“.ascx.cs”扩展名。 
+   B) 项目中所有Web窗体页的代码隐藏文件都被编译成.EXE文件。 
+   C) 项目中所有的Web窗体页的代码隐藏文件都被编译成项目动态链接库（.dll）文件。 
+   D) 以上都不正确。 
+ 
+ 
+(4).C#的数据类型有（B ） 
+   A) 值类型和调用类型； 
+   B) 值类型和引用类型； 
+   C) 引用类型和关系类型； 
+   D) 关系类型和调用类型； 
+ 
+ 
+(5).下列描述错误的是（ D） 
+   A) 类不可以多重继承而接口可以； 
+   B) 抽象类自身可以定义成员而接口不可以； 
+   C) 抽象类和接口都不能被实例化； 
+   D) 一个类可以有多个基类和多个基接口； 
+ 
+ 
+(6).下列关于构造函数的描述正确的是（C ） 
+   A) 构造函数可以声明返回类型； 
+   B) 构造函数不可以用private修饰； 
+   C) 构造函数必须与类名相同； 
+   D) 构造函数不能带参数； 
+ 
+ 
+(7).以下是一些C#中的枚举型的定义，其中错误的用法有（ A） 
+   A) public enum var1{ Mike = 100, Nike = 102, Jike } 
+   B) public enum var1{ Mike = 100, Nike, Jike } 
+   C) public enum var1{ Mike=-1 , Nike, Jike } 
+   D) public enum var1{ Mike , Nike , Jike } 
+ 
+ 
+(8).接口是一种引用类型，在接口中可以声明（A），但不可以声明公有的域或私有的成员变量 
+   A) 方法、属性、索引器和事件； 
+   B) 方法、属性信息、属性； 
+   C) 索引器和字段； 
+   D) 事件和字段； 
+ 
+ 
+(9).在ADO.NET中，对于Command对象的ExecuteNonQuery()方法和ExecuteReader()方法，下面叙述错误的是（ C）。 
+   A) insert、update、delete等操作的Sql语句主要用ExecuteNonQuery()方法来执行； 
+   B) ExecuteNonQuery()方法返回执行Sql语句所影响的行数； 
+   C) Select操作的Sql语句只能由ExecuteReader()方法来执行； 
+   D) ExecuteReader()方法返回一个DataReder对象； 
+ 
+ 
+(10).下列ASP.NET语句（B ）正确地创建了一个与SQL Server 2000数据库的连接。 
+   A) SqlConnection con1 = new Connection(“Data Source = localhost; Integrated Security = SSPI; Initial Catalog = myDB”); 
+   B) SqlConnection con1 = new SqlConnection(“Data Source = localhost; Integrated Security = SSPI; Initial Catalog = myDB”); 
+   C) SqlConnection con1 = new SqlConnection(Data Source = localhost; Integrated Security = SSPI; Initial Catalog = myDB); 
+   D) SqlConnection con1 = new OleDbConnection(“Data Source = localhost; Integrated Security = SSPI; Initial Catalog = myDB”); 
+ 
+ 
+(11) int[][] myArray3=new int[3][]{new int[3]{5,6,2},new int[5]{6,9,7,8,3},new int[2]{3,2}}; myArray3[2][1]的值是（B）。 
+   A) 1.9 
+   B) 2.2 
+   C) 3.6 
+ 
+ 
+(12).在ADO.NET中执行一个存储过程时，如果要设置输出参数则必须同时设置参数的方向和（D ），必要时还要设置参数尺寸。 
+   A) 大小； 
+   B) 上限； 
+   C) 初始值； 
+   D) 类型； 
+ 
+ 
+(13).如果设treeView1=new TreeView()，则treeView1.Nodes.Add("根节点")返回的是一个 ( A )类型的值。 
+   A) TreeNode； 
+   B) int； 
+   C) string； 
+   D) TreeView； 
+ 
+ 
+(14).下面关于XML的描述错误的是（ ）。 
+   A) XML提供一种描述结构化数据的方法； 
+   B) XML 是一种简单、与平台无关并被广泛采用的标准； 
+   C) XML文档可承载各种信息； 
+ 
+ 
+(15).“访问范围限定于此程序或那些由它所属的类派生的类型”是对以下哪个成员可访问性含义的正确描述？( B ) 
+   A) public 
+   B) protected 
+   C) internal 
+   D) protected internal 
+ 
+ 
+(16).class Class1 {
+         private static int count = 0;
+         static Class1(){
+              count++;
+         }
+         public Class1(){
+              count++;
+         }
+     }
+    Class1 o1 = new Class1();
+    Class1 o2 = new Class1();
+请问，o1.Count的值是多少？(C   ) 
+   A) 1  
+   B) 2  
+   C) 3  
+   D) 4  
+ 
+ 
+(17).以下关于ref和out的描述哪些项是正确的？(多选) (  ACD ) 
+   A) 使用ref参数，传递到ref参数的参数必须最先初始化。 
+   B) 使用out参数，传递到out参数的参数必须最先初始化。 
+   C) 使用ref参数，必须将参数作为ref参数显式传递到方法。 
+   D) 使用out参数，必须将参数作为out参数显式传递到方法。 
+ 
+ 
+(18).您要创建一个ASP.NET应用程序在DataGrid控件中显示一个经过排序的列表。产品数据被存放于一个名为PubBase的Microsoft SQL Server 数据库。每个产品的主键是ProductID，Numeric型并且每个产品有一个字母描述字段，名为ProductName。您使用一个SqlDataAdapter对象和一个SqlCommand对象通过调用一个存储过程从数据库中获取产品数据。您将SqlCommand对象的CommandType属性设置为CommandType.StoredProcedure，并将它的CommandText属性设置为procProductList。您成功的获取了一个DataTable对象，其中是已经按ProductID降序排列的产品列表。您打算显示以相反的字母顺序排列的ProductName，请问该怎么做？ (  B ) 
+   A) 将SqlCommand对象的CommandType属性修改为CommandType.Text，将CommandText属性修改为”SELECT * FROM procProductList ORDER BY ProductName DESC”。然后将这个DataTable对象绑定到DataGrid控件。 
+   B) 创建一个基于这个DataTable对象的新的DataView并将这个DataView的Sort属性设置为“ProductName DESC”。然后将这个DataView对象绑定到DataGrid控件。 
+   C) 将DataGrid控件的AllowSorting属性设置为True，并将DataGridColumn的SortExpression属性设置为 “ProductName DESC”.以显示ProductName。然后将这个DataTable对象绑定到DataGrid控件。 
+   D) 将DataTable对象的DisplayExpression属性设置为 “ORDER BY ProductName DESC”.。然后将这个DataTable对象绑定到DataGrid控件。 
+ 
+ 
+(19)在ADO.NET中，对于Command对象的ExecuteNonQuery()方法和ExecuteReader()方法，下面叙述错误的是（ C）。 
+   A) insert、update、delete等操作的Sql语句主要用ExecuteNonQuery()方法来执行； 
+   B) ExecuteNonQuery()方法返回执行Sql语句所影响的行数； 
+   C) Select操作的Sql语句只能由ExecuteReader()方法来执行； 
+   D) ExecuteReader()方法返回一个DataReder对象； 
+ 
+ 
+(20)ASP.NET中，在Web窗体页上注册一个用户控件，指定该控件的名称为”Mike”，正确的注册指令为(D  ) 
+   A) <%@Register TagPrefix = “Mike” TagName = “Space2” Src = “myX.ascx”%> 
+   B) <%@Register TagPrefix = “Space2” TagName = “Mike” Src = “myX.ascx”%> 
+   C) <%@Register TagPrefix = “SpaceX” TagName = “Space2” Src = “Mike”%> 
+   D) 以上皆非 
+ 
+ 
+ 
+
+ 
+ 
+版权所有 ? 2001-2005 虹天电子商务有限公司
+经营许可证：粤B2-20040293 

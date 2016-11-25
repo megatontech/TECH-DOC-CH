@@ -1,0 +1,44 @@
+
+
+OleDbConnection cn;
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        cn = new OleDbConnection("Provider=Microsoft.Jet.OleDb.4.0;Data Source=" + Server.MapPath("xxx.mdb"));
+        if (!IsPostBack)
+        {
+            BindTree();
+        }
+
+    }
+    private void BindTree()
+    {
+        int i =0;
+        int j =0;
+        DataSet dst = GetTreeViewData();
+        foreach (DataRow mRow in dst.Tables["province"].Rows)
+        {
+            TreeNode mNode = new TreeNode((string)mRow["Province"]);
+            mNode.ImageUrl = "../Images/folder.gif";
+            TreeView1.Nodes.Add(mNode);
+            foreach (DataRow cRow in mRow.GetChildRows("Children"))
+            {
+                TreeNode cNode = new TreeNode((string)cRow["City"]);
+                mNode.Expanded = false;
+                cNode.NavigateUrl = "TopicList.aspx?forumID=" + dst.Tables["city"].Rows[i][0].ToString();
+                cNode.ImageUrl = "../Images/page.gif";
+                j = j + 1;
+                mNode.ChildNodes.Add(cNode);
+            }
+        }
+    }
+    private DataSet GetTreeViewData()
+    {
+        OleDbDataAdapter daP = new OleDbDataAdapter("select * from ProvinceTB", cn);
+        OleDbDataAdapter daC = new OleDbDataAdapter("select * from CityTB", cn);
+        DataSet ds = new DataSet();
+        daP.Fill(ds, "province");
+        daC.Fill(ds, "city");
+        ds.Relations.Add("Children", ds.Tables["province"].Columns["PID"], ds.Tables["city"].Columns["PID"]);
+        return ds;
+    }
+

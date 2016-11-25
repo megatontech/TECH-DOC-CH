@@ -1,0 +1,136 @@
+关于在WinForm里用HttpWebRequest获得某个页面，并填写页面的textbox及点击button的方法 
+方法如下：
+
+step1：use HttpWebRequest class to request,and use HttpWebResponse get the response.
+
+if you read the response, you can get the information including what did in the Page_load function.
+
+step2: if you want to fill a textbox or click a button and etc..  in this page, you can repalce the response with the Message,and use HttpWebRequest class to post it to the server.The server will get what in the textbox or do the Onclick function.
+
+Message: you can use sniffer to catch the postbag and get what in it,usually with a '&' and the webcontrol name or id.It is a format of ASPX post. 
+
+step3: use HttpWebResponse get the response.You can read the  response to get the information which did in the Onclick function.
+
+以下代码是向一个指定的页面发送请求，填写三个textbox，click一个button，并得到Server端的执行是否成功的class。注：由于页面的代码也是我写的，所以我知道将要Post页面的结构，即我知道每个页面控件的name和页面结构。
+
+
+public class FtpMessage
+ {
+  private string m_fileName;
+  private string m_host;
+  private string aspValue;
+
+  public FtpMessage(string fileName,string hostUrl)
+  {
+    //指定的一个信息，将用于填写TextBoxFileName。
+    m_fileName = fileName;
+    //指定的URL
+    m_host = hostUrl;
+  }
+
+
+  public bool SendCompleteMessage(string user,string password)
+  {
+   bool isSendMessageSuccess = false;
+   HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://"+m_host);
+   //得到网页。
+   WebResponse response = null;
+   response = request.GetResponse();
+   Stream readStream = response.GetResponseStream();
+   StreamReader sr = new StreamReader(readStream,Encoding.GetEncoding("utf-8"));
+   string content = "";
+   int index = -1;
+   //寻找数据
+   while (index < 0 && content != null) 
+   {
+    content = sr.ReadLine();
+    //得到标准的ASPX页面的头一共26个字节，以("name=\"__VIEWSTATE\" value=\""开始的
+    index = content.IndexOf("name=\"__VIEWSTATE\" value=\"",0);
+   }
+   index += 26;
+   int endIndex = content.LastIndexOf("\"");
+   //形成目标数据。
+   if (index > 26 && endIndex > index)
+   {
+    //得到页面数据段
+    aspValue = content.Substring(index,endIndex-index);
+    StringBuilder tempData = new StringBuilder();
+    tempData.Append("__VIEWSTATE=");
+    tempData.Append(HttpUtility.UrlEncode(aspValue));
+    //填写TextBoxFileName的值，其值见后
+    tempData.Append("&TextBoxFileName=");
+    tempData.Append("(content1)");
+    //填写TextBoxUser的值，其值见后
+    tempData.Append("&TextBoxUser=");
+    tempData.Append("(content2)");
+    //填写TextBoxPassword的值，其值见后
+    tempData.Append("&TextBoxPassword=");
+    tempData.Append("(content3)");
+     //填写Button Click 的Message
+    tempData.Append("&ButtonForData=");
+    tempData.Append(HttpUtility.UrlEncode("Message"));
+    aspValue = tempData.ToString();
+   }
+
+   string content1 = m_fileName;
+   string content2 = user;
+   string content3 = password;
+   WebResponse response1 = null;
+   //替换预传送的数据。
+   string tempData1 = aspValue.Replace("(content1)",HttpUtility.UrlEncode(content1));
+   string tempData2 = tempData1.Replace("(content2)",HttpUtility.UrlEncode(content2));
+   string tempData3 = tempData2.Replace("(content3)",HttpUtility.UrlEncode(content3));
+   byte [] postData = Encoding.UTF8.GetBytes(tempData3.ToString());
+
+   HttpWebRequest request1 = (HttpWebRequest)WebRequest.Create("http://"+m_host);
+
+   //设定工作属性。
+   request1.Method = "POST";
+   request1.ContentType = "application/x-www-form-urlencoded";
+   request1.ContentLength = postData.Length;
+    
+   //上传数据。
+   Stream writeStream = request1.GetRequestStream();
+   writeStream.Write(postData,0,postData.Length);
+   writeStream.Close();
+   
+   //下载回应消息。
+   string serverMessage = "";
+   try
+   {
+    response1 = request1.GetResponse();
+    //这里的response1是Server在Button点击后跳转到的另一个页面，这个页面有一个值表示是否成功
+    //我将取得其值作为函数的返回值
+    Stream readStream1 = response1.GetResponseStream();
+    int i = 1024;
+    byte[] hehe = new byte[i];
+    readStream1.Read(hehe,0,i);
+    readStream1.Close();
+
+
+    StringBuilder hehe1 = new StringBuilder();
+   //由于我知道页面的结构，我可以从页面得到这个值。
+    for(int j=658;j<662;j++)
+    {
+     hehe1.Append((char)hehe[j]);
+    }
+    serverMessage = hehe1.ToString();
+
+   }
+   catch(Exception E)
+   {
+    string tempError = E.Message;
+   }
+   if(serverMessage == "true")
+   {
+    isSendMessageSuccess = true;
+   }
+   return isSendMessageSuccess;
+  }
+ }
+
+网页部分的代码没有写，就是一个aspx的页面，先拖三个textbox上去，再拖一个button上去（都是web的，不是html的），
+三个textbox依次命名为：TextBoxFileName，TextBoxUser，TextBoxPassword，
+button命名为：ButtonForData，处理方法就写在这个buttonclick方法里，可以直接取this.TextBoxFileName等控件的值即可以在buttonclick里写
+"string ss = this.TextBoxFileName.Text;" 
+

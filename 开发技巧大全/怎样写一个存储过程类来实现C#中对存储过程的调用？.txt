@@ -1,0 +1,42 @@
+怎样写一个存储过程类来实现C#中对存储过程的调用？
+
+--------------------------------------------------------------------------------
+
+Q: 怎样写一个存储过程类来实现C#中对存储过程的调用？
+
+A: 假设数据表为UserDataStore，存储过程InsertUserData如下：
+
+CREATE PROCEDURE InsertUserData 
+@UserName NVARCHAR(50) = NULL, 
+@UserInfo NVARCHAR(4000) = NULL 
+
+AS 
+SET XACT_ABORT ON 
+BEGIN TRANSACTION 
+INSERT INTO [UserDataStore] 
+VALUES (@UserName,@UserInfo) 
+COMMIT TRANSACTION 
+RETURN 0 
+GO
+则相应的程序为：
+
+... 
+public bool InsertUserData(DataSet userData) 
+{ 
+	OleDbCommand insertCommand=new OleDbCommand("InsertUserData",dsConnection); 
+	insertCommand.CommandType=CommandType.StoredProcedure; 
+	insertCommand.Parameters.Add("@UserName",OleDbType.VarWChar,50,"UserName"); 
+	insertCommand.Parameters.Add("@UserInfo", OleDbType.VarWChar,4000,"UserInfo"); 
+	dsCommand.InsertCommand=insertCommand; 
+	try 
+	{ 
+		dsCommand.InsertCommand=this.GetInsertCommand(); 
+		dsCommand.Update(userData,"UserDataStore"); 
+		userData.AcceptChanges(); 
+		return (true); 
+	} 
+	catch(Exception e) 
+	{ 
+		throw e; 
+	} 
+}

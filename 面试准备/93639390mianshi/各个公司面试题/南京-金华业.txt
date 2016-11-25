@@ -1,0 +1,18 @@
+1.父类有虚函数，子类是否能实现多态？
+2.随机输入一个字符串，并使它倒置输出，用C++
+3 下列写法那种正确，为什么？
+   if(n == 10)
+   if(10 == n)
+4,写出下列结果
+  char[] a = "word" cout<<sizeof(a)<<endl;
+  char   a = 10     cout<<sizeof(a)<<endl;
+  char   *pp = malloc(10) cout<<sizeof(p)<<endl;
+5考结构体，共同体的内存长度
+6线程有几种通信方式
+7，考虚函数感念
+8，有表里面有部门编号，部门名，工资，算出除某个部门外所有的平均工资，并按部门字母排序
+9，多表查询。
+10。指出下列有什么不同
+    coust char *p
+    char coust *p
+    char *coust p 

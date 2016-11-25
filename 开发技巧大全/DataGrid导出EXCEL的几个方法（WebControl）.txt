@@ -1,0 +1,216 @@
+DataGird导出EXCEL的几个方法（WebControl）
+                                       
+
+
+
+using System;
+using System.Data;
+using System.Text;
+using System.Web;
+using System.Web.UI;
+using System.Diagnostics;
+using System.Web.UI.WebControls;
+using System.Web.UI.HtmlControls;
+using System.Data.SqlClient;
+using System.Collections;
+
+
+namespace bookstore
+{
+ /// <summary>
+ /// myExcel 的摘要说明。
+ /// </summary>
+ public class myExcel
+ {
+  public myExcel()
+  {
+            
+  }
+
+
+  /// <summary>
+  /// 将DATAGRID导出为EXCEL文件方法一,
+  /// 参数是:要导出的DATAGRID的ID和要保存下来的EXCEL文件名
+  /// </summary>
+  /// <param name="myPage">page</param>
+  /// <param name="dg">datagrid</param>
+  /// <param name="name">filename</param>   
+  private void OutExcel(Page myPage,DataGrid dg,string name)
+  {
+   HttpResponse Response;  
+   Response=myPage.Response;  
+
+   string name1="attachment;filename="+name+".xls";  
+   dg.Visible=true;
+   Response.Clear(); 
+   Response.Buffer= true; 
+   Response.Charset="GB2312";
+   
+   Response.AppendHeader("Content-Disposition",name1);   
+
+   Response.ContentEncoding=System.Text.Encoding.GetEncoding("GB2312");   
+   Response.ContentType ="application/ms-excel";
+
+   dg.EnableViewState = false;
+   System.IO.StringWriter oStringWriter = new System.IO.StringWriter(); 
+   System.Web.UI.HtmlTextWriter oHtmlTextWriter = new System.Web.UI.HtmlTextWriter(oStringWriter);
+   dg.RenderControl(oHtmlTextWriter); 
+   Response.Write(oStringWriter.ToString());
+   Response.End();
+  }
+
+
+  /// <summary>
+  /// 将DATAGRID导出为EXCEL文件方法二,
+  /// 参数是:要导出的DATAGRID的ID和要保存下来的EXCEL文件名
+  /// </summary>
+  /// <param name="myPage">page</param>
+  /// <param name="ctl">datagrid</param>
+  /// <param name="filename">filename</param>
+  public void ExportToExcel(Page myPage,DataGrid ctl,string filename) 
+  { 
+   HttpResponse Response;  
+   Response=myPage.Response; 
+
+   bool CurrCtlVisible=ctl.Visible;
+   ctl.Visible=true;        
+   Response.AppendHeader("Content-Disposition","attachment;filename="+filename+".xls");  
+   Response.ContentEncoding = System.Text.Encoding.GetEncoding("utf-8");
+   Response.ContentType = "application/ms-excel"; 
+   ctl.Page.EnableViewState = false; 
+   System.IO.StringWriter tw = new System.IO.StringWriter(); 
+   System.Web.UI.HtmlTextWriter hw = new HtmlTextWriter(tw); 
+   ctl.RenderControl(hw); 
+   Response.Write(tw.ToString()); 
+   Response.End(); 
+            
+   ctl.Page.EnableViewState = true; 
+   ctl.Visible=CurrCtlVisible;
+  }
+
+  private void DgOutExcel(Page myPage,DataGrid dg,string name)
+  {
+   HttpResponse Response;  
+   Response=myPage.Response;  
+
+   string name1="attachment;filename="+name+".xls";  
+   dg.Visible=true;
+   Response.Clear(); 
+   Response.Buffer= true; 
+   Response.Charset="GB2312";
+   
+   Response.AppendHeader("Content-Disposition",name1);   
+
+   Response.ContentEncoding=System.Text.Encoding.GetEncoding("GB2312");   
+   Response.ContentType ="application/ms-excel";
+
+   dg.EnableViewState = false;
+   System.IO.StringWriter oStringWriter = new System.IO.StringWriter(); 
+   System.Web.UI.HtmlTextWriter oHtmlTextWriter = new System.Web.UI.HtmlTextWriter(oStringWriter);
+   dg.RenderControl(oHtmlTextWriter); 
+   Response.Write(oStringWriter.ToString());
+   Response.End();
+  }
+
+
+  #region   导出EXCEL，用DATASET
+
+  public string myExportString(DataGrid DG,DataSet ds)
+  {
+   string  HTstring="<table><tr>";
+   string Fieldstring="";
+   ArrayList myAL=new ArrayList();
+   string sRows="<tr>";
+   for(int i=0;i<DG.Columns.Count;i++)
+   {
+    HTstring+="<td>"+DG.Columns[i].HeaderText+"</td>";
+    Fieldstring+="<td>"+((System.Web.UI.WebControls.BoundColumn)(DG.Columns[i])).DataField+"</td>";
+    myAL.Add(((System.Web.UI.WebControls.BoundColumn)(DG.Columns[i])).DataField);  
+   }
+                 
+   for(int k=0;k<ds.Tables[0].Rows.Count;k++)
+   {
+    foreach(string field in myAL)
+    {   
+     sRows+= "<td>"+ds.Tables[0].Rows[k][field]+"</td>";
+    }
+    sRows+="</tr>";
+   }       
+   HTstring+="</tr>"+sRows+"</table>";
+
+   return  HTstring;
+  }
+
+
+  public void SaveToExcel(Page myPage, string myExportString,string myFileName)
+  {      
+   HttpResponse resp;       
+   resp=myPage.Response;
+   resp.ContentEncoding=System.Text.Encoding.GetEncoding("GB2312");
+   resp.AppendHeader("Content-Disposition","attachment;filename="+myFileName+".xls");
+   resp.ContentType="application/ms-excel";                                                          
+   resp.Write(myExportString);  
+   resp.End();
+   //resp.Clear();
+   //resp.Close();     
+  }
+
+
+  public void Export(DataGrid myDG,DataTable dt,HttpResponse response)
+  {
+   // clean up response object
+   response.Clear();
+   response.Charset = "";
+   response.Charset = "UTF-8";
+   //   response.ContentEncoding = System.Text.Encoding.Default;
+   response.ContentEncoding=System.Text.Encoding.GetEncoding("GB2312");  
+   // set response object's mime type
+   //   response.ContentType = "application/vnd.ms-excel"; 
+   response.AppendHeader("Content-Disposition","attachment;filename=mytest.xls");
+   System.IO.StringWriter sw = new System.IO.StringWriter();
+   System.Web.UI.HtmlTextWriter htw = new System.Web.UI.HtmlTextWriter(sw);
+
+   DataGrid dg = new DataGrid();
+   dg.AllowPaging = false;
+   dg.AllowSorting = false; 
+
+   ArrayList myAL=new ArrayList();
+   for(int i=0;i<myDG.Columns.Count;i++)
+   {  
+    // dg.Columns.AddAt(i,myDG.Columns[i]);
+    // dg.Columns[i].HeaderText=myDG.Columns[i].HeaderText;   
+    myAL.Add(((System.Web.UI.WebControls.BoundColumn)(myDG.Columns[i])).DataField);
+
+    for(int k=0;k<dt.Columns.Count;k++)
+    {
+     foreach(string field in myAL)
+     {
+      if(dt.Columns[i].ColumnName==field)
+      {
+       dt.Columns[i].ColumnName=myDG.Columns[i].HeaderText; 
+      } 
+     }
+    }       
+   }  
+   dg.DataSource = dt;
+   dg.ShowHeader = true;
+   dg.HeaderStyle.BackColor = System.Drawing.Color.DarkGray;
+   dg.HeaderStyle.ForeColor = System.Drawing.Color.White;
+   dg.HeaderStyle.Font.Bold = true;
+   dg.AlternatingItemStyle.BackColor = System.Drawing.Color.LightGray;  
+   dg.DataBind();  
+
+   dg.RenderControl(htw);                                        
+   response.Write(sw.ToString()); 
+   response.End();
+  }
+
+  #endregion
+
+
+ }
+}
+
+
+
+

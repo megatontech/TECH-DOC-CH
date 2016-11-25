@@ -1,0 +1,93 @@
+ 显示DataGrid序号的一个适用的方法 
+ 
+ 我在网上查了好几个例子，如果数据量小的话没有问题，一旦数据量大，显示特别慢，还有个缺点就是拖动行高时行号不随行高的变化而变动，出现是几个序号在一个单元格中显示。我自己对他们的算法进行总结，写出一个效果比较不错的带序号的DataGrid。原理：只显示表格中显示行的序号，并且拖动行，行号一起移动。
+
+override protected void OnPaint(PaintEventArgs e)
+
+{
+
+base.OnPaint(e);
+
+    try
+
+    {
+
+        if(this.DataSource!=null)
+
+        {           
+
+        int yDelta; 
+
+        System.Drawing .Rectangle cell=this.GetCellBounds(0,0);
+
+        int y=cell.Top +2;
+
+        e.Graphics.DrawString("编号", this.Font, new SolidBrush(Color.Black), 8, y-18); //
+
+        if(this.VisibleRowCount >0)//只在有记录集时在表格中显示序号
+
+        {                   
+
+            CurrencyManager cm;
+
+            cm = (CurrencyManager) this.BindingContext[this.DataSource, this.DataMember]; 
+
+            if(cm.Count >0)
+
+            {                       
+
+                int nRow=-1;
+
+                y=41;           //为第一行默认高度
+
+                while(nRow<0)
+
+                {
+
+nRow=this.HitTest (8,y).Row ;
+
+                    y++;
+
+                }
+
+                int nCount=0;
+
+                while(y<this.Height && nCount<this.VisibleRowCount )
+
+                {
+
+                    string text = string.Format("{0}", nRow+nCount+1); 
+
+                    e.Graphics.DrawString(text, this.Font, new SolidBrush(Color.Black), 10, y); 
+
+                    yDelta = this.GetCellBounds( nRow+nCount,0).Height + 1;//****表示一行高度的参数
+
+                    y += yDelta; 
+
+//如果下面有子行显示序号的区分显示   
+
+                    if(this.IsExpanded (nRow+nCount)&& nRow+nCount+1<cm.Count )                                 {
+
+                        y+=this.GetCellBounds (nRow+nCount+1,0).Height +3;
+
+                    }
+
+                    nCount++;       
+
+                }
+
+}
+
+        }
+
+        }
+
+    }
+
+    catch
+
+    {}
+
+}
+
+ 

@@ -1,0 +1,102 @@
+
+
+
+　　Microsoft .Net的应用程序的代码文件，与Java生成的文件类似，它们都没有本地代码，而是一种类似于汇编的代码。这样，只要有合适的工具，就可以完整的把别人写出来的程序反编译成自己需要的程序文件。 
+
+我所知道的.Net下的反汇编程序是Salamander 和 Refelector 两个工具，他们都可以对.Net的程序集反编译成你需要的语言。 
+
+那么，我们写的程序，做的项目，如何进行正版的许可证管理，有许多方法。 
+
+最好的方案，是几个方法的综合。下面我说一下单独的许可验证方法。 
+
+最简单的方法，就是使用许可存储。方法是用户输入正版的注册码，通过程序中专门的算法程序进行验算，得出的结果与事先保存在程序中的结果比对，比对一致表示输入正确。然后把结果保存在存储中，如注册表或者专门的许可文件中，程序许可通过。 
+
+这个方法使用的人/公司最多，但是缺点也是最多的，只要使用上面的工具把验算注册码的算法给弄清楚，就可以自己写一个生成序列号的注册机，这个注册方法就形同虚设了。 
+
+还有一个比较好的方法，就是仿照WindowsXP的激活机制，客户的程序自动访问互联网的一个专门设定的服务器，通过Tcp/Ip或者WebService远程访问服务器上的许可程序，许可后把结果保存在客户端计算机上。这个方法的好处是许可验证代码保存在开发者控制的计算机上，客户端无法获取验证算法，而且可以通过数据库管理用户，非常方便。 
+
+但是这个方法也有缺点，首先是可靠的Internet连接。如果要防止用户使用盗版，则必须在客户端的程序中添加一个随机访问远程许可服务器验证的功能，这样不但需要一个24小时的Internet连接，而且经常进行验证也会干扰程序的正常运行。还有就是如果有人通过研究客户端的接收返回信息的代码，弄一个虚拟的验证服务器，这个功能也会完蛋。 
+
+那么，所有的焦点都聚集在客户端的验证算法上，只要这个客户端的验证算法被人弄清楚了，整个程序的许可可以说就不存在了，所以许多开发者/开发公司费好大的力气，弄一个足够复杂的验证算法出来，用算法的复杂度来抵抗破解。但是再复杂的算法，只要有人写得出来，就有人能破解得出来，这个道理我想大家都明白。 
+
+那是否有加密算法与解密算法不同的办法呢？有。而且.Net自带的类库里面就有这个算法。 
+这个算法的原理是不对称加密的原理。不对称加密原理大家基本上都了解。加密的密码(密钥)分为两个部分，公钥和私钥。通过私钥加密的密文只能通过公钥解密。根据这个特性，我们可以发现只要开发者保存好私钥，即使算法代码被客户端破解，因客户端不知道保存在开发者处的私钥，也无法生成注册码。 
+
+这个算法就是 System.Security.Cryptography 名称空间的 RSAPKCS1SignatureFormatter 类(用来生成注册码)和 RSAPKCS1SignatureDeformatter 类(用来在客户端验证注册码)。验证过程如下： 
+首先，需要生成一个公钥和私钥对，当然，依靠人是无法生成的，我们可以通过 System.Security.Cryptography 名称空间的RSACryptoServiceProvider 类来生成公钥/私钥对。 
+
+
+using(RSACryptoServiceProvider rsa = new RSACryptoServiceProvider()) 
+{ 
+
+　　 // 公钥 
+
+　　 string pubkey = rsa.ToXmlString(false);； 
+
+
+　　 // 私钥 
+
+　　 string prikey = rsa.ToXmlString(true);； 
+} 
+获取私钥以后，可以用 RSAPKCS1SignatureFormatter 类来生成注册码，代码如下(引用名称空间略) 
+
+using(RSACryptoServiceProvider rsa = new RSACryptoServiceProvider()) 
+{ 
+
+　　 rsa.FromXmlString(prikey);； 
+
+　　 // 加密对象 
+
+　　 RSAPKCS1SignatureFormatter f = new RSAPKCS1SignatureFormatter(rsa);； 
+
+　　 f.SetHashAlgorithm("SHA1");； 
+
+　　 byte[] source = System.Text.ASCIIEncoding.ASCII.GetBytes(txtIn.Text);； 
+
+　　 SHA1Managed sha = new SHA1Managed();； 
+
+　　 byte[] result = sha.ComputeHash(source);； 
+
+
+　　 byte[] b = f.CreateSignature(result);； 
+
+
+　　 msg.Text = Convert.ToBase64String(b);； 
+} 
+上面的代码是一个示例aspx页面的代码，页面包括一个id为msg的Label控件，一个ID为txtIn的TextBox控件，一个ID为btnOK的Button控件，上面的代码就是btnOK的事件处理程序的内容。大家可以非常清楚的看出处理流程，生成一个RsaCryptoServiceProvider类实例，然后把这个类实例的加密密钥指定为包含私钥的prikey字符串因为加密解密的公钥/私钥必须是对应的。然后获取txtIn输入的内容，生成密钥后在msg控件上显示。 
+
+下面是使用 RSAPKCS1SignatureDeformatter 类来验证输入： 
+using(RSACryptoServiceProvider rsa = new RSACryptoServiceProvider()) 
+{ 
+
+　　 rsa.FromXmlString(pubkey);； 
+
+　　 RSAPKCS1SignatureDeformatter f = new RSAPKCS1SignatureDeformatter(rsa);； 
+
+
+　　 f.SetHashAlgorithm("SHA1");； 
+
+
+　　 byte[] key = Convert.FromBase64String(txtKey.Text);； 
+
+
+　　 SHA1Managed sha = new SHA1Managed();； 
+
+　　 byte[] name = sha.ComputeHash(ASCIIEncoding.ASCII.GetBytes(txtIn.Text));； 
+
+　　 if(f.VerifySignature(name,key)) 
+
+　　 msg.Text = "验证成功";； 
+
+　　 else 
+
+　　 msg.Text = "不成功";； 
+} 
+
+上面的代码也很好理解，就是多了一个ID为txtKey的TextBox控件，他通过同时获取用户名/加密密钥来进行验证。重点是RSA类的FromXmlString()方法，注意上面的这个方法获取的是公钥，表示这段验证代码是保存在客户端的，客户端代码是没有私钥的，即使有人把程序集的代码反编译了也没有用。 
+
+
+上面两段代码需要注意的就是生成的公钥/私钥必须匹配，我使用RSA对象生成密钥对后保存成为字符串常量，就可以解决这个问题。 
+
+上面这个方法仍然无法解决客户使用ildasm反编译后暴力修改IL代码，只有靠可靠的强名称以及数字证书来保证程序集不被修改了。
+

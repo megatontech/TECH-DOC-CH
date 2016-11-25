@@ -1,0 +1,234 @@
+在.NET Framework中并没有类似VB中的InputBox函数，虽然可以借助对VB 的Runtime引用，以在VB除外的.NET程序中使用VB的InputBox，但是为什么不自己写一个类实现类似的功能呢？
+
+下面一个类实现了类似的InputBox函数的功能:
+
+using System;
+
+using System.Windows.Forms;
+
+ 
+
+namespace Input
+
+{
+
+     /// <summary>
+
+     /// clsInputBox 的摘要说明。
+
+     /// </summary>
+
+     public class InputBox : System.Windows.Forms.Form 
+
+     {
+
+         private System.Windows.Forms.TextBox txtData;
+
+         private System.Windows.Forms.Label lblInfo; 
+
+         private System.ComponentModel.Container components = null; 
+
+ 
+
+         private InputBox() 
+
+         { 
+
+              InitializeComponent(); 
+
+         } 
+
+ 
+
+         protected override void Dispose( bool disposing ) 
+
+         { 
+
+              if( disposing ) 
+
+              { 
+
+                   if(components != null) 
+
+                   { 
+
+                       components.Dispose(); 
+
+                   } 
+
+              } 
+
+              base.Dispose( disposing ); 
+
+         } 
+
+ 
+
+         private void InitializeComponent() 
+
+         { 
+
+              this.txtData = new System.Windows.Forms.TextBox();
+
+              this.lblInfo = new System.Windows.Forms.Label();
+
+              this.SuspendLayout();
+
+              // 
+
+              // txtData
+
+              // 
+
+              this.txtData.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((System.Byte)(134)));
+
+              this.txtData.Location = new System.Drawing.Point(19, 8);
+
+              this.txtData.Name = "txtData";
+
+              this.txtData.Size = new System.Drawing.Size(317, 23);
+
+              this.txtData.TabIndex = 0;
+
+              this.txtData.Text = "";
+
+              this.txtData.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtData_KeyDown);
+
+              // 
+
+              // lblInfo
+
+              // 
+
+              this.lblInfo.BackColor = System.Drawing.SystemColors.Info;
+
+              this.lblInfo.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+
+              this.lblInfo.FlatStyle = System.Windows.Forms.FlatStyle.System;
+
+              this.lblInfo.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((System.Byte)(134)));
+
+              this.lblInfo.ForeColor = System.Drawing.Color.Gray;
+
+              this.lblInfo.Location = new System.Drawing.Point(19, 32);
+
+              this.lblInfo.Name = "lblInfo";
+
+              this.lblInfo.Size = new System.Drawing.Size(317, 16);
+
+              this.lblInfo.TabIndex = 1;
+
+              this.lblInfo.Text = "[Enter]确认 | [Esc]取消";
+
+              // 
+
+              // InputBox
+
+              // 
+
+              this.AutoScaleBaseSize = new System.Drawing.Size(6, 14);
+
+              this.ClientSize = new System.Drawing.Size(350, 48);
+
+              this.ControlBox = false;
+
+              this.Controls.Add(this.lblInfo);
+
+              this.Controls.Add(this.txtData);
+
+              this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+
+              this.Name = "InputBox";
+
+              this.Text = "InputBox";
+
+              this.ResumeLayout(false);
+
+ 
+
+         } 
+
+         //对键盘进行响应
+
+         private void txtData_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e) 
+
+         { 
+
+              if(e.KeyCode == Keys.Enter) 
+
+              {
+
+                   this.Close(); 
+
+              }
+
+              else if (e.KeyCode == Keys.Escape )
+
+              {
+
+                   txtData.Text = string.Empty ;
+
+                   this.Close();
+
+              }
+
+         } 
+
+         //显示InputBox
+
+         public static string ShowInputBox(string Title,string keyInfo) 
+
+         { 
+
+              InputBox inputbox = new InputBox(); 
+
+              inputbox.Text =Title;
+
+              if (keyInfo.Trim() != string.Empty )
+
+                   inputbox.lblInfo.Text =keyInfo;
+
+              inputbox.ShowDialog(); 
+
+              return inputbox.txtData.Text; 
+
+         } 
+
+         
+
+     } 
+
+}
+
+直接调用该类的静态方法ShowInputBox就可以，其中Title参数是对话框的Text，keyInfo参数是标签lblInfo(可以显示自定义的信息)的Text。具体调用如下:
+
+private void button_Click(object sender, System.EventArgs e)
+
+         {
+
+              //Microsoft.VisualBasic.Interaction.InputBox(  "type  your  name  ",  "input  ","",0,0); 
+
+              //可以将你要显示的文本信息代替下面的string.Empty。
+
+              string inMsg= Input.InputBox.ShowInputBox("输入信息",string.Empty );
+
+              //对用户的输入信息进行检查
+
+              if (inMsg.Trim() != string.Empty )
+
+              {
+
+                   MessageBox.Show(inMsg);
+
+              }
+
+              else if
+
+              {
+
+                   MessageBox.Show(“输入为string.Empty”);
+
+               }
+
+         }
+

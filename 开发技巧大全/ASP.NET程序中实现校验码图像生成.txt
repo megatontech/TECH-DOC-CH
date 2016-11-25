@@ -1,0 +1,181 @@
+在Web系统中很多时候需要用到校验码，例如我们经常遇到不少电子邮件、论坛的注册过程需要我们输入校验码，这是为了提高安全性。今天我们就来讲讲如何生成校验码。
+
+　　使用ASP.NET来生成校验码图像很方便，网上也有不少教程与文章有介绍，但是都讲的太简单了，不够实用。我来介绍一点自己的思路，算是抛砖引玉吧。
+
+　　首先我们来看看，生成校验码的一种常见方式：
+
+　　1． 生成校验码的字符串
+
+　　2． 将该字符串输出为图像 
+
+　　具体步骤
+
+　　下面我们就开始简单的例子来介绍这个过程，首先打开VS.NET，新建一个Web Site，添加一个新的 Web Form，取名为 VCode.aspx，在其代码文件（VCode.aspx.vb）中添加一个函数generateVCode，此函数用于生成校验码的字符串，具体代码如下：
+
+''' ＜summary＞
+''' 产生随机数（包含字母与数字）用于校验码
+''' ＜/summary＞
+''' ＜param name="CodeLength"＞＜/param＞
+''' ＜returns＞＜/returns＞
+''' ＜remarks＞＜/remarks＞
+Private Function generateVCode(ByVal CodeLength As Integer) As String
+Dim VCode As String = String.Empty
+Dim randObj As New Random()
+Dim c As Integer = 63
+For i As Byte = 1 To CodeLength
+c = randObj.Next(35)
+If c ＞= 10 Then
+c += 7
+End If
+c += 48
+VCode += Chr(c)
+Next
+Return VCode
+End Function 
+
+　　上面的的函数使用随机数来代表需要产生的校验码，包含数字与大写的字母。
+
+　　接着我们需要将上面生成的校验码字符串作为图像输出。利用ASP.NET的强大图像处理功能可以很方便的实现这一点。但是考虑到直接将校验码生成图像输出，安全性太差，我们需要做一些增强。这里我介绍一种简单的方法，就是为校验码图像增加背景，可以使用现有的一些图像作为背景，也可以使用ASP.NET 直接画出背景。为了讲解的方便，这里我们介绍使用ASP.NET直接来画出背景。
+
+　　首先，图像上输出文字之前，可以随即选择一种画笔的笔触（HatchBrush），具体的代码如下：
+
+''' ＜summary＞
+''' 产生随机的笔触样式(用于图像的背景)
+''' ＜/summary＞
+''' ＜returns＞＜/returns＞
+''' ＜remarks＞＜/remarks＞
+Private Function generateHatchStyle() As HatchStyle
+　Dim slist As New ArrayList
+　For Each style As HatchStyle In System.Enum.GetValues(GetType(HatchStyle))
+　　slist.Add(style)
+　Next
+
+　Dim randObj As New Random()
+　Dim index As Integer = randObj.Next(slist.Count - 1)
+
+　Return CType(slist(index), HatchStyle)
+End Function 
+
+　　现在校验码字符串已经产生，用于图像背景的画笔也有了，我们就介绍具体的图像输出，使用函数GenerateVCodeImage来输出图像，
+
+''' ＜summary＞
+''' 产生随机数校验码图像
+''' ＜/summary＞
+''' ＜remarks＞＜/remarks＞
+Private Function GenerateVCodeImage()
+
+　Dim oBitmap As Bitmap = New Bitmap(90, 35)
+　Dim oGraphic As Graphics = Graphics.FromImage(oBitmap)
+　Dim foreColor As System.Drawing.Color
+　Dim backColor As System.Drawing.Color
+
+　Dim sText As String = generateVCode(5) '获取校验码字符串
+　Dim sFont As String = "Comic Sans MS" '设置自己喜欢的字体
+ 
+　'前景、背景的颜色
+　foreColor = Color.FromArgb(220, 220, 220)
+　backColor = Color.FromArgb(190, 190, 190)
+　
+　'设置用于背景的画笔
+　Dim oBrush As New HatchBrush(CType(generateHatchStyle(), HatchStyle), foreColor, backColor)
+　'用于输出校验码的画笔
+　Dim oBrushWrite As New SolidBrush(Color.Gray) 
+
+　'生成的图像矩形大小
+　oGraphic.FillRectangle(oBrush, 0, 0, 100, 50)
+　oGraphic.TextRenderingHint = TextRenderingHint.AntiAlias
+
+　Dim oFont As New Font(sFont, 14)
+　Dim oPoint As New PointF(5.0F, 4.0F)
+
+　oGraphic.DrawString(sText, oFont, oBrushWrite, oPoint)
+　
+　Response.ContentType = "image/jpeg"
+　oBitmap.Save(Response.OutputStream, ImageFormat.Jpeg)
+　oBitmap.Dispose()
+
+　Return sText
+End Function
+　　上面介绍的都是几个实现具体功能的函数，我们还需要在VCode.aspx的Page Load事件里面添加调用这些函数的代码，具体如下：
+
+Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+　Dim code As String = GenerateVCodeImage()
+　Session("VCode") = code
+End Sub 
+
+　　现在来看看效果，刷新几次比较一下，注意背景的不同：
+
+ 
+
+ 
+
+　　我们已经能够生成校验码的图像了，那么如何使用呢？下面介绍一个简单的例子说明如何使用这个VCode.aspx。
+
+　　在 VS.NET中，转到Default.aspx页面添加一个名为：TextBox1的TextBox，在其右边添加一个Button，ID设置为 btnCheck，还要再添加一个用于显示提示信息的Label，把它的ID设置为lblMessage。最后是我们的重点，添加一个Image控件，设置ImageUrl='VCode.aspx'。以上几个步骤设置结束后的参考HTML如下：
+
+＜asp:TextBox ID="TextBox1" runat="server"＞＜/asp:TextBox＞
+＜asp:Button ID="btnCheck" runat="server" Text="Check It" /＞&nbsp;
+＜asp:Label ID="lblMessage" runat="server"＞＜/asp:Label＞＜br /＞
+＜br /＞
+＜asp:Image ID="Image1" runat="server" Height="32px" Width="104px" ImageUrl='VCode.aspx' /＞&nbsp;＜br /＞
+＜br /＞ 
+
+　　当然，我们还需要实现检查用户输入校验码是否正确，并给出提示。具体代码如下：
+
+Protected Sub btnCheck_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnCheck.Click
+　Dim code As String = Session("VCODE")
+　If TextBox1.Text.Trim.ToUpper = code Then
+　　lblMessage.Text = "校验成功！"
+　　lblMessage.ForeColor = Color.Blue
+　Else
+　　lblMessage.Text = "您输入的注册码错误！"
+ 
+
+　lblMessage.ForeColor = Color.Red
+　End If
+　TextBox1.Text = ""
+End Sub
+　　具体的效果如下：
+
+ 
+
+　　总 结
+
+　　上述的方法考虑到讲述的方便，省略了一些细节。当然我们可以根据具体的应用对上述实现的方法进行一些改进，例如上面介绍的字符串生成函数会生成字符O与数字0，会对用户造成混淆。对于这个问题，可以在其循环过程中添加如下代码解决（不生成数字0， 当然也可以选择两个都不生成）：
+
+Private Function generateVCode(ByVal CodeLength As Integer) As String
+　Dim VCode As String = String.Empty
+　Dim randObj As New Random()
+　Dim c As Integer = 63
+　For i As Byte = 1 To CodeLength
+　　'是否显示 数字：0， 因为数字0 与字母O 容易混淆
+　　'While (c = 63)
+　　　' c = randObj.Next(35)
+　　'End While
+　　c = randObj.Next(35)
+　　If c ＞= 10 Then
+　　　c += 7
+　　End If
+　　c += 48
+　　VCode += Chr(c)
+　Next
+
+　Return VCode
+End Function 
+
+　　我们还可以在生成图像的过程中，使用更加复杂的方法来增强安全性，常用的方法有：
+
+　　1．在上述图像生成结束后，在图像上添加随机的杂点，或者是随机的线条
+
+　　2．使用彩色的字体或者背景；
+
+　　3．使用预先准备的干扰性更强的背景；
+
+　　4．还可以移动或者旋转每个字符的位置与角度；
+
+　　当然我们也可以使用汉字来做校验码，但是用户恐怕很难接受吧，哈哈遇到校验码里面的字居然不认识的时候，说不定很抓狂～～。
+
+
+
+
+

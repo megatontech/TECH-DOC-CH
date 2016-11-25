@@ -1,0 +1,21 @@
+		/// <summary>
+		/// 二进制数据字段的更新
+		/// </summary>
+		/// <param name="p_TableName">表名</param>
+		/// <param name="p_KeyField">主键名</param>
+		/// <param name="p_KeyValue">键值</param>
+		/// <param name="p_FieldName">存放二进的字段名</param>
+		/// <param name="p_bDates">二进制数据</param>
+		public static void UpdateByteField(string p_TableName,string p_FieldName,string p_KeyField,int p_KeyValue,byte[] p_bDates)
+		{
+			if(MainConn.OpenConn)
+			{
+				string strSql=string.Format("update {0} set {1}=@image where {2}={3}",
+					p_TableName,p_FieldName,p_KeyField,p_KeyValue);
+                SqlCommand myCommand= new SqlCommand(strSql,MainConn.Connect);
+				myCommand.Parameters.Add(new System.Data.SqlClient.SqlParameter("@image", SqlDbType.Image, int.MaxValue));
+				myCommand.Parameters["@image"].Value=p_bDates;
+				myCommand.ExecuteNonQuery();
+			}
+			
+		}

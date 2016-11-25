@@ -1,0 +1,2 @@
+新建项目时出错：Visual Studio .NET 已检测到指定Web服务器运行的不是ASP.NET 1.1版。您将无法运行ASP.NET Web应用程序或服务 
+在vs.net2003的命令提示直接输入：aspnet_regiis.exe -i 也可以

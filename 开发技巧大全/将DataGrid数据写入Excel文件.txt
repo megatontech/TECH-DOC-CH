@@ -1,0 +1,125 @@
+将DataGrid数据写入Excel文件    
+   
+ 
+ 前几天项目中有个地方需要将DataGrid的数据直接导入Excel里，以提供给用户下载，在网上找了下，好像都是与下面代码类似的实现：
+程序代码： 
+
+this.EnableViewState   =   false;         
+System.Globalization.CultureInfo   myCItrad   =   new   System.Globalization.CultureInfo("ZH-CN",true);
+System.IO.StringWriter   oStringWriter   =   new   System.IO.StringWriter(myCItrad);   
+System.Web.UI.HtmlTextWriter   oHtmlTextWriter   =   new   System.Web.UI.HtmlTextWriter(oStringWriter);
+this.DataGrid1.RenderControl(oHtmlTextWriter);   
+Response.Write(oStringWriter.ToString());
+Response.End();
+ 
+
+原理也就是把DataGrid的信息以流的形式写到html输出流的形式实现，自己尝试下，好像可以。我装的windowxp sp2版的，后来到同事的机器上去试，结果就出问题了，每次执行的时候，弹出那个【打开、保存、取消】的页面，再一点，结果整个站点的页面都关闭了，再到其他机器上去试，结果有的能正常下载，有的就不行，以前听说过有这么个问题，好像也没什么好的办法解决。
+    后来考虑了下，何必不直接把写到html流的信息直接写到一个excel文件里面去让客户直接下载excel，于是稍微修改了下别人的源码，直接生成Excel文件来让客户下载，演示源代码如下：
+
+WebForm4.aspx----Html部分：
+程序代码： 
+
+<%@ Page language="c#" Codebehind="WebForm4.aspx.cs" AutoEventWireup="false" Inherits="WebUI.WebForm4" %>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" >
+<HTML>
+ <HEAD>
+  <title>WebForm4</title>
+  <meta name="GENERATOR" Content="Microsoft Visual Studio .NET 7.1">
+  <meta name="CODE_LANGUAGE" Content="C#">
+  <meta name="vs_defaultClientScript" content="JavaScript">
+  <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
+ </HEAD>
+ <body MS_POSITIONING="GridLayout">
+  <form id="Form1" method="post" runat="server">
+   <asp:datagrid id="DataGrid1" runat="server" width="100%">
+    <ItemStyle HorizontalAlign="Center"></ItemStyle>
+    <HeaderStyle HorizontalAlign="Center"></HeaderStyle>
+    <FooterStyle HorizontalAlign="Center"></FooterStyle>
+    <PagerStyle PageButtonCount="15" Mode="NumericPages"></PagerStyle>
+   </asp:datagrid>
+   <asp:Button id="Button1" style="Z-INDEX: 101; LEFT: 32px; POSITION: absolute; TOP: 152px" runat="server"
+    Text="Button"></asp:Button>
+  </form>
+ </body>
+</HTML>
+ 
+
+
+页面上就一个DataGrid和一个按钮，按钮用来触发将数据到Excel，后台的其他代码也就不弄上来了，下面是那个关键的按钮事件
+程序代码： 
+
+private void Button1_Click(object sender, System.EventArgs e)
+{
+ DataTable SourceTb = new DataTable();
+ DataColumn myDataColumn;
+
+ myDataColumn   = new DataColumn();
+ myDataColumn.DataType = System.Type.GetType("System.String");
+ myDataColumn.ColumnName = "RowIndex";  //序  号
+ SourceTb.Columns.Add(myDataColumn);
+
+ myDataColumn   = new DataColumn();
+ myDataColumn.DataType = System.Type.GetType("System.String");
+ myDataColumn.ColumnName = "CheckUpManName"; //审批人
+ SourceTb.Columns.Add(myDataColumn);
+
+ myDataColumn   = new DataColumn();
+ myDataColumn.DataType = System.Type.GetType("System.String");
+ myDataColumn.ColumnName = "CheckUpIdeas"; //审批意见
+ SourceTb.Columns.Add(myDataColumn);
+
+ myDataColumn   = new DataColumn();
+ myDataColumn.DataType = System.Type.GetType("System.String");
+ myDataColumn.ColumnName = "CheckUpDate"; //审批时间
+ SourceTb.Columns.Add(myDataColumn);
+
+ myDataColumn   = new DataColumn();
+ myDataColumn.DataType = System.Type.GetType("System.String");
+ myDataColumn.ColumnName = "CheckUpRole"; //审批岗位
+ SourceTb.Columns.Add(myDataColumn);
+
+ myDataColumn   = new DataColumn();
+ myDataColumn.DataType = System.Type.GetType("System.String");
+ myDataColumn.ColumnName = "HandleType";  //操作类型（1：提交| 9：驳回）
+ SourceTb.Columns.Add(myDataColumn);
+
+ DataRow myDataRow;
+ for(int i = 0;i < 30;i ++)
+ {
+  myDataRow     = SourceTb.NewRow();
+  myDataRow["RowIndex"]  = i.ToString();
+  myDataRow["CheckUpManName"] = "张三";
+  myDataRow["CheckUpIdeas"] = "同意";
+  myDataRow["CheckUpDate"] = "2006-03-20";
+  myDataRow["CheckUpRole"] = "物资部主任";
+  SourceTb.Rows.Add(myDataRow);
+ }
+
+ //绑定数据到DataGrid1
+ this.DataGrid1.DataSource = SourceTb.DefaultView;
+ this.DataGrid1.DataBind();
+ //将DataGrid1构成的html代码写进StringWriter
+ this.DataGrid1.Page.EnableViewState = false;
+ System.IO.StringWriter  tw   = new System.IO.StringWriter();
+ System.Web.UI.HtmlTextWriter hw  = new System.Web.UI.HtmlTextWriter(tw);
+ this.DataGrid1.RenderControl(hw);
+ string HtmlInfo = tw.ToString().Trim();
+
+ string DocFileName = "审批信息.xls";
+ string FilePathName = Request.PhysicalPath;
+ FilePathName  = FilePathName.Substring(0,FilePathName.LastIndexOf("\\"));
+ //得到Excel文件的物理地址
+ FilePathName  = FilePathName +"\\" + DocFileName;
+ System.IO.File.Delete(FilePathName); 
+ FileStream Fs  = new FileStream(FilePathName, FileMode.Create);
+ BinaryWriter BWriter= new BinaryWriter(Fs,System.Text.Encoding.GetEncoding("GB18030"));
+ //将DataGrid的信息写入Excel文件
+ BWriter.Write(HtmlInfo);
+ BWriter.Close();
+ Fs.Close();
+}
+ 
+
+
+好了，写入信息到Excel文件成功了，至于说生成的Excel文件在哪里，大家一看就应该知道，要下载的话，也就是很简单的<a href='Excel文件路径'>文件下载</a>咯。
+ 

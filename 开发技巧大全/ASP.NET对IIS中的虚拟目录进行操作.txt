@@ -1,0 +1,58 @@
+ 
+ASP.NET对IIS中的虚拟目录进行操作 
+
+
+
+//假如虚拟目录名为"Webtest"，先在项目中引用 
+//System.DirectoryServices.dll，再 
+
+using System.DirectoryServices; 
+
+protected System.DirectoryServices.DirectoryEntry dirroot; 
+
+
+
+1、添加新的虚拟目录 
+
+DirectoryEntry newVirDir = dirroot.Children.Add("Webtest","IIsWebVirtualDir"); 
+
+newVirDir.Invoke("AppCreate",true); 
+
+newVirDir.CommitChanges(); 
+
+dirroot.CommitChanges(); 
+
+2、更改虚拟目录属性 
+
+//虚拟目录的属性较常用的有:AccessRead,AccessWrite,AccessExecute,AccessScript,DefaultDoc,EnableDefaultDoc,Path等 
+
+
+
+DirectoryEntry Dirport = dirroot.Children.Find("Webtest","IIsVirtualDir"); 
+
+Dirport .Properties["AccessRead"][0] = true; 
+
+
+
+3、删除虚拟目录 
+
+DirectoryEntry Dirport = dirroot.Children.Find("Webtest","IIsVirtualDir"); 
+
+Dirport.Invoke("AppDelete",true); 
+
+dirroot.CommitChanges(); 
+
+或者： 
+
+
+
+object[] part = new object[2]; 
+
+part[0] = "IIsWebVirtualDir"; 
+
+part[1] = "Webtest"; 
+
+dirroot.Invoke("Delete",part); 
+
+dirroot.CommitChanges(); 
+ 

@@ -1,0 +1,8 @@
+把以下代码贴到GRID控件中
+
+
+<asp:TemplateField HeaderText="删除新闻" ShowHeader="False">
+<ItemTemplate>
+<asp:LinkButton ID="LinkButton1" runat="server" CommandArgument='<%# Eval("NewsID") %>' CommandName="DelCmd" OnClientClick="return confirm('您确定要删除吗？');">删除</asp:LinkButton>
+</ItemTemplate>
+</asp:TemplateField>

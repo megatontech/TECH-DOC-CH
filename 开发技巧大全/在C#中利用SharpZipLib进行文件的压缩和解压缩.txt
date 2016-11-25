@@ -1,0 +1,200 @@
+标题   在C#中利用SharpZipLib进行文件的压缩和解压缩     选择自 zlc810821 的 Blog  
+关键字   在C#中利用SharpZipLib进行文件的压缩和解压缩 
+出处    
+ 
+ 我在做项目的时候需要将文件进行压缩和解压缩，于是就从http://www.icsharpcode.net下载了关于压缩和解压缩的源码，但是下载下来后，面对这么多的代码，一时不知如何下手。只好耐下心来，慢慢的研究，总算找到了门路。针对自己的需要改写了文件压缩和解压缩的两个类，分别为ZipClass和UnZipClass。其中碰到了不少困难，就决定写出来压缩和解压的程序后，一定把源码贴出来共享，让首次接触压缩和解压缩的朋友可以少走些弯路。下面就来解释如何在C#里用http://www.icsharpcode.net下载的SharpZipLib进行文件的压缩和解压缩。
+
+    首先需要在项目里引用SharpZipLib.dll。然后修改其中的关于压缩和解压缩的类。实现源码如下：
+
+ /// <summary>
+ /// 压缩文件
+ /// </summary>
+
+using System;
+using System.IO;
+
+using ICSharpCode.SharpZipLib.Checksums;
+using ICSharpCode.SharpZipLib.Zip;
+using ICSharpCode.SharpZipLib.GZip;
+
+namespace Compression
+{
+ public class ZipClass
+ {
+ 
+  public void ZipFile(string FileToZip, string ZipedFile ,int CompressionLevel, int BlockSize)
+  {
+   //如果文件没有找到，则报错
+   if (! System.IO.File.Exists(FileToZip)) 
+   {
+    throw new System.IO.FileNotFoundException("The specified file " + FileToZip + " could not be found. Zipping aborderd");
+   }
+  
+   System.IO.FileStream StreamToZip = new System.IO.FileStream(FileToZip,System.IO.FileMode.Open , System.IO.FileAccess.Read);
+   System.IO.FileStream ZipFile = System.IO.File.Create(ZipedFile);
+   ZipOutputStream ZipStream = new ZipOutputStream(ZipFile);
+   ZipEntry ZipEntry = new ZipEntry("ZippedFile");
+   ZipStream.PutNextEntry(ZipEntry);
+   ZipStream.SetLevel(CompressionLevel);
+   byte[] buffer = new byte[BlockSize];
+   System.Int32 size =StreamToZip.Read(buffer,0,buffer.Length);
+   ZipStream.Write(buffer,0,size);
+   try 
+   {
+    while (size < StreamToZip.Length) 
+    {
+     int sizeRead =StreamToZip.Read(buffer,0,buffer.Length);
+     ZipStream.Write(buffer,0,sizeRead);
+     size += sizeRead;
+    }
+   } 
+   catch(System.Exception ex)
+   {
+    throw ex;
+   }
+   ZipStream.Finish();
+   ZipStream.Close();
+   StreamToZip.Close();
+  }
+ 
+  public void ZipFileMain(string[] args)
+  {
+   string[] filenames = Directory.GetFiles(args[0]);
+  
+   Crc32 crc = new Crc32();
+   ZipOutputStream s = new ZipOutputStream(File.Create(args[1]));
+  
+   s.SetLevel(6); // 0 - store only to 9 - means best compression
+  
+   foreach (string file in filenames) 
+   {
+    //打开压缩文件
+    FileStream fs = File.OpenRead(file);
+   
+    byte[] buffer = new byte[fs.Length];
+    fs.Read(buffer, 0, buffer.Length);
+    ZipEntry entry = new ZipEntry(file);
+   
+    entry.DateTime = DateTime.Now;
+   
+    // set Size and the crc, because the information
+    // about the size and crc should be stored in the header
+    // if it is not set it is automatically written in the footer.
+    // (in this case size == crc == -1 in the header)
+    // Some ZIP programs have problems with zip files that don't store
+    // the size and crc in the header.
+    entry.Size = fs.Length;
+    fs.Close();
+   
+    crc.Reset();
+    crc.Update(buffer);
+   
+    entry.Crc  = crc.Value;
+   
+    s.PutNextEntry(entry);
+   
+    s.Write(buffer, 0, buffer.Length);
+   
+   }
+  
+   s.Finish();
+   s.Close();
+  }
+ }
+}
+
+现在再来看看解压文件类的源码
+
+ /// <summary>
+ /// 解压文件
+ /// </summary>
+
+using System;
+using System.Text;
+using System.Collections;
+using System.IO;
+using System.Diagnostics;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Data;
+
+using ICSharpCode.SharpZipLib.BZip2;
+using ICSharpCode.SharpZipLib.Zip;
+using ICSharpCode.SharpZipLib.Zip.Compression;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using ICSharpCode.SharpZipLib.GZip;
+
+namespace DeCompression
+{
+ public class UnZipClass
+ {   
+  public void UnZip(string[] args)
+  {
+   ZipInputStream s = new ZipInputStream(File.OpenRead(args[0]));
+  
+   ZipEntry theEntry;
+   while ((theEntry = s.GetNextEntry()) != null) 
+   {
+   
+          string directoryName = Path.GetDirectoryName(args[1]);
+    string fileName      = Path.GetFileName(theEntry.Name);
+   
+    //生成解压目录
+    Directory.CreateDirectory(directoryName);
+   
+    if (fileName != String.Empty) 
+    {   
+     //解压文件到指定的目录
+     FileStream streamWriter = File.Create(args[1]+theEntry.Name);
+    
+     int size = 2048;
+     byte[] data = new byte[2048];
+     while (true) 
+     {
+      size = s.Read(data, 0, data.Length);
+      if (size > 0) 
+      {
+       streamWriter.Write(data, 0, size);
+      } 
+      else 
+      {
+       break;
+      }
+     }
+    
+     streamWriter.Close();
+    }
+   }
+   s.Close();
+  }
+ }
+}
+
+    有了压缩和解压缩的类以后，就要在窗体里调用了。怎么？是新手，不会调用？Ok,接着往下看如何在窗体里调用。
+
+    首先在窗体里放置两个命令按钮（不要告诉我你不会放啊~），然后编写以下源码
+
+/// <summary>
+ /// 调用源码
+ /// </summary>
+
+      private void button2_Click_1(object sender, System.EventArgs e)
+  {
+   string []FileProperties=new string[2];
+   FileProperties[0]="C:\\unzipped\\";//待压缩文件目录
+   FileProperties[1]="C:\\zip\\a.zip";  //压缩后的目标文件
+   ZipClass Zc=new ZipClass();
+   Zc.ZipFileMain(FileProperties);
+  }
+
+     private void button2_Click(object sender, System.EventArgs e)
+  {
+   string []FileProperties=new string[2];
+   FileProperties[0]="C:\\zip\\test.zip";//待解压的文件
+   FileProperties[1]="C:\\unzipped\\";//解压后放置的目标目录
+   UnZipClass UnZc=new UnZipClass();
+   UnZc.UnZip(FileProperties);
+  }
+
+    好了，到此为止，如何压缩和解压缩的类都已经完成了，需要的朋友直接拿走调吧。
+
+ 

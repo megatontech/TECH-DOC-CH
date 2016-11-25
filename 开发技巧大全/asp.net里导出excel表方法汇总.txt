@@ -1,0 +1,210 @@
+asp.net里导出excel表方法汇总 
+ 
+1、由dataset生成 
+
+public void CreateExcel(DataSet ds,string typeid,string FileName) 
+{ 
+HttpResponse resp; 
+resp = Page.Response; 
+resp.ContentEncoding = System.Text.Encoding.GetEncoding("GB2312"); 
+resp.AppendHeader("Content-Disposition", "attachment;filename=" + FileName); 
+string colHeaders= "", ls_item=""; 
+int i=0; 
+
+//定义表对象与行对像，同时用DataSet对其值进行初始化 
+DataTable dt=ds.Tables[0]; 
+DataRow[] myRow=dt.Select(""); 
+// typeid=="1"时导出为EXCEL格式文件；typeid=="2"时导出为XML格式文件 
+if(typeid=="1") 
+{ 
+//取得数据表各列标题，各标题之间以\t分割，最后一个列标题后加回车符 
+for(i=0;i colHeaders+=dt.Columns[i].Caption.ToString()+"\t"; 
+colHeaders +=dt.Columns[i].Caption.ToString() +"\n"; 
+//向HTTP输出流中写入取得的数据信息 
+resp.Write(colHeaders); 
+//逐行处理数据 
+foreach(DataRow row in myRow) 
+{ 
+//在当前行中，逐列获得数据，数据之间以\t分割，结束时加回车符\n 
+for(i=0;i ls_item +=row[i].ToString() + "\t"; 
+ls_item += row[i].ToString() +"\n"; 
+//当前行数据写入HTTP输出流，并且置空ls_item以便下行数据 
+resp.Write(ls_item); 
+ls_item=""; 
+} 
+} 
+else 
+{ 
+if(typeid=="2") 
+{ 
+//从DataSet中直接导出XML数据并且写到HTTP输出流中 
+resp.Write(ds.GetXml()); 
+} 
+} 
+//写缓冲区中的数据到HTTP头文件中 
+resp.End(); 
+
+
+} 
+
+
+
+2、使用微软的C＋＋写的ACTIVEX控件：http://download.microsoft.com/download/OfficeXPDev/sample/1.0/WIN98MeXP/EN-US/Dsoframerctl.exe 
+3、由datagrid生成： 
+
+public void ToExcel(System.Web.UI.Control ctl) 
+{ 
+HttpContext.Current.Response.AppendHeader("Content-Disposition","attachment;filename=Excel.xls"); 
+HttpContext.Current.Response.Charset ="UTF-8"; 
+HttpContext.Current.Response.ContentEncoding =System.Text.Encoding.Default; 
+HttpContext.Current.Response.ContentType ="application/ms-excel";//image/JPEG;text/HTML;image/GIF;vnd.ms-excel/msword 
+ctl.Page.EnableViewState =false; 
+System.IO.StringWriter tw = new System.IO.StringWriter() ; 
+System.Web.UI.HtmlTextWriter hw = new System.Web.UI.HtmlTextWriter (tw); 
+ctl.RenderControl(hw); 
+HttpContext.Current.Response.Write(tw.ToString()); 
+HttpContext.Current.Response.End(); 
+} 
+
+用法：ToExcel(datagrid1); 
+
+
+4、这个用dataview ，代码好长 
+
+public void OutputExcel(DataView dv,string str) 
+{ 
+// 
+// TODO: 在此处添加构造函数逻辑 
+// 
+//dv为要输出到Excel的数据，str为标题名称 
+GC.Collect(); 
+Application excel;// = new Application(); 
+int rowIndex=4; 
+int colIndex=1; 
+
+_Workbook xBk; 
+_Worksheet xSt; 
+
+excel= new ApplicationClass(); 
+
+xBk = excel.Workbooks.Add(true); 
+
+xSt = (_Worksheet)xBk.ActiveSheet; 
+
+// 
+//取得标题 
+// 
+foreach(DataColumn col in dv.Table.Columns) 
+{ 
+colIndex++; 
+excel.Cells[4,colIndex] = col.ColumnName; 
+xSt.get_Range(excel.Cells[4,colIndex],excel.Cells[4,colIndex]).HorizontalAlignment = XlVAlign.xlVAlignCenter;//设置标题格式为居中对齐 
+} 
+
+// 
+//取得表格中的数据 
+// 
+foreach(DataRowView row in dv) 
+{ 
+rowIndex ++; 
+colIndex = 1; 
+foreach(DataColumn col in dv.Table.Columns) 
+{ 
+colIndex ++; 
+if(col.DataType == System.Type.GetType("System.DateTime")) 
+{ 
+excel.Cells[rowIndex,colIndex] = (Convert.ToDateTime(row[col.ColumnName].ToString())).ToString("yyyy-MM-dd"); 
+xSt.get_Range(excel.Cells[rowIndex,colIndex],excel.Cells[rowIndex,colIndex]).HorizontalAlignment = XlVAlign.xlVAlignCenter;//设置日期型的字段格式为居中对齐 
+} 
+else 
+if(col.DataType == System.Type.GetType("System.String")) 
+{ 
+excel.Cells[rowIndex,colIndex] = "''"+row[col.ColumnName].ToString(); 
+xSt.get_Range(excel.Cells[rowIndex,colIndex],excel.Cells[rowIndex,colIndex]).HorizontalAlignment = XlVAlign.xlVAlignCenter;//设置字符型的字段格式为居中对齐 
+} 
+else 
+{ 
+excel.Cells[rowIndex,colIndex] = row[col.ColumnName].ToString(); 
+} 
+} 
+} 
+// 
+//加载一个合计行 
+// 
+int rowSum = rowIndex + 1; 
+int colSum = 2; 
+excel.Cells[rowSum,2] = "合计"; 
+xSt.get_Range(excel.Cells[rowSum,2],excel.Cells[rowSum,2]).HorizontalAlignment = XlHAlign.xlHAlignCenter; 
+// 
+//设置选中的部分的颜色 
+// 
+xSt.get_Range(excel.Cells[rowSum,colSum],excel.Cells[rowSum,colIndex]).Select(); 
+xSt.get_Range(excel.Cells[rowSum,colSum],excel.Cells[rowSum,colIndex]).Interior.ColorIndex = 19;//设置为浅黄色，共计有56种 
+// 
+//取得整个报表的标题 
+// 
+excel.Cells[2,2] = str; 
+// 
+//设置整个报表的标题格式 
+// 
+xSt.get_Range(excel.Cells[2,2],excel.Cells[2,2]).Font.Bold = true; 
+xSt.get_Range(excel.Cells[2,2],excel.Cells[2,2]).Font.Size = 22; 
+// 
+//设置报表表格为最适应宽度 
+// 
+xSt.get_Range(excel.Cells[4,2],excel.Cells[rowSum,colIndex]).Select(); 
+xSt.get_Range(excel.Cells[4,2],excel.Cells[rowSum,colIndex]).Columns.AutoFit(); 
+// 
+//设置整个报表的标题为跨列居中 
+// 
+xSt.get_Range(excel.Cells[2,2],excel.Cells[2,colIndex]).Select(); 
+xSt.get_Range(excel.Cells[2,2],excel.Cells[2,colIndex]).HorizontalAlignment = XlHAlign.xlHAlignCenterAcrossSelection; 
+// 
+//绘制边框 
+// 
+xSt.get_Range(excel.Cells[4,2],excel.Cells[rowSum,colIndex]).Borders.LineStyle = 1; 
+xSt.get_Range(excel.Cells[4,2],excel.Cells[rowSum,2]).Borders[XlBordersIndex.xlEdgeLeft].Weight = XlBorderWeight.xlThick;//设置左边线加粗 
+xSt.get_Range(excel.Cells[4,2],excel.Cells[4,colIndex]).Borders[XlBordersIndex.xlEdgeTop].Weight = XlBorderWeight.xlThick;//设置上边线加粗 
+xSt.get_Range(excel.Cells[4,colIndex],excel.Cells[rowSum,colIndex]).Borders[XlBordersIndex.xlEdgeRight].Weight = XlBorderWeight.xlThick;//设置右边线加粗 
+xSt.get_Range(excel.Cells[rowSum,2],excel.Cells[rowSum,colIndex]).Borders[XlBordersIndex.xlEdgeBottom].Weight = XlBorderWeight.xlThick;//设置下边线加粗 
+// 
+//显示效果 
+// 
+excel.Visible=true; 
+
+//xSt.Export(Server.MapPath(".")+"\\"+this.xlfile.Text+".xls",SheetExportActionEnum.ssExportActionNone,Microsoft.Office.Interop.OWC.SheetExportFormat.ssExportHTML); 
+xBk.SaveCopyAs(Server.MapPath(".")+"\\"+this.xlfile.Text+".xls"); 
+
+ds = null; 
+xBk.Close(false, null,null); 
+
+excel.Quit(); 
+System.Runtime.InteropServices.Marshal.ReleaseComObject(xBk); 
+System.Runtime.InteropServices.Marshal.ReleaseComObject(excel); 
+System.Runtime.InteropServices.Marshal.ReleaseComObject(xSt); 
+xBk = null; 
+excel = null; 
+xSt = null; 
+GC.Collect(); 
+string path = Server.MapPath(this.xlfile.Text+".xls"); 
+
+System.IO.FileInfo file = new System.IO.FileInfo(path); 
+Response.Clear(); 
+Response.Charset="GB2312"; 
+Response.ContentEncoding=System.Text.Encoding.UTF8; 
+// 添加头信息，为"文件下载/另存为"对话框指定默认文件名 
+Response.AddHeader("Content-Disposition", "attachment; filename=" + Server.UrlEncode(file.Name)); 
+// 添加头信息，指定文件大小，让浏览器能够显示下载进度 
+Response.AddHeader("Content-Length", file.Length.ToString()); 
+
+// 指定返回的是一个不能被客户端读取的流，必须被下载 
+Response.ContentType = "application/ms-excel"; 
+
+// 把文件流发送到客户端 
+Response.WriteFile(file.FullName); 
+// 停止页面的执行 
+
+Response.End(); 
+} 
+
+ 

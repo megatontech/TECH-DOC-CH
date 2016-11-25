@@ -1,0 +1,56 @@
+这个问题几乎每天都有人问 
+    
+  Response.Write("javascript:alert('hahahah!')");   
+    
+或： 
+    
+  <control   name>.Attributes.Add("onclike","   return   confirm('are   you   sure?')"); 
+
+
+－－－－－－－－－－－－－－－－
+
+Page.RegisterStartupScript("","<script>   alert('添加数据成功！')</script>"); 
+
+
+
+
+－－－－－－－－－－－－－－－－
+
+现在知道了，只要Page.RegisterStartupScript("","<script>   alert('添加数据成功！')</script>");中把alert改为confirm就行了。  
+
+－－－－－－－－－－－－－－－－
+
+
+麻烦一点你可以加引用   System.Windows.Forms.dll   
+  命名空间：   using   System.Windows.Forms.MessageBox;   
+  之后使用   MessageBox.Show（）;   
+  具体你可以查一下MessageBox.Show   
+    
+  MessageBox.Show("You   must   enter   a   name.",   "Name   Entry   Error",   
+  MessageBoxButtons.OK,   MessageBoxIcon.Exclamation   );   
+
+
+－－－－－－－－－－－－－－－－
+
+
+
+
+Button1.Attributes.Add("onclike","   return   confirm('are   you   sure?')");   
+
+button.Attributes.Add("onclick",   "return   confirm('文本');"); 
+
+－－－－－－－－－－－－－－－－
+
+
+Reponse.Write("<script>window.alert('消息')</script>");  
+
+
+
+－－－－－－－－－－－－－－－－
+
+
+
+
+
+
+

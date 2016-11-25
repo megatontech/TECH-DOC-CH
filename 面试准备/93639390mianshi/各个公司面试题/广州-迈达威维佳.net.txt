@@ -1,0 +1,21 @@
+１什么情况下用到虚方法，他接口的区别？
+２ArrayList,Arra和string[]三着的区别？
+３ADO.net常用的对象有哪些？DataSet和DataReader的区别
+４Web控件和HTML控件能调用客户段吗？若能，都用到什么技术。说Web控件的优点。
+5 ASP.net的身份验证有那些？都用了什么原理？
+6 在.net中页面传递参数除了用到Session,Application和cookie还有几种方式？
+7 有张表student有字段id,name,sex,birth
+(1)找出Name相同的学生（用一句SQL语句）
+（2）用一句SQL语句把学生Sex为男的改为女，女的改为男
+第8题忘了
+
+
+
+1.在什么情况下使用虚方法?虚方法和接口的差别?
+2.ArraryList,Arrayr string[]的差别是什么?
+3.Html ,Web的服务器端的控件能不能在客户端调用,如果能,怎样调用?
+4. 身份验证有那几种方法?原理是什么?
+5.DataReader和DataSet有什么区别?
+还有一些关于JavaScript方面的一些题目,我不是很清楚的我记不得
+就这些了还有些就忘了 
+

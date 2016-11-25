@@ -1,0 +1,4 @@
+C#中没有声音类。播放声音请参阅API！
+比如：
+		[DllImport("Winmm.dll")]
+		public static extern long PlaySound(string name,long  module,long flag);

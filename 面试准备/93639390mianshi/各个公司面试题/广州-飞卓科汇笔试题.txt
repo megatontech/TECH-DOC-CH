@@ -1,0 +1,7 @@
+1.application与session的区别
+2。用javascript写一个脚本，以确认用户输入
+3。viewstate的用法以及button的causevalide的作用
+4。数据库设计
+5。说出一到两个你写过的自定义控件以及他的作用，并说明他使用的基类和方法
+6。XML的XSLT的用法
+7。数据流有什么要素

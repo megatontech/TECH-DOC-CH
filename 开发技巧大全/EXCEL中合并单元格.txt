@@ -1,0 +1,6 @@
+
+private Excel._Worksheet objSheet;
+private Excel.Range range;
+objSheet.Cells[1,1]="≤Â»Îƒ⁄»›";
+range=objSheet.get_Range(objSheet.Cells[1,1],objSheet.Cells[1,3]);
+range.Merge(System.Reflection.Missing.Value);

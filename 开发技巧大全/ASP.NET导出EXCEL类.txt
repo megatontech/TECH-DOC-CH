@@ -1,0 +1,139 @@
+ASP.NET导出EXCEL类
+                                       
+
+好久没有写东西，现在贴一下这个，希望对要用ASP.NET导出EXCEL的朋友，有所帮助，也希望大家改进，不过不要忘记告诉我哦:0>
+
+最新ASP.NET导出EXCEL类
+
+说明：可以导出ASP.NET页面和DATAGRID（WebControl）数据，可以导出表单头
+
+using System;
+using System.Data;
+using System.Text;
+using System.Web;
+using System.Web.UI;
+using System.Diagnostics;
+using System.Web.UI.WebControls;
+using System.Web.UI.HtmlControls;
+using System.Data.SqlClient;
+using System.Collections;
+
+namespace bookstore
+{
+ /// 
+ /// Excel 的摘要说明。
+ /// 
+ public class Excel
+ {
+  public Excel()
+  {
+   //
+   // TODO: 在此处添加构造函数逻辑
+   //
+  }
+  
+
+  public void SaveToExcel(Page myPage, DataTable dt,DataGrid DG,string myExcelHeader,HtmlTable Tab,string myFileName)
+  {
+   HttpResponse resp;    
+   resp=myPage.Response;
+   resp.ContentEncoding=Encoding.GetEncoding("GB18030");
+   resp.AppendHeader("Content-Disposition","attachment;filename="+myFileName+".xls");
+   resp.ContentType="application/ms-excel";
+
+   string colHeaders = "\t\t\t\t"+ myExcelHeader +"\n\n\n";
+
+   colHeaders+=tableHeader(Tab)+"\n";
+
+   StringBuilder sb=new StringBuilder();
+   
+   int mycol=DG.Columns.Count;
+   ArrayList myAL=new ArrayList();
+
+   for(int i=0;i   {
+    colHeaders +=DG.Columns[i].HeaderText+"\t";  
+    myAL.Add(((System.Web.UI.WebControls.BoundColumn)(DG.Columns[i])).DataField);  
+   }
+   colHeaders += "\n";
+   sb.Append(colHeaders);
+
+   int myrow=dt.Rows.Count;
+
+   for(int k=0;k   {
+    foreach(string field in myAL)
+    {   
+     sb.Append(dt.Rows[k][field]);
+     sb.Append("\t");
+    }
+    sb.Append("\n");
+   }       
+   
+   colHeaders=sb.ToString();
+
+   colHeaders=colHeaders+"\n";
+   resp.Write(colHeaders);  
+
+   resp.End();
+   resp.Clear();
+   resp.Close();  
+  }
+
+
+  /*得到表单头子*/
+  /*表单头子有TABLE组成，偶次项排列，TABLE在HTML中加 RUNAT=SERVER*/
+  public string tableHeader(HtmlTable Tab)
+  {
+   int iCols=Tab.Rows[0].Cells.Count;
+   int iRows=Tab.Rows.Count;
+   string str="";
+   
+   for(int row=0;row   {
+    for(int col=0;col    {
+     if(col%2==1)//取偶次项的控件数据（目前只有TextBox和DropDownList，没有包含LABEL）
+     {
+      try
+      {
+       if(Tab.Rows[row].Cells[col].Controls[0].ToString()=="System.Web.UI.LiteralControl")
+       {
+        if(Tab.Rows[row].Cells[col].Controls[1].ToString()=="System.Web.UI.WebControls.TextBox")
+        {
+         str+=((System.Web.UI.WebControls.TextBox)(Tab.Rows[row].Cells[col].Controls[1])).Text+"\t";
+        }
+        if(Tab.Rows[row].Cells[col].Controls[1].ToString()=="System.Web.UI.WebControls.DropDownList")
+        {
+         str+=((System.Web.UI.WebControls.ListControl)(((System.Web.UI.WebControls.DropDownList)((Tab.Rows[row].Cells[col].Controls[1]))))).SelectedValue+"\t";     
+        }
+       }
+       else
+       {
+        if(Tab.Rows[row].Cells[col].Controls[0].ToString()=="System.Web.UI.WebControls.TextBox")
+        {
+         str+=((System.Web.UI.WebControls.TextBox)(Tab.Rows[row].Cells[col].Controls[0])).Text+"\t";
+        }
+        if(Tab.Rows[row].Cells[col].Controls[0].ToString()=="System.Web.UI.WebControls.DropDownList")
+        {
+         str+=((System.Web.UI.WebControls.ListControl)(((System.Web.UI.WebControls.DropDownList)((Tab.Rows[row].Cells[col].Controls[0]))))).SelectedValue+"\t";     
+        }
+       }
+      }
+      catch
+      {
+       str+=Tab.Rows[row].Cells[col].InnerHtml+"\t";
+      }
+      if((col+1)%iCols==0)
+      {
+       str+="\n";
+      }
+     }
+     else
+     {
+      str+="\t"+Tab.Rows[row].Cells[col].InnerHtml+"\t";
+     }
+    }
+   }
+   return(str);
+  }
+  
+ }
+}
+
