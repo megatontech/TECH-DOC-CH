@@ -1,0 +1,16 @@
+C:\Users\Admin\Desktop\FileCount\FileCount\bin\Debug\FileCount.exe
+C:\Users\Admin\Desktop\FileCount\FileCount\bin\Debug\FileCount.pdb
+C:\Users\Admin\Desktop\FileCount\FileCount\obj\Debug\FileCount.Form1.resources
+C:\Users\Admin\Desktop\FileCount\FileCount\obj\Debug\FileCount.Properties.Resources.resources
+C:\Users\Admin\Desktop\FileCount\FileCount\obj\Debug\FileCount.csproj.GenerateResource.Cache
+C:\Users\Admin\Desktop\FileCount\FileCount\obj\Debug\FileCount.exe
+C:\Users\Admin\Desktop\FileCount\FileCount\obj\Debug\FileCount.pdb
+C:\Users\Admin\Desktop\FileCount\FileCount\obj\Debug\FileCount.csprojResolveAssemblyReference.cache
+C:\Projects\TECH-DOC-CH\TECH-DOC-CH.git\FileCount\obj\Debug\FileCount.exe
+C:\Projects\TECH-DOC-CH\TECH-DOC-CH.git\FileCount\obj\Debug\FileCount.pdb
+C:\Projects\TECH-DOC-CH\TECH-DOC-CH.git\FileCount\bin\Debug\FileCount.exe
+C:\Projects\TECH-DOC-CH\TECH-DOC-CH.git\FileCount\bin\Debug\FileCount.pdb
+C:\Projects\TECH-DOC-CH\TECH-DOC-CH.git\FileCount\obj\Debug\FileCount.csprojResolveAssemblyReference.cache
+C:\Projects\TECH-DOC-CH\TECH-DOC-CH.git\FileCount\obj\Debug\FileCount.Form1.resources
+C:\Projects\TECH-DOC-CH\TECH-DOC-CH.git\FileCount\obj\Debug\FileCount.Properties.Resources.resources
+C:\Projects\TECH-DOC-CH\TECH-DOC-CH.git\FileCount\obj\Debug\FileCount.csproj.GenerateResource.Cache

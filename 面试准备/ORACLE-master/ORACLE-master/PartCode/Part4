@@ -1,0 +1,185 @@
+set serveroutput on;
+DECLARE
+begin
+dbms_output.put_line('Hello Oracle!');
+end;
+----根据用户输入的信息并显示信息
+ACCEPT stu_no prompt '请输入学生学号'
+ACCEPT stu_name prompt '请输入学生姓名'
+DECLARE
+stuno int:=&stu_no;
+stuname varchar(10):=&stu_name;
+begin
+DBMS_OUTPUT.PUT_LINE('学生学号为：'||stuno);
+DBMS_OUTPUT.PUT_LINE('学生姓名为：'||stuname);
+END;
+--查询员工编号为105的员工姓名和薪水（hr表中）
+declare
+  age DATE;
+  name varchar(10);
+begin
+  select STUDENT_AGE,STUDENT_NAME into age,name from STUDENT where STUDENT_NAME='张三';
+  dbms_output.put_line('姓名是：'||name||',生日：'||age);
+end;
+--控制语句
+ACCEPT score prompt '请输入分数'
+declare
+score int:=&score;
+begin
+if score<60 and score>=0 then
+ dbms_output.put_line('不及格');
+ elsif score>=60 and score <80 then
+  dbms_output.put_line('及格');
+   elsif score>=80 and score <=95 then
+  dbms_output.put_line('及格');
+  elsif score<=100 then
+   dbms_output.put_line('优秀');
+   else
+    dbms_output.put_line('输入错误！');
+    end if;
+end;
+--循环加前100 个数
+declare
+total int:=0;
+i int:=1;
+begin
+loop
+total:=total+i;
+i:=i+1;
+exit when i>100;
+end loop;
+dbms_output.put_line('和为：'||total);
+end;
+--存储过程
+--存储过程定义
+create or replace procedure add_pro(n in int)
+as
+  total int:=0;
+  i int:=1;
+begin
+  loop
+    total:=total+i;
+    i:=i+1;
+    exit when i>n;
+    
+  end loop;
+  dbms_output.put_line('total:'||total);
+end;
+--调用，执行一个存储过程
+begin
+add_pro(10);
+end;
+--存储过程测试--添加
+create or replace procedure add_stu(id in int,name in varchar,sex in char)
+as
+begin
+  insert into STUDENT(STUDENT_ID,STUDENT_NAME,STUDENT_SEX) values(id,name,sex);
+  COMMIT;
+end;
+begin
+add_stu(005,'赵六',0);
+end;
+--存储过程测试--更新
+create or replace procedure update_stu(id in int,name in varchar,sex in char)
+as
+begin
+  update STUDENT set STUDENT_NAME=name,STUDENT_SEX=sex where STUDENT_ID=id;
+  COMMIT;
+end;
+begin
+update_stu(5,'赵六',1);
+end;
+--存储过程测试--删除
+create or replace procedure delete_stu(id in int,name in varchar)
+as
+begin
+  DELETE FROM STUDENT where STUDENT_NAME=name and STUDENT_ID=id;
+  COMMIT;
+end;
+begin
+delete_stu(4,'李四');
+end;
+--求出给定的男生学生数量，并返回结果
+create or replace procedure getNumberByCid_pro(sex in char,num out int) as
+begin
+  select count(*) into num from student where STUDENT_SEX=sex;
+end;
+
+--调用，查看STUDENT_SEX=1的班级有几个学生打印出来
+declare
+  num int;
+begin
+   getNumberByCid_pro(1,num);
+   dbms_output.put_line('男生数量为:'||num);
+end;
+--游标
+--依次在控制台输出所有学生的信息
+--存储过程中使用游标
+--(去掉declare)create or replace PROCEDURE STUDENT_SHOW as
+declare 
+cursor cc is select * from student;
+--定义航记录的类型     
+record student%rowType;
+begin
+--打开游标
+  open cc;
+--使用游标
+  loop
+--从游标一行一行取记录
+    fetch cc into record;
+    exit when cc%notfound;
+    dbms_output.PUT_LINE('姓名是：'||record.STUDENT_name||'   年龄是：'||record.STUDENT_age);
+    end loop;
+    --显示游标必须手动关闭
+    if cc%isopen
+    then close cc;
+    end if;
+end;
+--函数
+create or replace function mtrim(str varchar)
+return varchar
+as
+  v_str varchar(20);
+begin
+  select replace(str,' ','') into v_str from dual;
+  return v_str;
+end;
+--测试
+select mtrim('   a  bc  d    e f    ') from dual;
+--触发器
+create or replace trigger t1
+before insert on person for each row
+begin
+  dbms_output.put_line('Hello'||:NEW.id||:NEW.name);
+  if :NEW.name like 'J%' then
+    RAISE_APPLICATION_ERROR(-20000,'限制写入以J开始的串');
+    --在触发器中，不能写commit或是rollback
+  end if;
+end;
+--Update之前触发 限制修改的年龄小于以前的年龄 
+create or replace trigger t2
+before update on t6 for each row
+begin
+   if :NEW.age<:OLD.age then
+      RAISE_APPLICATION_ERROR(-20000,'年龄不能越来越小');
+   end if;
+end;
+--写入小值就是出错
+update t6 set age=143;
+select * from t6;
+--同时使用insert,update,delete类型的触发器： 
+--在同一个表上，使用insert,update,delete触发器
+create or replace trigger trigger1
+   before insert or update or delete
+   on person
+  declare
+  begin
+    dbms_output.put_line('hello');
+  end;
+--以下都会引发上面的触发器
+set serveroutput on;
+insert into person values(1,'Jack');
+set serveroutput on;
+update person set name='Tom';
+set serveroutput on;
+delete from person;

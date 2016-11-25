@@ -1,0 +1,103 @@
+
+Struts
+1. 简述Struts框架的初始化流程。
+对于采用Struts框架的Web应用，在Web应用启动时就会加载并初始化控制器ActionServlet
+ActionServlet从struts-config.xml文件中读取配置信息，把它们存放到ActionMappings对象中。
+在Struts framework中， Controller主要是ActionServlet，但是对于业务逻辑的操作则主要由Action、ActionMapping、ActionForward这几个组件协调完成（也许这几个组件，应该划分到模型中的业务逻辑一块）。
+其中，Action扮演了真正的控制逻辑的实现者，而ActionMapping和ActionForward则指定了不同业务逻辑或流程的运行方向。 
+2. 简述Struts框架响应客户请求的工作流程
+1.??检索和用户请求匹配的ActionMapping实例，如果不存在，就返回用户请求路径无效的信息。
+2.??如果ActionForm实例不存在，就创建一个ActionForm对象，把客户提交的表单数据保存到ActionForm对象中。
+3.??根据配置信息决定是否需要表单验证。如果需要验证，就调用ActionForm的validate()方法。
+4.??如果ActionForm的validate()方法返回null或返回一个不包含ActionMessge的ActionErrors对象，就表示表单验证成功。
+5.? ActionServlet根据AtionMapping实例包含的映射信息决定将请求转发给哪个Action。如果应的Action实例不存在，就先创建这个实例，然后调用Action的execute()方法。
+6.? Action的execute()方法返回一个ActionForward对象，ActionServlet再把客户请求转发给ActionForward对象指向的JSP组件。
+7.? ActionForward对象指向的JSP组件生成动态页面，返回给客户。
+对于以上流程的步骤（4），如果ActionForm的validate()方法返回一个包含一个或多个ActionError的ActionErrors对象，就表示表单验证失败，此时ActionServlet将直接把请求转发给包含客户提交表单的JSP组件。在这种情况下，不会再创建Action对象并调用Action的execute方法。
+
+
+3 Struts框架的数据验证可分为几种类型？
+表单验证（由ActionForm Bean处理）：如果用户没有在表单中输入姓名，就提交表单，将生成表单验证错误
+业务逻辑验证（由Action处理）：如果用户在表单中输入的姓名为“Monster”，按照本应用的业务规则，不允许向“Monster”打招呼，因此将生成业务逻辑错误。
+4 简述Form Bean的表单验证流程。
+1、当用户提交了HTML表单，Struts框架自动把表单数据组装到ActionForm Bean中。
+2、接下来Struts框架会调用ActionForm Bean的validate()方法进行表单验证。
+3、如果validate()方法返回的ActionErrors 对象为null，或者不包含任何ActionMessage对象，就表示没有错误，数据验证通过。
+4、如果ActionErrors中包含ActionMessage对象，就表示发生了验证错误，Struts框架会把ActionErrors对象保存到request范围内，然后把请求转发到恰当的视图组件，视图组件通过<html:errors>标签把request范围内的ActionErrors对象中包含的错误消息显示出来，提示用户修改错误。
+6. 简单叙述ActionForm Bean的作用
+1、ActionForm Bean也是一种JavaBean，除了具有一些JavaBean的常规方法，还包含一些特殊的方法，用于验证HTML表单数据以及将其属性重新设置为默认值。
+2、Struts框架利用ActionForm Bean来进行View组件和Controller组件之间表单数据的传递。
+3、Struts框架把View组件接受到的用户输入的表单数据保存在ActionForm Bean中，把它传递给Controller组件，Controller组件可以对ActionForm Bean中的数据进行修改，JSP文件使用Struts标签读取修改后的ActionForm Bean的信息，重新设置HTML表单。
+7 .叙述ActionForm执行步骤
+（１）检查Action的映射，确定Action中已经配置了对ActionForm的映射
+（２）根据name属性，查找form bean的配置信息
+（３）检查Action的formbean的使用范围，确定在此范围下，是否已经有此form bean的实例。
+（４）假如当前范围下，已经存在了此form bean的实例，而是对当前请求来说，是同一种类型的话，那么就重用。
+（５）否则，就重新构建一个form bean的实例
+（６）form bean的reset()方法备调用
+（７）调用对应的setter方法，对状态属性赋值
+（８）如果validatede的属性被设置为true，那么就调用form bean的validate()方法。
+（9）如果validate（）方法没有返回任何错误，控制器将ActionForm作为参数，传给Action实例的execute（）方法并执行。
+8.在下面的标签中哪些是struts标签
+A、<html:form>	B、<html:text>	C、<html:errors>	D、<html:message>
+答案：A B C
+10、Forward与Global-Forward的区别
+答：Forward是根据Action return的值找到对应的JSP页。当多个Action共同return同一个值时，可将这个Forward元素写在Global-Forward中。
+11.问题：在Struts应用的视图中包含哪些组件?
+选项:(A) JSP(B) Servlet(C) ActionServlet	(D) Action	(E) 代表业务逻辑或业务数据的JavaBean	(F) EJB	(G) 客户化标签
+答案：A,G
+12问题：在Struts应用的控制器中包含哪些组件?
+选项:(A) JSP(B) Servlet(C) ActionServlet	(D) Action	(E)代表业务逻辑或业务数据的JavaBean	(F) EJB	(G) 客户化标签
+答案：B,C,D
+13.在struts配置文件中action元素包含哪些属性和子元素？
+path属性：指定请求访问Action的路径
+type属性：指定Action的完整类名
+name属性：指定需要传递给Action的ActionForm Bean
+scope属性：指定ActionForm Bean的存放范围
+validate属性：指定是否执行表单验证
+input属性：指定当表单验证失败时的转发路径。
+<action>元素还包含一个<forward>子元素，它定义了一个请求转发路径。
+14. 问题：在Struts应用的模型中包含哪些组件?	
+选项:(A) JSP(B) Servlet(C) ActionServlet	(D) Action	(E) 代表业务逻辑或业务数据的JavaBean	(F) EJB	(G) 客户化标签
+答案：F
+15. 问题： struts框架中，关于FormBean，下列说法正确的是：???????答案：A
+?? A FormBean是一种数据bean，主要用来封装表单提交上来的数据，并把这些数据传递给Action
+?? B 在FormBean中可以对页面上传递来的参数进行一下格式上的验证，这种验证是一种客户端的验证
+?? C 用户每次提交表单，都会产生一个新的FormBean实例
+?? D 动态FormBean不能进行验证操作
+16. 问题：struts框架中，在一个Action的配置信息中，name属性指的是：?????答案：C
+?? A 当前action实例的名字
+?? B 当前action所在的类的名字
+?? C 该Action中调用的FormBean的实例的名字
+?? D 该Action中调用的FormBean的类的所在包名
+17. 问题：关于struts项目中的类与MVC模式的对应关系，说法错误的是？答案：D
+?? A Jsp文件实现视图View的功能
+?? B ActionServlet这一个类是整个struts项目的控制器
+?? C ActionForm、Action都属于Model部分
+?? D 一个struts项目只能有一个Servlet
+18、问题：以下哪些说法是正确的？答案:C
+选项：(A)每个HTTP请求对应一个单独的ActionServlet实例
+(B)对于每个请求访问HelloAction的HTTP请求，Struts框架会创建一个单独的HelloAction实例。
+(C)每个子应用对应一个单独的RequestProcessor实例
+(D)每个子应用对应一个单独的web.xml文件
+19 ActionForm Bean对象是由谁创建的？答案:C
+选项：(A) <html:form>标签处理类 (B) ActionServlet (C) RequestProcessor (D) Action
+20、struts框架，错误的是？????????答案：C
+?? A Struts中无法完成上传功能
+?? B Struts框架基于MVC模式
+?? C Struts框架容易引起流程复杂、结构不清晰等问题
+?? D Struts可以有效地降低项目的类文件数目
+21、问题:以下代码定义了一个变量，如何输出这个变量的值?
+<bean:define id="stringBean" value=“helloWorld“/>
+选项:(A)<bean:write name=“stringBean"/>
+(B) <bean:write name=“helloWorld"/>
+(C)<%= stringBean%>
+(D)<% String myBean=(String)pageContext.getAttribute(“stringBean”,PageContext.PAGE_SCOPE);%>  <%=myBean%>
+答案: A,D
+22、问题:把静态文本放在Resource Bundle中，而不是直接在JSP文件中包含这些静态文本，有什么优点?
+答案: 提高可维护性  提高可重用性  支持国际化
+24. 问题：关于struts项目中的类与MVC模式的对应关系，说法错误的是？答案：D
+?? A Jsp文件实现视图View的功能
+?? B ActionServlet这一个类是整个struts项目的控制器
+?? C ActionForm、Action都属于Model部分
+?? D 一个struts项目只能有一个Servlet

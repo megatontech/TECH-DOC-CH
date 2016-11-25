@@ -1,0 +1,191 @@
+1.      填空: (1)面向对象的语言具有____封装____性、_____继承____性、____多态____性。
+2. 不定项选择：
+(1) 以下叙述正确的是：bc 
+      A. 接口中可以有虚方法。     B. 一个类可以实现多个接口。
+      C. 接口不能被实例化。       D. 接口中可以包含已实现的方法。
+  (2) 从数据库读取记录，你可能用到的方法有：bcd
+      A. ExecuteNonQuery            B. ExecuteScalar
+      C. Fill                        D. ExecuteReader
+3. 简述 private、 protected、 public、 internal 修饰符的访问权限。
+答：public 不受限制的访问
+	Private 只能在本类中访问
+	Protected 本类和继承与他的类中的都能访问
+	Internal 同一个应用程序或类库中
+
+4. 写出一条Sql语句： 取出表A中第31到第40记录（SQLServer, 以自动增长的ID作为主键,  注意：ID可能不是连续的。）
+5 .列举ASP.NET 页面之间传递值的几种方式。
+答：
+session(viewstate) 	 			简单，但易丢失
+application        	 		    全局
+cookie                  			简单，但可能不支持，可能被伪造
+input type="hidden"     			简单，可能被伪造
+url参数                  			简单，显示于地址栏，长度有限
+数据库                   			稳定，安全，但性能相对弱
+
+
+6. 写出程序的输出结果
+class Class1  {
+       private string str = "Class1.str";
+       private int i = 0;
+       static void StringConvert(string str)  {
+           str = "string being converted.";
+       }
+       static void StringConvert(Class1 c)  {
+           c.str = "string being converted.";
+       }
+       static void Add(int i)  {
+           i++;
+       }
+       static void AddWithRef(ref int i)  {
+           i++;
+       }
+       static void Main()  {
+           int i1 = 10;
+           int i2 = 20;
+           string str = "str";
+           Class1 c = new Class1();
+           Add(i1);
+           AddWithRef(ref i2);
+           Add(c.i);
+           StringConvert(str);         
+           StringConvert(c);
+           Console.WriteLine(i1);
+           Console.WriteLine(i2);
+           Console.WriteLine(c.i);
+           Console.WriteLine(str);
+           Console.WriteLine(c.str);
+       }  
+    }
+答：10，21，0，str，string being converted.
+
+10.  程序设计: 猫大叫一声，所有的老鼠都开始逃跑，主人被惊醒。(C#语言)
+要求：  1.要有联动性，老鼠和主人的行为是被动的。
+2.考虑可扩展性，猫的叫声可能引起其他联动效应。
+ public interface Observer
+    {
+        void Response();    //观察者的响应，如是老鼠见到猫的反映
+    }
+    public interface Subject
+    {
+        void AimAt(Observer obs);  //针对哪些观察者，这里指猫的要扑捉的对象---老鼠
+    }
+    public class Mouse : Observer
+    {
+        private string name;
+        public Mouse(string name, Subject subj)
+        {           
+            this.name = name;
+            subj.AimAt(this);
+        }
+        
+        public void Response()
+        {
+            Console.WriteLine(name + " attempt to escape!");
+        }
+    }
+    public class Master : Observer
+    {   
+        public Master(Subject subj)
+        {           
+            subj.AimAt(this);
+        }
+        
+        public void Response()
+        {
+            Console.WriteLine("Host waken!");
+        }  
+    }
+ 
+    public class Cat : Subject
+    {
+        private ArrayList observers;
+        public Cat()
+        {   
+            this.observers = new ArrayList();
+        }
+        public void AimAt(Observer obs)
+        {
+            this.observers.Add(obs);
+        }
+        public void Cry()
+        {
+            Console.WriteLine("Cat cryed!");
+            foreach (Observer obs in this.observers)
+            {
+                obs.Response();
+            }
+        }
+    }
+    class MainClass
+    {       
+        static void Main(string[] args)
+        {
+            Cat cat = new Cat();
+            Mouse mouse1 = new Mouse("mouse1", cat);
+            Mouse mouse2 = new Mouse("mouse2", cat);
+            Master master = new Master(cat);
+            cat.Cry();
+        }
+    }
+
+//---------------------------------------------------------------------------------------------
+设计方法二: 使用event -- delegate设计..
+    public delegate void SubEventHandler();
+    public abstract class Subject
+    {
+        public event SubEventHandler SubEvent;
+        protected void FireAway()
+        {
+            if (this.SubEvent != null)
+                this.SubEvent();
+        }   
+    }
+    public class Cat : Subject
+    {  
+        public void Cry()
+        {
+            Console.WriteLine("cat cryed.");
+            this.FireAway();
+        }
+    }
+    public abstract class Observer
+    {
+        public Observer(Subject sub)
+        {
+            sub.SubEvent += new SubEventHandler(Response);
+        }
+        public abstract void Response();    
+    }
+    public class Mouse : Observer
+    {
+        private string name;
+        public Mouse(string name, Subject sub) : base(sub)
+        {   
+            this.name = name;
+        }
+        public override void Response()
+        {
+            Console.WriteLine(name + " attempt to escape!");
+        }
+    }
+    public class Master : Observer
+    {
+        public Master(Subject sub) : base(sub){}
+        public override void Response()
+        {
+            Console.WriteLine("host waken");
+        }
+    }
+    class Class1
+    {
+        static void Main(string[] args)
+        {
+            Cat cat = new Cat();
+            Mouse mouse1 = new Mouse("mouse1", cat);
+            Mouse mouse2 = new Mouse("mouse2", cat);
+            Master master = new Master(cat);
+            cat.Cry();
+        }
+    }
+
+
