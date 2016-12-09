@@ -1,0 +1,7 @@
+E:\Github\TECH-DOC-CH\FileCount\bin\Release\FileCount.exe
+E:\Github\TECH-DOC-CH\FileCount\bin\Release\FileCount.pdb
+E:\Github\TECH-DOC-CH\FileCount\obj\Release\FileCount.Form1.resources
+E:\Github\TECH-DOC-CH\FileCount\obj\Release\FileCount.Properties.Resources.resources
+E:\Github\TECH-DOC-CH\FileCount\obj\Release\FileCount.csproj.GenerateResource.Cache
+E:\Github\TECH-DOC-CH\FileCount\obj\Release\FileCount.exe
+E:\Github\TECH-DOC-CH\FileCount\obj\Release\FileCount.pdb
